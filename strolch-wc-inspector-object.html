@@ -1,6 +1,11 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<link rel="import" href="../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-header-panel/paper-header-panel.html">
+
 <link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
 
 <link rel="import" href="../paper-styles/color.html">
 <link rel="import" href="../paper-styles/default-theme.html">
@@ -23,81 +28,86 @@
                 cursor: pointer;
             }
 
-            .title {
-                font-weight: bold;
-            }
-
             .table-title td {
                 border: none;
                 padding: 0;
             }
 
+            paper-material {
+                border-radius: 2px;
+                background-color: #ffffff;
+            }
+
+            paper-toolbar {
+                --paper-toolbar-height: 42px;
+                --paper-toolbar-background: var(--google-grey-300);
+                --paper-toolbar-color: var(--google-grey-700);
+            }
+
+            paper-tabs {
+                --paper-tabs-selection-bar-color: var(--paper-amber-600);
+                background-color: #ffffff;
+                color: #000000;
+            }
+
         </style>
 
-        <paper-material class="card" elevation="1">
+        <paper-material class="mt-4" elevation="1">
+            <paper-toolbar on-tap="_toggleExpanded">
+                <span class="title">[[objectName]] [[summary.id]] / [[summary.name]] / [[summary.type]]</span>
+                <paper-icon-button id="expandedIcon" icon="expand-more"></paper-icon-button>
+            </paper-toolbar>
 
-            <div class="row">
-                <div class="col-6">
+            <template is="dom-if" if="[[expanded]]">
+                <paper-tabs selected="{{selectedDetailType}}" attr-for-selected="name">
+                    <paper-tab name="parameters">Parameters</paper-tab>
+                    <paper-tab name="policies">Policies</paper-tab>
+                    <template is="dom-if" if="[[_isResource(objectType)]]">
+                        <paper-tab name="timedstates">Timed States</paper-tab>
+                    </template>
+                </paper-tabs>
+            </template>
 
-                    <table class="table table-sm table-title">
-                        <tr>
-                            <td><span class="title">Id</span></td>
-                            <td>[[summary.id]]</td>
-                        </tr>
-                        <tr>
-                            <td><span class="title">Name</span></td>
-                            <td>[[summary.name]]</td>
-                        </tr>
-                        <tr>
-                            <td><span class="title">Type</span></td>
-                            <td>[[summary.type]]</td>
-                        </tr>
-                    </table>
+            <iron-pages selected="[[selectedDetailType]]" attr-for-selected="name">
 
-                </div>
-            </div>
+                <!-- parameters -->
+                <section name="parameters">
+                    <template is="dom-if" if="[[!details]]">
+                        <p class="m-4 text-center">Loading...</p>
+                    </template>
+                    <template is="dom-if" if="[[details]]">
 
-            <div class="row" on-tap="toggleDetails">
-                <div class="col-12" hidden="[[!hideDetails]]">
-                    <paper-material class="card" elevation="1">
-                        Show parameters
-                    </paper-material>
-                </div>
-                <div class="col-12" hidden="[[hideDetails]]">
-
-                    <paper-material class="card" elevation="1">
-                        <h5>Parameters</h5>
-                        <template is="dom-if" if="[[!details]]">
-                            <p class="title text-center">Loading details...</p>
+                        <template is="dom-if" if="[[_isEmpty(details.parameterBags)]]">
+                            <p class="m-4 text-center">No parameters defined on [[objectName]] [[summary.id]]</p>
                         </template>
-                        <template is="dom-if" if="[[details]]">
+                        <template is="dom-if" if="[[_isNotEmpty(details.parameterBags)]]">
 
-                            <table class="table">
+                            <table class="table table-sm">
                                 <thead>
                                 <tr>
                                     <th>ParameterBag</th>
                                     <th>Parameter Id</th>
                                     <th>Name</th>
-                                    <th>Type</th>
                                     <th>Interpretation</th>
                                     <th>UOM</th>
+                                    <th>Type</th>
                                     <th>Value</th>
                                 </tr>
                                 </thead>
 
                                 <tbody>
 
-                                <template is="dom-repeat" items="{{_toArray(details.parameterBags)}}" as="bag">
-                                    <template is="dom-repeat" items="{{_toArray(bag.parameters)}}" as="param">
+                                <template is="dom-repeat" items="{{_asArray(details.parameterBags)}}" as="bag">
+                                    <template is="dom-repeat" items="{{_asArray(bag.value.parameters)}}" as="param">
 
                                         <tr>
-                                            <td>[[bag.id]]</td>
-                                            <td>[[param.id]]</td>
-                                            <td>[[param.name]]</td>
-                                            <td>[[param.type]]</td>
-                                            <td>[[param.interpretation]]</td>
-                                            <td>[[param.uom]]</td>
-                                            <td>[[param.value]]</td>
+                                            <td>[[bag.value.id]]</td>
+                                            <td>[[param.value.id]]</td>
+                                            <td>[[param.value.name]]</td>
+                                            <td>[[param.value.interpretation]]</td>
+                                            <td>[[param.value.uom]]</td>
+                                            <td>[[param.value.type]]</td>
+                                            <td>[[param.value.value]]</td>
                                         </tr>
 
                                     </template>
@@ -105,12 +115,104 @@
 
                                 </tbody>
                             </table>
+                        </template>
+
+                    </template>
+                </section>
+
+                <!-- policies -->
+                <section name="policies">
+                    <template is="dom-if" if="[[!details]]">
+                        <p class="m-4 text-center">Loading...</p>
+                    </template>
+                    <template is="dom-if" if="[[details]]">
+
+                        <template is="dom-if" if="[[_isEmpty(details.policies)]]">
+                            <p class="m-4 text-center">No policies defined on [[objectName]] [[summary.id]]</p>
+                        </template>
+                        <template is="dom-if" if="[[_isNotEmpty(details.policies)]]">
+
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+
+                                <template is="dom-repeat" items="{{_asArray(details.policies)}}" as="policy">
+
+                                    <tr>
+                                        <td>[[policy.key]]</td>
+                                        <td>[[policy.value]]</td>
+                                    </tr>
+
+                                </template>
+
+                                </tbody>
+                            </table>
+                        </template>
+
+                    </template>
+                </section>
+
+                <!-- timedstates -->
+                <template is="dom-if" if="[[_isResource(objectType)]]">
+                    <section name="timedstates">
+                        <template is="dom-if" if="[[!details]]">
+                            <p class="m-4 text-center">Loading...</p>
+                        </template>
+                        <template is="dom-if" if="[[details]]">
+
+                            <template is="dom-if" if="[[_isEmpty(details.timedStates)]]">
+                                <p class="m-4 text-center">No timed states defined on [[objectName]] [[summary.id]]</p>
+                            </template>
+                            <template is="dom-if" if="[[_isNotEmpty(details.timedStates)]]">
+                                <template is="dom-repeat" items="[[_asArray(details.timedStates)]]" as="timedState">
+
+                                    <paper-material class="card" elevation="1">
+                                        <table class="table table-sm table-title">
+                                            <tbody>
+                                            <tr>
+                                                <td><b>Id</b> [[timedState.value.id]]</td>
+                                                <td><b>Name</b> [[timedState.value.name]]</td>
+                                                <td><b>Type</b> [[timedState.value.type]]</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <table class="table table-sm">
+                                            <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <template is="dom-repeat"
+                                                      items="[[timedState.value.values]]"
+                                                      as="timedStateValue">
+                                                <tr>
+                                                    <td>[[timedStateValue.time]]</td>
+                                                    <td>[[timedStateValue.value]]</td>
+                                                </tr>
+                                            </template>
+                                            </tbody>
+                                        </table>
+
+                                    </paper-material>
+
+                                </template>
+                            </template>
 
                         </template>
-                    </paper-material>
+                    </section>
+                </template>
 
-                </div>
-            </div>
+            </iron-pages>
+
         </paper-material>
 
         <iron-ajax id="ajax"
@@ -135,19 +237,19 @@
                     }
                 },
                 realm: {
-                    type: Object,
+                    type: String,
                     value: function () {
                         return null;
                     }
                 },
                 objectName: {
-                    type: Object,
+                    type: String,
                     value: function () {
                         return null;
                     }
                 },
                 objectType: {
-                    type: Object,
+                    type: String,
                     value: function () {
                         return null;
                     }
@@ -164,38 +266,70 @@
                         return null;
                     }
                 },
-                hideDetails: {
+                expanded: {
                     type: Boolean,
                     value: function () {
-                        return true;
+                        return false;
                     }
+                },
+                selectedDetailType: {
+                    type: String,
+                    value: function () {
+                        return true;
+                    },
+                    observer: "selectedDetailTypeChanged"
                 }
             },
 
-            _isResource: function () {
-                return this.objectType == 'Resource';
+            _isResource: function (objectType) {
+                return objectType == 'resources';
             },
-            _isOrder: function () {
-                return this.objectType == 'Order';
+            _isOrder: function (objectType) {
+                return objectType == 'orders';
             },
-            _isActivity: function () {
-                return this.objectType == 'Activity';
+            _isActivity: function (objectType) {
+                return objectType == 'activities';
             },
 
-            _toArray: function (obj) {
+            _isEmpty: function (obj) {
+                if (obj == null)
+                    return true;
+                if (obj instanceof Array) {
+                    return obj.length == 0;
+                } else if (obj instanceof Object) {
+                    return Object.keys(obj).length == 0;
+                }
+
+                return true;
+            },
+            _isNotEmpty: function (obj) {
+                return !this._isEmpty(obj);
+            },
+
+            _asArray: function (obj) {
+                if (!obj)
+                    return [];
                 return Object.keys(obj).map(function (key) {
-                    return obj[key];
+                    return {
+                        key: key,
+                        value: obj[key]
+                    };
                 });
             },
 
-            toggleDetails: function () {
-                this.hideDetails = !this.hideDetails;
+            _toggleExpanded: function (evt) {
+                this.expanded = !this.expanded;
+                this.$.expandedIcon.icon = this.expanded ? 'expand-less' : 'expand-more';
 
-                if (!this.hideDetails && this.details == null) {
-                    var that = this;
-                    setTimeout(function () {
-                        that.reloadDetails();
-                    }, 1000);
+                if (!this.expanded) {
+                    this.selectedDetailType = null;
+                }
+            },
+
+            selectedDetailTypeChanged: function (newValue, oldValue) {
+                if (newValue != null) {
+                    console.log('Selected detail type type changed from ' + oldValue + " to " + newValue);
+                    this.reloadDetails();
                 }
             },
 

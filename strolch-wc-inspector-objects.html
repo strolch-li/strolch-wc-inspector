@@ -1,5 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<link rel="import" href="../paper-toolbar/paper-toolbar.html">
+
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
 
@@ -24,9 +26,13 @@
                 font-size: 1rem;
             }
 
-            table {
+            .card {
                 cursor: pointer;
                 border-style: none;
+            }
+
+            paper-toolbar {
+                --paper-toolbar-height: 42px;
             }
 
         </style>
@@ -40,36 +46,26 @@
             <iron-pages selected="{{section}}" attr-for-selected="name">
 
                 <section name="typesSummary">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                        <tr>
-                            <th>Size</th>
-                            <th>Type</th>
-                        </tr>
-                        </thead>
 
-                        <tbody>
-
-                        <template is="dom-repeat" items="[[objectData.types]]">
-                            <tr on-tap="_showTypeDetails">
-                                <td>[[item.size]]</td>
-                                <td>[[item.type]]</td>
-                            </tr>
-                        </template>
-
-                        </tbody>
-
-                    </table>
+                    <template is="dom-repeat" items="[[objectData.types]]">
+                        <div class="row justify-content-center">
+                            <div class="col-4">
+                                <paper-material class="card m-2 p-4" elevation="1" on-tap="_showTypeDetails">
+                                    <p>[[objectName]] of type <b>[[item.type]]</b> ([[item.size]])</p>
+                                </paper-material>
+                            </div>
+                        </div>
+                    </template>
                 </section>
 
                 <section name="typeDetails">
 
                     <div class="row">
                         <div class="col-12">
-                            <h5 class="mt-2">
-                                <paper-icon-button icon="close" on-tap="_closeTypeDetails"></paper-icon-button>
+                            <paper-toolbar>
+                                <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
                                 <span class="align-text-bottom">Showing [[objectName]] objects of type [[selectedType]]</span>
-                            </h5>
+                            </paper-toolbar>
 
                             <hr />
 

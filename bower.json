@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "authors": "Robert von Burg",
   "keywords": [
     "strolch",
@@ -23,6 +23,9 @@
     "iron-ajax": "PolymerElements/iron-ajax#^1.4.3",
     "iron-pages": "PolymerElements/iron-pages#^1.0.8",
     "iron-icons": "PolymerElements/iron-icons#^1.2.0",
+    "paper-header-panel": "PolymerElements/paper-header-panel#^1.1.7",
+    "paper-toolbar": "PolymerElements/paper-toolbar#^1.1.7",
+    "paper-icon-button": "PolymerElements/paper-icon-button#^1.1.4",
     "paper-tabs": "PolymerElements/paper-tabs#^1.7.0",
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.5.0",
     "paper-listbox": "polymerelements/paper-listbox#^1.1.2",

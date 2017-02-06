@@ -28,25 +28,16 @@
                 height: 100%;
             }
 
-            .toolbar-row {
+            .toolbar {
                 background-color: var(--paper-blue-600);
-                margin: 0;
-                padding: 0;
-            }
-
-            .toolbar-cell {
-                margin: 0;
-                padding: 0;
+                height: 42px;
             }
 
             paper-tabs {
-                --paper-tabs-selection-bar-color: var(--paper-amber-600);
                 margin: 0;
                 padding: 0;
                 height: 100%;
-            }
-
-            paper-tabs {
+                --paper-tabs-selection-bar-color: var(--paper-amber-600);
                 background-color: var(--paper-blue-600);
                 color: #fff;
             }
@@ -93,63 +84,63 @@
 
         </style>
 
-        <div class="row toolbar-row">
+        <div class="row">
 
-            <div class="col-3 toolbar-cell">
+            <div class="col-3 pr-0">
 
-                <paper-dropdown-menu no-label-float="true" label="select realm" class="custom">
-                    <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
+                <div class="toolbar">
 
-                        <template is="dom-repeat" items="{{realms}}">
-                            <paper-item value="[[item.name]]">[[item.name]] ([[item.size]])</paper-item>
-                        </template>
+                    <paper-dropdown-menu no-label-float="true" label="select realm" class="custom">
+                        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
 
-                    </paper-listbox>
-                </paper-dropdown-menu>
+                            <template is="dom-repeat" items="{{realms}}">
+                                <paper-item value="[[item.name]]">[[item.name]] ([[item.size]])</paper-item>
+                            </template>
+
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                </div>
 
             </div>
-            <div class="col-9 toolbar-cell">
-                <template is="dom-if" if="[[selectedRealm]]">
-                    <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
-                        <paper-tab name="resources">[[resourcesSummary]]</paper-tab>
-                        <paper-tab name="orders">[[ordersSummary]]</paper-tab>
-                        <paper-tab name="activities">[[activitiesSummary]]</paper-tab>
-                    </paper-tabs>
-                </template>
+            <div class="col-9 pl-0">
+                <div class="toolbar">
+                    <template is="dom-if" if="[[selectedRealm]]">
+                        <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
+                            <paper-tab name="resources">[[resourcesSummary]]</paper-tab>
+                            <paper-tab name="orders">[[ordersSummary]]</paper-tab>
+                            <paper-tab name="activities">[[activitiesSummary]]</paper-tab>
+                        </paper-tabs>
+                    </template>
+                </div>
             </div>
         </div>
 
         <div class="row">
 
             <div class="col-12">
-
-                <paper-material elevation="1">
-
-                    <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
-                        <div name="resources">
-                            <strolch-wc-inspector-objects app="[[app]]"
-                                                          realm="[[selectedRealm]]"
-                                                          object-name="Resource"
-                                                          object-type="resources"
-                                                          object-data="[[resources]]"></strolch-wc-inspector-objects>
-                        </div>
-                        <div name="orders">
-                            <strolch-wc-inspector-objects app="[[app]]"
-                                                          realm="[[selectedRealm]]"
-                                                          object-name="Order"
-                                                          object-type="orders"
-                                                          object-data="[[orders]]"></strolch-wc-inspector-objects>
-                        </div>
-                        <div name="activities">
-                            <strolch-wc-inspector-objects app="[[app]]"
-                                                          realm="[[selectedRealm]]"
-                                                          object-name="Activity"
-                                                          object-type="activities"
-                                                          object-data="[[activities]]"></strolch-wc-inspector-objects>
-                        </div>
-                    </iron-pages>
-
-                </paper-material>
+                <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
+                    <section name="resources">
+                        <strolch-wc-inspector-objects app="[[app]]"
+                                                      realm="[[selectedRealm]]"
+                                                      object-name="Resource"
+                                                      object-type="resources"
+                                                      object-data="[[resources]]"></strolch-wc-inspector-objects>
+                    </section>
+                    <section name="orders">
+                        <strolch-wc-inspector-objects app="[[app]]"
+                                                      realm="[[selectedRealm]]"
+                                                      object-name="Order"
+                                                      object-type="orders"
+                                                      object-data="[[orders]]"></strolch-wc-inspector-objects>
+                    </section>
+                    <section name="activities">
+                        <strolch-wc-inspector-objects app="[[app]]"
+                                                      realm="[[selectedRealm]]"
+                                                      object-name="Activity"
+                                                      object-type="activities"
+                                                      object-data="[[activities]]"></strolch-wc-inspector-objects>
+                    </section>
+                </iron-pages>
             </div>
 
         </div>
