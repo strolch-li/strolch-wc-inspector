@@ -55,52 +55,65 @@
                             <td><span class="title">Type</span></td>
                             <td>[[summary.type]]</td>
                         </tr>
+                        <template is="dom-if" if="[[summary.state]]">
+                            <tr>
+                                <td><span class="title">State</span></td>
+                                <td>[[summary.state]]</td>
+                            </tr>
+                        </template>
+                        <template is="dom-if" if="[[summary.date]]">
+                            <tr>
+                                <td><span class="title">Date</span></td>
+                                <td>[[summary.date]]</td>
+                            </tr>
+                        </template>
                     </table>
 
                 </div>
             </div>
 
-            <div class="row" on-tap="toggleDetails">
-                <div class="col-12" hidden="[[!hideDetails]]">
-                    <paper-material class="card" elevation="1">
+            <!-- Parameters -->
+            <div class="row">
+                <div class="col-12" hidden="[[!hideParams]]">
+                    <paper-material class="card" elevation="1" on-tap="toggleParams">
                         Show parameters
                     </paper-material>
                 </div>
-                <div class="col-12" hidden="[[hideDetails]]">
+                <div class="col-12" hidden="[[hideParams]]">
 
                     <paper-material class="card" elevation="1">
-                        <h5>Parameters</h5>
+                        <h5 on-tap="toggleParams">Parameters</h5>
                         <template is="dom-if" if="[[!details]]">
-                            <p class="title text-center">Loading details...</p>
+                            <p class="title text-center">Loading...</p>
                         </template>
                         <template is="dom-if" if="[[details]]">
 
-                            <table class="table">
+                            <table class="table table-sm">
                                 <thead>
                                 <tr>
                                     <th>ParameterBag</th>
                                     <th>Parameter Id</th>
                                     <th>Name</th>
-                                    <th>Type</th>
                                     <th>Interpretation</th>
                                     <th>UOM</th>
+                                    <th>Type</th>
                                     <th>Value</th>
                                 </tr>
                                 </thead>
 
                                 <tbody>
 
-                                <template is="dom-repeat" items="{{_toArray(details.parameterBags)}}" as="bag">
-                                    <template is="dom-repeat" items="{{_toArray(bag.parameters)}}" as="param">
+                                <template is="dom-repeat" items="{{_asArray(details.parameterBags)}}" as="bag">
+                                    <template is="dom-repeat" items="{{_asArray(bag.value.parameters)}}" as="param">
 
                                         <tr>
-                                            <td>[[bag.id]]</td>
-                                            <td>[[param.id]]</td>
-                                            <td>[[param.name]]</td>
-                                            <td>[[param.type]]</td>
-                                            <td>[[param.interpretation]]</td>
-                                            <td>[[param.uom]]</td>
-                                            <td>[[param.value]]</td>
+                                            <td>[[bag.value.id]]</td>
+                                            <td>[[param.value.id]]</td>
+                                            <td>[[param.value.name]]</td>
+                                            <td>[[param.value.interpretation]]</td>
+                                            <td>[[param.value.uom]]</td>
+                                            <td>[[param.value.type]]</td>
+                                            <td>[[param.value.value]]</td>
                                         </tr>
 
                                     </template>
@@ -114,6 +127,114 @@
 
                 </div>
             </div>
+
+            <!-- Policies -->
+            <div class="row">
+                <div class="col-12" hidden="[[!hidePolicies]]">
+                    <paper-material class="card" elevation="1" on-tap="togglePolicies">
+                        Show Policies
+                    </paper-material>
+                </div>
+                <div class="col-12" hidden="[[hidePolicies]]">
+
+                    <paper-material class="card" elevation="1">
+                        <h5 on-tap="togglePolicies">Policies</h5>
+                        <template is="dom-if" if="[[!details]]">
+                            <p class="title text-center">Loading...</p>
+                        </template>
+                        <template is="dom-if" if="[[details]]">
+
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+
+                                <template is="dom-repeat" items="{{_asArray(details.policies)}}" as="policy">
+
+                                    <tr>
+                                        <td>[[policy.key]]</td>
+                                        <td>[[policy.value]]</td>
+                                    </tr>
+
+                                </template>
+
+                                </tbody>
+                            </table>
+
+                        </template>
+                    </paper-material>
+
+                </div>
+            </div>
+
+            <!-- Timed States -->
+            <template is="dom-if" if="[[_isResource(objectType)]]">
+
+                <div class="row">
+                    <div class="col-12" hidden="[[!hideTimedStates]]">
+                        <paper-material class="card" elevation="1" on-tap="toggleTimedStates">
+                            Show Timed States
+                        </paper-material>
+                    </div>
+                    <div class="col-12" hidden="[[hideTimedStates]]">
+
+                        <paper-material class="card" elevation="1">
+                            <h5 on-tap="toggleTimedStates">Timed States</h5>
+                            <template is="dom-if" if="[[!details]]">
+                                <p class="title text-center">Loading...</p>
+                            </template>
+                            <template is="dom-if" if="[[details]]">
+
+                                <template is="dom-repeat" items="[[_asArray(details.timedStates)]]" as="timedState">
+
+                                    <paper-material class="card" elevation="1">
+                                        <table class="table table-sm table-title">
+                                            <tbody>
+                                            <tr>
+                                                <td><span class="title">Id</span> [[timedState.value.id]]</td>
+                                                <td><span class="title">Name</span> [[timedState.value.name]]</td>
+                                                <td><span class="title">Type</span> [[timedState.value.type]]</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <table class="table table-sm">
+                                            <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <template is="dom-repeat"
+                                                      items="[[timedState.value.values]]"
+                                                      as="timedStateValue">
+                                                <tr>
+                                                    <td>[[timedStateValue.time]]</td>
+                                                    <td>[[timedStateValue.value]]</td>
+                                                </tr>
+                                            </template>
+                                            </tbody>
+                                        </table>
+
+                                    </paper-material>
+
+                                </template>
+
+                            </template>
+                        </paper-material>
+
+                    </div>
+                </div>
+
+
+            </template>
+
         </paper-material>
 
         <iron-ajax id="ajax"
@@ -167,7 +288,19 @@
                         return null;
                     }
                 },
-                hideDetails: {
+                hideParams: {
+                    type: Boolean,
+                    value: function () {
+                        return true;
+                    }
+                },
+                hidePolicies: {
+                    type: Boolean,
+                    value: function () {
+                        return true;
+                    }
+                },
+                hideTimedStates: {
                     type: Boolean,
                     value: function () {
                         return true;
@@ -175,45 +308,59 @@
                 }
             },
 
-            _isResource: function () {
-                return this.objectType == 'Resource';
+            _isResource: function (objectType) {
+                return objectType == 'resources';
             },
-            _isOrder: function () {
-                return this.objectType == 'Order';
+            _isOrder: function (objectType) {
+                return objectType == 'orders';
             },
-            _isActivity: function () {
-                return this.objectType == 'Activity';
+            _isActivity: function (objectType) {
+                return objectType == 'activities';
             },
 
-            _toArray: function (obj) {
+            _asArray: function (obj) {
+                if (!obj)
+                    return [];
                 return Object.keys(obj).map(function (key) {
-                    return obj[key];
+                    return {
+                        key: key,
+                        value: obj[key]
+                    };
                 });
             },
 
-            toggleDetails: function () {
-                this.hideDetails = !this.hideDetails;
-
-                if (!this.hideDetails && this.details == null) {
-                    var that = this;
-                    setTimeout(function () {
-                        that.reloadDetails();
-                    }, 1000);
-                }
+            toggleParams: function () {
+                this.hideParams = !this.hideParams;
+                this.reloadDetails(this.hideParams);
+            },
+            togglePolicies: function () {
+                this.hidePolicies = !this.hidePolicies;
+                this.reloadDetails(this.hidePolicies);
+            },
+            toggleTimedStates: function () {
+                this.hideTimedStates = !this.hideTimedStates;
+                this.reloadDetails(this.hideTimedStates);
             },
 
-            reloadDetails: function () {
+            reloadDetails: function (hide) {
+                if (hide)
+                    return;
+                if (this.details != null)
+                    return;
 
-                this.details = null;
+                var that = this;
+                setTimeout(function () {
+                    that.details = null;
 
-                this._handleAjaxResponse = function (data) {
-                    this.details = data.detail.response;
-                    this.details.parameterBagsArr = console.log(this.details);
-                };
+                    that._handleAjaxResponse = function (data) {
+                        that.details = data.detail.response;
+                    };
 
-                this.$.ajax.url = './rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.summary.type + '/' + this.summary.id;
-                this.$.ajax.method = 'GET';
-                this.$.ajax.generateRequest();
+                    that.$.ajax.url = './rest/strolch/inspector/' + that.realm + '/' + that.objectType + '/' + that.summary.type + '/' + that.summary.id;
+                    that.$.ajax.method = 'GET';
+                    that.$.ajax.generateRequest();
+                }, 1000);
+
             },
 
             ready: function () {
