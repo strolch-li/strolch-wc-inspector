@@ -1,0 +1,215 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="./strolch-wc-inspector-object.html">
+
+<dom-module id="strolch-wc-inspector-objects">
+
+    <template>
+
+        <style>
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            .title {
+                margin-top: 2em;
+                font-weight: bold;
+                font-size: 1rem;
+            }
+
+            table {
+                cursor: pointer;
+                border-style: none;
+            }
+
+        </style>
+
+        <template is="dom-if" if="[[_noElements(objectData)]]" restamp>
+            <p class="title text-center">No [[objectName]] objects exists.</p>
+        </template>
+
+        <template is="dom-if" if="[[!_noElements(objectData)]]" restamp>
+
+            <iron-pages selected="{{section}}" attr-for-selected="name">
+
+                <section name="typesSummary">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th>Size</th>
+                            <th>Type</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <template is="dom-repeat" items="[[objectData.types]]">
+                            <tr on-tap="_showTypeDetails">
+                                <td>[[item.size]]</td>
+                                <td>[[item.type]]</td>
+                            </tr>
+                        </template>
+
+                        </tbody>
+
+                    </table>
+                </section>
+
+                <section name="typeDetails">
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mt-2">
+                                <paper-icon-button icon="close" on-tap="_closeTypeDetails"></paper-icon-button>
+                                <span class="align-text-bottom">Showing [[objectName]] objects of type [[selectedType]]</span>
+                            </h5>
+
+                            <hr />
+
+                            <template is="dom-repeat" items="[[typeData.elements]]">
+                                <strolch-wc-inspector-object app="[[app]]"
+                                                             realm="[[realm]]"
+                                                             object-name="[[objectName]]"
+                                                             object-type="[[objectType]]"
+                                                             summary="[[item]]"></strolch-wc-inspector-object>
+                            </template>
+
+                        </div>
+                    </div>
+
+                </section>
+
+            </iron-pages>
+
+        </template>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-inspector-objects',
+
+            properties: {
+                app: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                realm: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    }
+                },
+                objectName: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    }
+                },
+                objectType: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    }
+                },
+                objectData: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                section: {
+                    type: String,
+                    value: function () {
+                        return 'typesSummary';
+                    }
+                },
+                selectedType: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    }
+                },
+                typeData: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                }
+            },
+
+            _noElements: function (objectData) {
+                return objectData == null || objectData.types.length == 0;
+            },
+
+            _showTypeDetails: function (evt) {
+                this.selectedType = evt.model.item.type;
+                this.section = 'typeDetails';
+                this.typeData = null;
+                console.log('Showing type ' + this.selectedType);
+                Strolch.setQueryParamValue('type', this.selectedType);
+                this.reloadTypeDetails();
+            },
+
+            _closeTypeDetails: function () {
+                this.section = 'typesSummary';
+                this.selectedType = null;
+                this.typeData = null;
+                Strolch.setQueryParamValue('type', null);
+            },
+
+            reloadTypeDetails: function () {
+
+                this._handleAjaxResponse = function (data) {
+                    this.typeData = data.detail.response;
+                };
+
+                this.$.ajax.url = './rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.selectedType;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            ready: function () {
+
+            },
+
+            reload: function () {
+
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _handleAjaxError: function (data) {
+                var dlgTitle = 'Debug action failed';
+                var dlgText;
+                if (data.detail.request.response) {
+                    dlgText = data.detail.request.response.msg;
+                } else {
+                    dlgText = data.detail.error;
+                }
+                this.app.showError(dlgTitle, dlgText);
+            }
+        });
+
+    </script>
+
+</dom-module>

@@ -1,0 +1,242 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/paper-styles/default-theme.html">
+<link rel="import" href="../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../bower_components/paper-styles/typography.html">
+
+<dom-module id="strolch-wc-inspector-object">
+
+    <template>
+
+        <style>
+
+            :host {
+                display: block;
+            }
+
+            .card {
+                padding: 1.0em;
+                margin: 1.0em;
+                cursor: pointer;
+            }
+
+            .title {
+                font-weight: bold;
+            }
+
+            .table-title td {
+                border: none;
+                padding: 0;
+            }
+
+        </style>
+
+        <paper-material class="card" elevation="1">
+
+            <div class="row">
+                <div class="col-6">
+
+                    <table class="table table-sm table-title">
+                        <tr>
+                            <td><span class="title">Id</span></td>
+                            <td>[[summary.id]]</td>
+                        </tr>
+                        <tr>
+                            <td><span class="title">Name</span></td>
+                            <td>[[summary.name]]</td>
+                        </tr>
+                        <tr>
+                            <td><span class="title">Type</span></td>
+                            <td>[[summary.type]]</td>
+                        </tr>
+                    </table>
+
+                </div>
+            </div>
+
+            <div class="row" on-tap="toggleDetails">
+                <div class="col-12" hidden="[[!hideDetails]]">
+                    <paper-material class="card" elevation="1">
+                        Show parameters
+                    </paper-material>
+                </div>
+                <div class="col-12" hidden="[[hideDetails]]">
+
+                    <paper-material class="card" elevation="1">
+                        <h5>Parameters</h5>
+                        <template is="dom-if" if="[[!details]]">
+                            <p class="title text-center">Loading details...</p>
+                        </template>
+                        <template is="dom-if" if="[[details]]">
+
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>ParameterBag</th>
+                                    <th>Parameter Id</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Interpretation</th>
+                                    <th>UOM</th>
+                                    <th>Value</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+
+                                <template is="dom-repeat" items="{{_toArray(details.parameterBags)}}" as="bag">
+                                    <template is="dom-repeat" items="{{_toArray(bag.parameters)}}" as="param">
+
+                                        <tr>
+                                            <td>[[bag.id]]</td>
+                                            <td>[[param.id]]</td>
+                                            <td>[[param.name]]</td>
+                                            <td>[[param.type]]</td>
+                                            <td>[[param.interpretation]]</td>
+                                            <td>[[param.uom]]</td>
+                                            <td>[[param.value]]</td>
+                                        </tr>
+
+                                    </template>
+                                </template>
+
+                                </tbody>
+                            </table>
+
+                        </template>
+                    </paper-material>
+
+                </div>
+            </div>
+        </paper-material>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-inspector-object',
+
+            properties: {
+                app: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                realm: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                objectName: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                objectType: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                summary: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                details: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                hideDetails: {
+                    type: Boolean,
+                    value: function () {
+                        return true;
+                    }
+                }
+            },
+
+            _isResource: function () {
+                return this.objectType == 'Resource';
+            },
+            _isOrder: function () {
+                return this.objectType == 'Order';
+            },
+            _isActivity: function () {
+                return this.objectType == 'Activity';
+            },
+
+            _toArray: function (obj) {
+                return Object.keys(obj).map(function (key) {
+                    return obj[key];
+                });
+            },
+
+            toggleDetails: function () {
+                this.hideDetails = !this.hideDetails;
+
+                if (!this.hideDetails && this.details == null) {
+                    var that = this;
+                    setTimeout(function () {
+                        that.reloadDetails();
+                    }, 1000);
+                }
+            },
+
+            reloadDetails: function () {
+
+                this.details = null;
+
+                this._handleAjaxResponse = function (data) {
+                    this.details = data.detail.response;
+                    this.details.parameterBagsArr = console.log(this.details);
+                };
+
+                this.$.ajax.url = './rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.summary.type + '/' + this.summary.id;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            ready: function () {
+
+            },
+
+            reload: function () {
+
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _handleAjaxError: function (data) {
+                var dlgTitle = 'Debug action failed';
+                var dlgText;
+                if (data.detail.request.response) {
+                    dlgText = data.detail.request.response.msg;
+                } else {
+                    dlgText = data.detail.error;
+                }
+                this.app.showError(dlgTitle, dlgText);
+            }
+        });
+
+    </script>
+
+</dom-module>

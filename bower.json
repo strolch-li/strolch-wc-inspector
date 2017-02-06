@@ -1,0 +1,30 @@
+{
+  "name": "strolch-wc-inspector",
+  "description": "Strolch WebComponent Inspector",
+  "version": "0.2.0",
+  "authors": "Robert von Burg",
+  "keywords": [
+    "strolch",
+    "inspector"
+  ],
+  "main": "strolch-wc-inspector.html",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:4treesCH/strolch-wc-inspector.git"
+  },
+  "license": "https://github.com/4treesCH/strolch-wc-inspector/blob/master/LICENSE",
+  "homepage": "https://github.com/4treesCH/strolch-wc-inspector",
+  "ignore": [],
+  "dependencies": {
+    "bootstrap": "v4.0.0-alpha.6",
+    "paper-material": "PolymerElements/paper-material#^1.0.6",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.4.3",
+    "iron-pages": "PolymerElements/iron-pages#^1.0.8",
+    "iron-icons": "PolymerElements/iron-icons#^1.2.0",
+    "paper-tabs": "PolymerElements/paper-tabs#^1.7.0",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.5.0",
+    "paper-listbox": "polymerelements/paper-listbox#^1.1.2",
+    "paper-item": "PolymerElements/paper-item#^1.2.1"
+  }
+}

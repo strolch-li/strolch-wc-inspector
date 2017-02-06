@@ -1,0 +1,380 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="../bower_components/paper-styles/color.html">
+
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="./strolch-wc-inspector-objects.html">
+
+<dom-module id="strolch-wc-inspector">
+
+    <template>
+
+        <style>
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            .toolbar-row {
+                background-color: var(--paper-blue-600);
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar-cell {
+                margin: 0;
+                padding: 0;
+            }
+
+            paper-tabs {
+                --paper-tabs-selection-bar-color: var(--paper-amber-600);
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            paper-tabs {
+                background-color: var(--paper-blue-600);
+                color: #fff;
+            }
+
+            paper-dropdown-menu {
+                margin-left: 1em;
+            }
+
+            paper-dropdown-menu.custom {
+                --paper-dropdown-menu-label: {
+                    background-color: var(--paper-blue-600);
+                    color: #ffffff;
+                };
+                --paper-dropdown-menu-input: {
+                    background-color: var(--paper-blue-600);
+                    color: #ffffff;
+                };
+                --paper-input-container: {
+                    color: #ffffff;
+                };
+                --paper-input-container-input: {
+                    color: #ffffff;
+                };
+                --paper-input-container-label: {
+                    color: #ffffff;
+                    font-size: smaller;
+                };
+                --paper-input-container-focus: {
+                    color: #ffffff;
+                };
+                --paper-input-container-underline: {
+                    display: none;
+                };
+            }
+
+            paper-listbox {
+                --paper-listbox-background-color: var(--paper-blue-600);
+                --paper-listbox-color: #ffffff;
+            }
+
+            paper-material {
+                background-color: #ffffff;
+            }
+
+        </style>
+
+        <div class="row toolbar-row">
+
+            <div class="col-3 toolbar-cell">
+
+                <paper-dropdown-menu no-label-float="true" label="select realm" class="custom">
+                    <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
+
+                        <template is="dom-repeat" items="{{realms}}">
+                            <paper-item value="[[item.name]]">[[item.name]] ([[item.size]])</paper-item>
+                        </template>
+
+                    </paper-listbox>
+                </paper-dropdown-menu>
+
+            </div>
+            <div class="col-9 toolbar-cell">
+                <template is="dom-if" if="[[selectedRealm]]">
+                    <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
+                        <paper-tab name="resources">[[resourcesSummary]]</paper-tab>
+                        <paper-tab name="orders">[[ordersSummary]]</paper-tab>
+                        <paper-tab name="activities">[[activitiesSummary]]</paper-tab>
+                    </paper-tabs>
+                </template>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-12">
+
+                <paper-material elevation="1">
+
+                    <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
+                        <div name="resources">
+                            <strolch-wc-inspector-objects app="[[app]]"
+                                                          realm="[[selectedRealm]]"
+                                                          object-name="Resource"
+                                                          object-type="resources"
+                                                          object-data="[[resources]]"></strolch-wc-inspector-objects>
+                        </div>
+                        <div name="orders">
+                            <strolch-wc-inspector-objects app="[[app]]"
+                                                          realm="[[selectedRealm]]"
+                                                          object-name="Order"
+                                                          object-type="orders"
+                                                          object-data="[[orders]]"></strolch-wc-inspector-objects>
+                        </div>
+                        <div name="activities">
+                            <strolch-wc-inspector-objects app="[[app]]"
+                                                          realm="[[selectedRealm]]"
+                                                          object-name="Activity"
+                                                          object-type="activities"
+                                                          object-data="[[activities]]"></strolch-wc-inspector-objects>
+                        </div>
+                    </iron-pages>
+
+                </paper-material>
+            </div>
+
+        </div>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-inspector',
+
+            properties: {
+                app: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                realms: {
+                    type: Array,
+                    value: function () {
+                        return null;
+                    }
+                },
+                selectedRealm: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    },
+                    observer: 'selectedRealmChanged'
+                },
+
+                resourcesSummary: {
+                    type: String,
+                    value: function () {
+                        return 'Resources';
+                    }
+                },
+                ordersSummary: {
+                    type: String,
+                    value: function () {
+                        return 'Orders';
+                    }
+                },
+                activitiesSummary: {
+                    type: String,
+                    value: function () {
+                        return 'Activities';
+                    }
+                },
+
+                selectedObjectType: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    },
+                    observer: 'selectedObjectTypeChanged'
+                },
+
+                resources: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                orders: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                },
+                activities: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    }
+                }
+            },
+
+            selectedRealmChanged: function (newValue, oldValue) {
+                if (newValue != null) {
+                    console.log('Selected realm changed from ' + oldValue + " to " + newValue);
+                    Strolch.setQueryParamValue('realm', newValue);
+                    this.reloadSelectedRealm();
+                }
+            },
+            selectedObjectTypeChanged: function (newValue, oldValue) {
+                if (newValue != null) {
+                    console.log('Selected object type changed from ' + oldValue + " to " + newValue);
+                    Strolch.setQueryParamValue('objectType', newValue);
+                    this.reloadSelectedObjectType();
+                }
+            },
+
+            ready: function () {
+                //
+            },
+
+            reload: function () {
+                this.selectedRealm = null;
+                this.selectedObjectType = null;
+
+                this.reloadRealms();
+            },
+
+            reloadRealms: function () {
+
+                var realmToSelect = Strolch.getQueryParamValue('realm');
+
+                this._handleAjaxResponse = function (data) {
+                    this.selectedRealm = null;
+                    this.realms = data.detail.response.realms;
+
+                    if (Strolch.isNotEmptyString(realmToSelect)) {
+                        for (var i = 0; i < this.realms.length; i++) {
+                            if (this.realms[i].name == realmToSelect) {
+                                this.selectedRealm = realmToSelect;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (this.selectedRealm == null && this.realms.length > 0) {
+                        this.selectedRealm = this.realms[0].name;
+                    }
+                };
+
+                this.$.ajax.url = './rest/strolch/inspector';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            reloadSelectedRealm: function () {
+
+                if (Strolch.isEmptyString(this.selectedRealm)) {
+                    console.log('No realm selected!');
+                    return;
+                }
+
+                var objectTypeToSelect = Strolch.getQueryParamValue('objectType');
+
+                this._handleAjaxResponse = function (data) {
+                    var elementMaps = data.detail.response.elementMaps;
+                    for (var i = 0; i < elementMaps.length; i++) {
+                        var element = elementMaps[i];
+                        switch (element.objectType) {
+                            case 'Resource':
+                                this.resourcesSummary = 'Resources (' + element.nrOfElements + ')';
+                                break;
+                            case 'Order':
+                                this.ordersSummary = 'Orders (' + element.nrOfElements + ')';
+                                break;
+                            case 'Activity':
+                                this.activitiesSummary = 'Activities (' + element.nrOfElements + ')';
+                                break;
+                            default:
+                                console.log('Unhandled object type: ' + element.objectType);
+                        }
+                    }
+
+                    if (Strolch.isNotEmptyString(objectTypeToSelect)) {
+                        this.selectedObjectType = objectTypeToSelect;
+                    }
+                };
+
+                this.$.ajax.url = './rest/strolch/inspector/' + this.selectedRealm;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            reloadSelectedObjectType: function () {
+
+                if (Strolch.isEmptyString(this.selectedRealm)) {
+                    console.log('No realm selected!');
+                    return;
+                }
+                if (Strolch.isEmptyString(this.selectedObjectType)) {
+                    console.log('No objectType selected!');
+                    return;
+                }
+
+                this._handleAjaxResponse = function (data) {
+                    switch (data.detail.response.objectType) {
+                        case 'Resource':
+                            this.resources = data.detail.response;
+                            break;
+                        case 'Order':
+                            this.orders = data.detail.response;
+                            break;
+                        case 'Activity':
+                            this.activities = data.detail.response;
+                            break;
+                        default:
+                            console.log('Unhandled object type: ' + element.objectType);
+                    }
+                };
+
+                this.$.ajax.url = './rest/strolch/inspector/' + this.selectedRealm + '/' + this.selectedObjectType;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _handleAjaxError: function (data) {
+                var dlgTitle = 'Debug action failed';
+                var dlgText;
+                if (data.detail.request.response) {
+                    dlgText = data.detail.request.response.msg;
+                } else {
+                    dlgText = data.detail.error;
+                }
+                this.app.showError(dlgTitle, dlgText);
+            }
+        });
+
+    </script>
+
+</dom-module>
