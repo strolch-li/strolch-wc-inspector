@@ -5,13 +5,15 @@
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
 
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
 <link rel="import" href="strolch-wc-inspector-object.html">
 
 <dom-module id="strolch-wc-inspector-objects">
 
     <template>
 
-        <style>
+        <style is="strolch-wc-styles">
 
             :host {
                 display: block;
@@ -27,6 +29,7 @@
             }
 
             .card {
+                background-color: #ffffff;
                 cursor: pointer;
                 border-style: none;
             }
@@ -38,7 +41,7 @@
         </style>
 
         <template is="dom-if" if="[[_noElements(objectData)]]" restamp>
-            <p class="title text-center">No [[objectName]] objects exists.</p>
+            <p class="title g-center">No [[objectName]] objects exists.</p>
         </template>
 
         <template is="dom-if" if="[[!_noElements(objectData)]]" restamp>
@@ -48,9 +51,9 @@
                 <section name="typesSummary">
 
                     <template is="dom-repeat" items="[[objectData.types]]">
-                        <div class="row justify-content-center">
-                            <div class="col-4">
-                                <paper-material class="card m-2 p-4" elevation="1" on-tap="_showTypeDetails">
+                        <div class="g-row">
+                            <div class="g-offset-4 g-4">
+                                <paper-material class="card g-m-2 g-p-2" elevation="1" on-tap="_showTypeDetails">
                                     <p>[[objectName]] of type <b>[[item.type]]</b> ([[item.size]])</p>
                                 </paper-material>
                             </div>
@@ -60,17 +63,16 @@
 
                 <section name="typeDetails">
 
-                    <div class="row">
-                        <div class="col-12">
+                    <div class="g-row">
+                        <div class="g-12">
                             <paper-toolbar>
                                 <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
                                 <span class="align-text-bottom">Showing [[objectName]] objects of type [[selectedType]]</span>
                             </paper-toolbar>
 
-                            <hr />
-
                             <template is="dom-repeat" items="[[typeData.elements]]">
-                                <strolch-wc-inspector-object app="[[app]]"
+                                <strolch-wc-inspector-object base-path="[[basePath]]"
+                                                             app="[[app]]"
                                                              realm="[[realm]]"
                                                              object-name="[[objectName]]"
                                                              object-type="[[objectType]]"
@@ -106,6 +108,10 @@
                     value: function () {
                         return null;
                     }
+                },
+                basePath: {
+                    type: String,
+                    value: './'
                 },
                 realm: {
                     type: String,
@@ -177,7 +183,7 @@
                     this.typeData = data.detail.response;
                 };
 
-                this.$.ajax.url = './rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.selectedType;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.selectedType;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },

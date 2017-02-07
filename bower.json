@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "authors": "Robert von Burg",
   "keywords": [
     "strolch",
@@ -17,9 +17,10 @@
   "homepage": "https://github.com/4treesCH/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
-    "bootstrap": "v4.0.0-alpha.6",
+    "strolch-wc-styles" : "4treesCH/strolch-wc-styles#^0.1.2",
+    "app-route": "PolymerElements/app-route#^0.9.3",
+    "app-layout": "PolymerElements/app-layout#^0.10.6",
     "paper-material": "PolymerElements/paper-material#^1.0.6",
-    "components-font-awesome": "^4.7.0",
     "iron-ajax": "PolymerElements/iron-ajax#^1.4.3",
     "iron-pages": "PolymerElements/iron-pages#^1.0.8",
     "iron-icons": "PolymerElements/iron-icons#^1.2.0",
@@ -30,5 +31,8 @@
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.5.0",
     "paper-listbox": "polymerelements/paper-listbox#^1.1.2",
     "paper-item": "PolymerElements/paper-item#^1.2.1"
+  },
+  "devDependencies": {
+    "strolch-wc-auth" : "4treesCH/strolch-wc-auth#^0.2.2"
   }
 }

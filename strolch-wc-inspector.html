@@ -13,13 +13,15 @@
 
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
 <link rel="import" href="strolch-wc-inspector-objects.html">
 
 <dom-module id="strolch-wc-inspector">
 
     <template>
 
-        <style>
+        <style is="strolch-wc-styles">
 
             :host {
                 display: block;
@@ -84,9 +86,9 @@
 
         </style>
 
-        <div class="row">
+        <div class="g-row">
 
-            <div class="col-3 pr-0">
+            <div class="g-3">
 
                 <div class="toolbar">
 
@@ -102,7 +104,7 @@
                 </div>
 
             </div>
-            <div class="col-9 pl-0">
+            <div class="g-9">
                 <div class="toolbar">
                     <template is="dom-if" if="[[selectedRealm]]">
                         <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
@@ -115,26 +117,29 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="g-row">
 
-            <div class="col-12">
+            <div class="g-12">
                 <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
                     <section name="resources">
-                        <strolch-wc-inspector-objects app="[[app]]"
+                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-name="Resource"
                                                       object-type="resources"
                                                       object-data="[[resources]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="orders">
-                        <strolch-wc-inspector-objects app="[[app]]"
+                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-name="Order"
                                                       object-type="orders"
                                                       object-data="[[orders]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="activities">
-                        <strolch-wc-inspector-objects app="[[app]]"
+                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-name="Activity"
                                                       object-type="activities"
@@ -165,6 +170,10 @@
                     value: function () {
                         return null;
                     }
+                },
+                basePath: {
+                    type: String,
+                    value: './'
                 },
                 realms: {
                     type: Array,
@@ -275,7 +284,7 @@
                     }
                 };
 
-                this.$.ajax.url = './rest/strolch/inspector';
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector';
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },
@@ -313,7 +322,7 @@
                     }
                 };
 
-                this.$.ajax.url = './rest/strolch/inspector/' + this.selectedRealm;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },
@@ -345,7 +354,7 @@
                     }
                 };
 
-                this.$.ajax.url = './rest/strolch/inspector/' + this.selectedRealm + '/' + this.selectedObjectType;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/' + this.selectedObjectType;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },

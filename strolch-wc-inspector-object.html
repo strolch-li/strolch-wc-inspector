@@ -12,11 +12,13 @@
 <link rel="import" href="../paper-styles/shadow.html">
 <link rel="import" href="../paper-styles/typography.html">
 
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
 <dom-module id="strolch-wc-inspector-object">
 
     <template>
 
-        <style>
+        <style is="strolch-wc-styles">
 
             :host {
                 display: block;
@@ -42,6 +44,7 @@
                 --paper-toolbar-height: 42px;
                 --paper-toolbar-background: var(--google-grey-300);
                 --paper-toolbar-color: var(--google-grey-700);
+                border-bottom: solid #7F7F7F 1px;
             }
 
             paper-tabs {
@@ -52,7 +55,7 @@
 
         </style>
 
-        <paper-material class="mt-4" elevation="1">
+        <paper-material class="g-card g-m-3 g-mt-4" elevation="1">
             <paper-toolbar on-tap="_toggleExpanded">
                 <span class="title">[[objectName]] [[summary.id]] / [[summary.name]] / [[summary.type]]</span>
                 <paper-icon-button id="expandedIcon" icon="expand-more"></paper-icon-button>
@@ -73,16 +76,16 @@
                 <!-- parameters -->
                 <section name="parameters">
                     <template is="dom-if" if="[[!details]]">
-                        <p class="m-4 text-center">Loading...</p>
+                        <p class="g-m-2 g-center">Loading...</p>
                     </template>
                     <template is="dom-if" if="[[details]]">
 
                         <template is="dom-if" if="[[_isEmpty(details.parameterBags)]]">
-                            <p class="m-4 text-center">No parameters defined on [[objectName]] [[summary.id]]</p>
+                            <p class="g-p-4 g-center">No parameters defined on [[objectName]] [[summary.id]]</p>
                         </template>
                         <template is="dom-if" if="[[_isNotEmpty(details.parameterBags)]]">
 
-                            <table class="table table-sm">
+                            <table class="g-table">
                                 <thead>
                                 <tr>
                                     <th>ParameterBag</th>
@@ -123,12 +126,12 @@
                 <!-- policies -->
                 <section name="policies">
                     <template is="dom-if" if="[[!details]]">
-                        <p class="m-4 text-center">Loading...</p>
+                        <p class="g-m-4 g-center">Loading...</p>
                     </template>
                     <template is="dom-if" if="[[details]]">
 
                         <template is="dom-if" if="[[_isEmpty(details.policies)]]">
-                            <p class="m-4 text-center">No policies defined on [[objectName]] [[summary.id]]</p>
+                            <p class="g-p-4 g-center">No policies defined on [[objectName]] [[summary.id]]</p>
                         </template>
                         <template is="dom-if" if="[[_isNotEmpty(details.policies)]]">
 
@@ -162,12 +165,12 @@
                 <template is="dom-if" if="[[_isResource(objectType)]]">
                     <section name="timedstates">
                         <template is="dom-if" if="[[!details]]">
-                            <p class="m-4 text-center">Loading...</p>
+                            <p class="g-p-4 g-center">Loading...</p>
                         </template>
                         <template is="dom-if" if="[[details]]">
 
                             <template is="dom-if" if="[[_isEmpty(details.timedStates)]]">
-                                <p class="m-4 text-center">No timed states defined on [[objectName]] [[summary.id]]</p>
+                                <p class="g-p-4 g-center">No timed states defined on [[objectName]] [[summary.id]]</p>
                             </template>
                             <template is="dom-if" if="[[_isNotEmpty(details.timedStates)]]">
                                 <template is="dom-repeat" items="[[_asArray(details.timedStates)]]" as="timedState">
@@ -235,6 +238,10 @@
                     value: function () {
                         return null;
                     }
+                },
+                basePath: {
+                    type: String,
+                    value: './'
                 },
                 realm: {
                     type: String,
@@ -342,7 +349,7 @@
                     this.details.parameterBagsArr = console.log(this.details);
                 };
 
-                this.$.ajax.url = './rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.summary.type + '/' + this.summary.id;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.summary.type + '/' + this.summary.id;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },
