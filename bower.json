@@ -17,6 +17,7 @@
   "homepage": "https://github.com/4treesCH/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
+    "strolchjs" : "4treesCH/strolchjs#^0.1.3",
     "strolch-wc-styles" : "4treesCH/strolch-wc-styles#^0.1.3",
     "app-route": "PolymerElements/app-route#^0.9.3",
     "app-layout": "PolymerElements/app-layout#^0.10.6",
