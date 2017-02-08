@@ -38,7 +38,7 @@
                 padding: 8px;
                 background-color: rgb(224, 224, 224);
                 color: rgb(97, 97, 97);
-                font-size: 20px;
+                font-size: 16px;
                 font-weight: 400;
                 line-height: 1.3;
                 margin: 0;
@@ -73,14 +73,10 @@
                 <div class="g-row title-bar" on-tap="_toggleExpanded">
 
                     <div class="g-11">
-                        <h1 class="title"><span class="sub g-ml-4">Id:</span> [[summary.id]] <span class="sub g-ml-4">Name:</span>
-                                                                              [[summary.name]] <span class="sub g-ml-4">Type:</span>
-                                                                              [[summary.type]]
-                            <template is="dom-if" if="[[_isOrderOrActivity(objectType)]]">
-                                <br /> <span class="sub g-ml-4">State:</span> [[summary.state]]
-                                <span class="sub g-ml-4">Date:</span> [[_formatDate(summary.date)]]
-                            </template>
-                        </h1>
+                        <h1 class="title"><span style="text-transform: uppercase">[[summary.objectType]]</span> <span
+                                class="sub g-ml-4">Id:</span> [[summary.id]] <span class="sub g-ml-4">Name:</span>
+                                                              [[summary.name]] <span class="sub g-ml-4">Type:</span>
+                                                              [[summary.type]] </h1>
                     </div>
 
                     <div class="g-1">
@@ -91,18 +87,108 @@
                 <div class="g-row">
                     <div class="g-12">
 
-
+                        <!-- Tabs -->
                         <template is="dom-if" if="[[expanded]]">
-                            <paper-tabs selected="{{selectedDetailType}}" attr-for-selected="name">
+                            <paper-tabs selected="{{selectedDetailType}}"
+                                        attr-for-selected="name"
+                                        fallback-selection="none">
+                                <paper-tab name="details">Details</paper-tab>
                                 <paper-tab name="parameters">Parameters</paper-tab>
                                 <paper-tab name="policies">Policies</paper-tab>
-                                <template is="dom-if" if="[[_isResource(objectType)]]">
+                                <template is="dom-if" if="[[_isResource(summary.objectType)]]">
                                     <paper-tab name="timedstates">Timed States</paper-tab>
+                                </template>
+                                <template is="dom-if" if="[[_isActivity(summary.objectType)]]">
+                                    <paper-tab name="elements">Elements</paper-tab>
                                 </template>
                             </paper-tabs>
                         </template>
 
+                        <!-- Tab sections -->
                         <iron-pages selected="[[selectedDetailType]]" attr-for-selected="name">
+
+                            <!-- details -->
+                            <section name="details" class="g-p-2 g-pt-0">
+                                <template is="dom-if" if="[[!details]]">
+                                    <p class="g-center">Loading...</p>
+                                </template>
+                                <template is="dom-if" if="[[details]]">
+
+                                    <div class="g-row">
+
+                                        <div class="g-6">
+
+                                            <dl class="g-dl">
+                                                <dt>Id</dt>
+                                                <dd>[[details.id]]</dd>
+                                                <dt>Name</dt>
+                                                <dd>[[details.name]]</dd>
+                                                <dt>Type</dt>
+                                                <dd>[[details.type]]</dd>
+                                            </dl>
+
+                                            <template is="dom-if"
+                                                      if="[[_isActivity(details.objectType)]]"
+                                                      restamp="true">
+                                                <dl class="g-dl">
+                                                    <dt>State</dt>
+                                                    <dd>[[details.state]]</dd>
+                                                    <dt>TimeOrdering</dt>
+                                                    <dd>[[details.timeOrdering]]</dd>
+                                                    <dt>Start</dt>
+                                                    <dd>[[_formatDate(details.start)]]</dd>
+                                                    <dt>End</dt>
+                                                    <dd>[[_formatDate(details.end)]]</dd>
+                                                </dl>
+                                            </template>
+
+                                            <template is="dom-if" if="[[_isOrder(details.objectType)]]" restamp="true">
+                                                <dl class="g-dl">
+                                                    <dt>State</dt>
+                                                    <dd>[[details.state]]</dd>
+                                                    <dt>Date</dt>
+                                                    <dd>[[_formatDate(details.date)]]</dd>
+                                                </dl>
+                                            </template>
+
+                                            <template is="dom-if" if="[[_isAction(details.objectType)]]" restamp="true">
+                                                <dl class="g-dl">
+                                                    <dt>State</dt>
+                                                    <dd>[[details.state]]</dd>
+                                                    <dt>Start</dt>
+                                                    <dd>[[_formatDate(details.start)]]</dd>
+                                                    <dt>End</dt>
+                                                    <dd>[[_formatDate(details.end)]]</dd>
+                                                    <dt>Resource Type</dt>
+                                                    <dd>[[details.resourceType]]</dd>
+                                                    <dt>Resource Id</dt>
+                                                    <dd>[[details.resourceId]]</dd>
+                                                </dl>
+                                            </template>
+
+                                        </div>
+
+                                        <div class="g-6">
+
+                                            <template is="dom-if" if="[[details.version]]" restamp="true">
+                                                <dl class="g-dl">
+                                                    <dt>CreatedAt</dt>
+                                                    <dd>[[_formatDate(details.version.createdAt)]]</dd>
+                                                    <dt>CreatedBy</dt>
+                                                    <dd>[[details.version.createdBy]]</dd>
+                                                    <dt>Deleted</dt>
+                                                    <dd>[[details.version.deleted]]</dd>
+                                                    <dt>Version</dt>
+                                                    <dd>[[details.version.version]]</dd>
+                                                </dl>
+                                            </template>
+
+                                        </div>
+
+                                    </div>
+
+                                </template>
+                            </section>
 
                             <!-- parameters -->
                             <section name="parameters" class="g-p-2 g-pt-0">
@@ -112,7 +198,8 @@
                                 <template is="dom-if" if="[[details]]">
 
                                     <template is="dom-if" if="[[_isEmpty(details.parameterBags)]]">
-                                        <p class="g-center">No parameters defined on [[objectName]] [[summary.id]]</p>
+                                        <p class="g-center">No parameters defined on [[summary.objectType]]
+                                                            [[summary.id]]</p>
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(details.parameterBags)]]">
 
@@ -200,7 +287,7 @@
                             </section>
 
                             <!-- timedstates -->
-                            <template is="dom-if" if="[[_isResource(objectType)]]">
+                            <template is="dom-if" if="[[_isResource(summary.objectType)]]">
                                 <section name="timedstates" class="g-p-2 g-pt-0">
                                     <template is="dom-if" if="[[!details]]">
                                         <p class="g-center">Loading...</p>
@@ -255,6 +342,27 @@
                                 </section>
                             </template>
 
+                            <!-- activity children -->
+                            <template is="dom-if" if="[[_isActivity(summary.objectType)]]">
+                                <section name="elements" class="g-p-2 g-pt-0">
+                                    <template is="dom-if" if="[[!details]]">
+                                        <p class="g-center">Loading...</p>
+                                    </template>
+                                    <template is="dom-if" if="[[details]]">
+
+                                        <template is="dom-repeat" items="[[details.elements]]" as="childElement">
+                                            <strolch-wc-inspector-object base-path="[[basePath]]"
+                                                                         app="[[app]]"
+                                                                         realm="[[realm]]"
+                                                                         details="[[childElement]]"
+                                                                         summary="[[childElement]]"
+                                                                         class="g-m-2"></strolch-wc-inspector-object>
+                                        </template>
+
+                                    </template>
+                                </section>
+                            </template>
+
                         </iron-pages>
 
                     </div>
@@ -294,18 +402,6 @@
                         return null;
                     }
                 },
-                objectName: {
-                    type: String,
-                    value: function () {
-                        return null;
-                    }
-                },
-                objectType: {
-                    type: String,
-                    value: function () {
-                        return null;
-                    }
-                },
                 summary: {
                     type: Object,
                     value: function () {
@@ -333,17 +429,29 @@
                 }
             },
 
+            _typeSubPath: function (selectedType) {
+                if (selectedType == 'Resource') {
+                    return 'resources';
+                } else if (selectedType == 'Order') {
+                    return 'orders';
+                } else if (selectedType == 'Activity') {
+                    return 'activities';
+                } else {
+                    throw 'Unhandled selected type ' + selectedType;
+                }
+            },
+
             _isResource: function (objectType) {
-                return objectType == 'resources';
+                return objectType == 'Resource';
             },
             _isOrder: function (objectType) {
-                return objectType == 'orders';
+                return objectType == 'Order';
             },
             _isActivity: function (objectType) {
-                return objectType == 'activities';
+                return objectType == 'Activity';
             },
-            _isOrderOrActivity: function (objectType) {
-                return this._isOrder(objectType) || this._isActivity(objectType);
+            _isAction: function (objectType) {
+                return objectType == 'Action';
             },
 
             _isEmpty: function (obj) {
@@ -387,20 +495,23 @@
 
             selectedDetailTypeChanged: function (newValue, oldValue) {
                 if (newValue != null) {
-                    console.log('Selected detail type type changed from ' + oldValue + " to " + newValue);
+                    console.log('Selected detail type changed from ' + oldValue + " to " + newValue);
                     this.reloadDetails();
                 }
             },
 
             reloadDetails: function () {
 
-                this.details = null;
+                if (this.details != null)
+                    return;
 
                 this._handleAjaxResponse = function (data) {
                     this.details = data.detail.response;
+                    console.log(this.objectType);
+                    console.log(this.details);
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.summary.type + '/' + this.summary.id;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.summary.objectType) + '/' + this.summary.type + '/' + this.summary.id;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },

@@ -41,7 +41,7 @@
         </style>
 
         <template is="dom-if" if="[[_noElements(objectData)]]" restamp>
-            <p class="title g-center">No [[objectName]] objects exists.</p>
+            <p class="title g-center">No [[objectType]] objects exists.</p>
         </template>
 
         <template is="dom-if" if="[[!_noElements(objectData)]]" restamp>
@@ -54,7 +54,7 @@
                         <div class="g-row">
                             <div class="g-offset-4 g-4">
                                 <paper-material class="card g-m-2 g-p-4" elevation="1" on-tap="_showTypeDetails">
-                                    <p class="g-mb-0">[[objectName]] of type <b>[[item.type]]</b> ([[item.size]])</p>
+                                    <p class="g-mb-0">[[objectType]] of type <b>[[item.type]]</b> ([[item.size]])</p>
                                 </paper-material>
                             </div>
                         </div>
@@ -65,17 +65,15 @@
 
                     <div class="g-row">
                         <div class="g-12">
-                            <paper-toolbar>
-                                <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
-                                <span class="align-text-bottom">Showing [[objectName]] objects of type [[selectedType]]</span>
+                            <paper-toolbar on-tap="_closeTypeDetails">
+                                <paper-icon-button icon="arrow-back"></paper-icon-button>
+                                <span class="align-text-bottom">Showing [[objectType]] objects of type [[selectedType]]</span>
                             </paper-toolbar>
 
                             <template is="dom-repeat" items="[[typeData.elements]]">
                                 <strolch-wc-inspector-object base-path="[[basePath]]"
                                                              app="[[app]]"
                                                              realm="[[realm]]"
-                                                             object-name="[[objectName]]"
-                                                             object-type="[[objectType]]"
                                                              summary="[[item]]"></strolch-wc-inspector-object>
                             </template>
 
@@ -114,12 +112,6 @@
                     value: './'
                 },
                 realm: {
-                    type: String,
-                    value: function () {
-                        return null;
-                    }
-                },
-                objectName: {
                     type: String,
                     value: function () {
                         return null;
@@ -177,13 +169,25 @@
                 Strolch.setQueryParamValue('type', null);
             },
 
+            _typeSubPath: function (selectedType) {
+                if (selectedType == 'Resource') {
+                    return 'resources';
+                } else if (selectedType == 'Order') {
+                    return 'orders';
+                } else if (selectedType == 'Activity') {
+                    return 'activities';
+                } else {
+                    throw 'Unhandled selected type ' + selectedType;
+                }
+            },
+
             reloadTypeDetails: function () {
 
                 this._handleAjaxResponse = function (data) {
                     this.typeData = data.detail.response;
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this.objectType + '/' + this.selectedType;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },

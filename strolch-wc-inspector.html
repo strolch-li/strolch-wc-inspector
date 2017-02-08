@@ -108,9 +108,9 @@
                 <div class="toolbar">
                     <template is="dom-if" if="[[selectedRealm]]">
                         <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
-                            <paper-tab name="resources">[[resourcesSummary]]</paper-tab>
-                            <paper-tab name="orders">[[ordersSummary]]</paper-tab>
-                            <paper-tab name="activities">[[activitiesSummary]]</paper-tab>
+                            <paper-tab name="Resource">[[resourcesSummary]]</paper-tab>
+                            <paper-tab name="Order">[[ordersSummary]]</paper-tab>
+                            <paper-tab name="Activity">[[activitiesSummary]]</paper-tab>
                         </paper-tabs>
                     </template>
                 </div>
@@ -121,28 +121,25 @@
 
             <div class="g-12">
                 <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
-                    <section name="resources">
+                    <section name="Resource">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
                                                       app="[[app]]"
                                                       realm="[[selectedRealm]]"
-                                                      object-name="Resource"
-                                                      object-type="resources"
+                                                      object-type="Resource"
                                                       object-data="[[resources]]"></strolch-wc-inspector-objects>
                     </section>
-                    <section name="orders">
+                    <section name="Order">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
                                                       app="[[app]]"
                                                       realm="[[selectedRealm]]"
-                                                      object-name="Order"
-                                                      object-type="orders"
+                                                      object-type="Order"
                                                       object-data="[[orders]]"></strolch-wc-inspector-objects>
                     </section>
-                    <section name="activities">
+                    <section name="Activity">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
                                                       app="[[app]]"
                                                       realm="[[selectedRealm]]"
-                                                      object-name="Activity"
-                                                      object-type="activities"
+                                                      object-type="Activity"
                                                       object-data="[[activities]]"></strolch-wc-inspector-objects>
                     </section>
                 </iron-pages>
@@ -350,13 +347,25 @@
                             this.activities = data.detail.response;
                             break;
                         default:
-                            console.log('Unhandled object type: ' + element.objectType);
+                            console.log('Unhandled object type: ' + data.detail.response.objectType);
                     }
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/' + this.selectedObjectType;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/' + this._typeSubPath(this.selectedObjectType);
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
+            },
+
+            _typeSubPath: function (selectedType) {
+                if (selectedType == 'Resource') {
+                    return 'resources';
+                } else if (selectedType == 'Order') {
+                    return 'orders';
+                } else if (selectedType == 'Activity') {
+                    return 'activities';
+                } else {
+                    throw 'Unhandled selected type ' + selectedType;
+                }
             },
 
             _handleAjaxResponse: function (evt) {
