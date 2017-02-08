@@ -73,10 +73,10 @@
                 <div class="g-row title-bar" on-tap="_toggleExpanded">
 
                     <div class="g-11">
-                        <h1 class="title"><span style="text-transform: uppercase">[[summary.objectType]]</span> <span
-                                class="sub g-ml-4">Id:</span> [[summary.id]] <span class="sub g-ml-4">Name:</span>
-                                                              [[summary.name]] <span class="sub g-ml-4">Type:</span>
-                                                              [[summary.type]] </h1>
+                        <h1 class="title"><span style="text-transform: uppercase">[[object.objectType]]</span> <span
+                                class="sub g-ml-4">Id:</span> [[object.id]] <span class="sub g-ml-4">Name:</span>
+                                                              [[object.name]] <span class="sub g-ml-4">Type:</span>
+                                                              [[object.type]] </h1>
                     </div>
 
                     <div class="g-1">
@@ -95,10 +95,10 @@
                                 <paper-tab name="details">Details</paper-tab>
                                 <paper-tab name="parameters">Parameters</paper-tab>
                                 <paper-tab name="policies">Policies</paper-tab>
-                                <template is="dom-if" if="[[_isResource(summary.objectType)]]">
+                                <template is="dom-if" if="[[_isResource(object.objectType)]]">
                                     <paper-tab name="timedstates">Timed States</paper-tab>
                                 </template>
-                                <template is="dom-if" if="[[_isActivity(summary.objectType)]]">
+                                <template is="dom-if" if="[[_isActivity(object.objectType)]]">
                                     <paper-tab name="elements">Elements</paper-tab>
                                 </template>
                             </paper-tabs>
@@ -109,10 +109,10 @@
 
                             <!-- details -->
                             <section name="details" class="g-p-2 g-pt-0">
-                                <template is="dom-if" if="[[!details]]">
+                                <template is="dom-if" if="[[!object]]">
                                     <p class="g-center">Loading...</p>
                                 </template>
-                                <template is="dom-if" if="[[details]]">
+                                <template is="dom-if" if="[[object]]">
 
                                     <div class="g-row">
 
@@ -120,49 +120,49 @@
 
                                             <dl class="g-dl">
                                                 <dt>Id</dt>
-                                                <dd>[[details.id]]</dd>
+                                                <dd>[[object.id]]</dd>
                                                 <dt>Name</dt>
-                                                <dd>[[details.name]]</dd>
+                                                <dd>[[object.name]]</dd>
                                                 <dt>Type</dt>
-                                                <dd>[[details.type]]</dd>
+                                                <dd>[[object.type]]</dd>
                                             </dl>
 
                                             <template is="dom-if"
-                                                      if="[[_isActivity(details.objectType)]]"
+                                                      if="[[_isActivity(object.objectType)]]"
                                                       restamp="true">
                                                 <dl class="g-dl">
                                                     <dt>State</dt>
-                                                    <dd>[[details.state]]</dd>
+                                                    <dd>[[object.state]]</dd>
                                                     <dt>TimeOrdering</dt>
-                                                    <dd>[[details.timeOrdering]]</dd>
+                                                    <dd>[[object.timeOrdering]]</dd>
                                                     <dt>Start</dt>
-                                                    <dd>[[_formatDate(details.start)]]</dd>
+                                                    <dd>[[_formatDate(object.start)]]</dd>
                                                     <dt>End</dt>
-                                                    <dd>[[_formatDate(details.end)]]</dd>
+                                                    <dd>[[_formatDate(object.end)]]</dd>
                                                 </dl>
                                             </template>
 
-                                            <template is="dom-if" if="[[_isOrder(details.objectType)]]" restamp="true">
+                                            <template is="dom-if" if="[[_isOrder(object.objectType)]]" restamp="true">
                                                 <dl class="g-dl">
                                                     <dt>State</dt>
-                                                    <dd>[[details.state]]</dd>
+                                                    <dd>[[object.state]]</dd>
                                                     <dt>Date</dt>
-                                                    <dd>[[_formatDate(details.date)]]</dd>
+                                                    <dd>[[_formatDate(object.date)]]</dd>
                                                 </dl>
                                             </template>
 
-                                            <template is="dom-if" if="[[_isAction(details.objectType)]]" restamp="true">
+                                            <template is="dom-if" if="[[_isAction(object.objectType)]]" restamp="true">
                                                 <dl class="g-dl">
                                                     <dt>State</dt>
-                                                    <dd>[[details.state]]</dd>
+                                                    <dd>[[object.state]]</dd>
                                                     <dt>Start</dt>
-                                                    <dd>[[_formatDate(details.start)]]</dd>
+                                                    <dd>[[_formatDate(object.start)]]</dd>
                                                     <dt>End</dt>
-                                                    <dd>[[_formatDate(details.end)]]</dd>
+                                                    <dd>[[_formatDate(object.end)]]</dd>
                                                     <dt>Resource Type</dt>
-                                                    <dd>[[details.resourceType]]</dd>
+                                                    <dd>[[object.resourceType]]</dd>
                                                     <dt>Resource Id</dt>
-                                                    <dd>[[details.resourceId]]</dd>
+                                                    <dd>[[object.resourceId]]</dd>
                                                 </dl>
                                             </template>
 
@@ -170,16 +170,16 @@
 
                                         <div class="g-6">
 
-                                            <template is="dom-if" if="[[details.version]]" restamp="true">
+                                            <template is="dom-if" if="[[object.version]]" restamp="true">
                                                 <dl class="g-dl">
                                                     <dt>CreatedAt</dt>
-                                                    <dd>[[_formatDate(details.version.createdAt)]]</dd>
+                                                    <dd>[[_formatDate(object.version.createdAt)]]</dd>
                                                     <dt>CreatedBy</dt>
-                                                    <dd>[[details.version.createdBy]]</dd>
+                                                    <dd>[[object.version.createdBy]]</dd>
                                                     <dt>Deleted</dt>
-                                                    <dd>[[details.version.deleted]]</dd>
+                                                    <dd>[[object.version.deleted]]</dd>
                                                     <dt>Version</dt>
-                                                    <dd>[[details.version.version]]</dd>
+                                                    <dd>[[object.version.version]]</dd>
                                                 </dl>
                                             </template>
 
@@ -192,16 +192,16 @@
 
                             <!-- parameters -->
                             <section name="parameters" class="g-p-2 g-pt-0">
-                                <template is="dom-if" if="[[!details]]">
+                                <template is="dom-if" if="[[!object]]">
                                     <p class="g-center">Loading...</p>
                                 </template>
-                                <template is="dom-if" if="[[details]]">
+                                <template is="dom-if" if="[[object]]">
 
-                                    <template is="dom-if" if="[[_isEmpty(details.parameterBags)]]">
-                                        <p class="g-center">No parameters defined on [[summary.objectType]]
-                                                            [[summary.id]]</p>
+                                    <template is="dom-if" if="[[_isEmpty(object.parameterBags)]]">
+                                        <p class="g-center">No parameters defined on [[object.objectType]]
+                                                            [[object.id]]</p>
                                     </template>
-                                    <template is="dom-if" if="[[_isNotEmpty(details.parameterBags)]]">
+                                    <template is="dom-if" if="[[_isNotEmpty(object.parameterBags)]]">
 
                                         <table class="g-table">
                                             <thead>
@@ -219,7 +219,7 @@
                                             <tbody>
 
                                             <template is="dom-repeat"
-                                                      items="{{_asArray(details.parameterBags)}}"
+                                                      items="{{_asArray(object.parameterBags)}}"
                                                       as="bag">
                                                 <template is="dom-repeat"
                                                           items="{{_asArray(bag.value.parameters)}}"
@@ -247,16 +247,16 @@
 
                             <!-- policies -->
                             <section name="policies" class="g-p-2 g-pt-0">
-                                <template is="dom-if" if="[[!details]]">
+                                <template is="dom-if" if="[[!object]]">
                                     <p class="g-m-4 g-center">Loading...</p>
                                 </template>
-                                <template is="dom-if" if="[[details]]">
+                                <template is="dom-if" if="[[object]]">
 
-                                    <template is="dom-if" if="[[_isEmpty(details.policies)]]">
+                                    <template is="dom-if" if="[[_isEmpty(object.policies)]]">
                                         <p class="g-pt-4 g-center">No policies defined on [[objectName]]
-                                                                   [[summary.id]]</p>
+                                                                   [[object.id]]</p>
                                     </template>
-                                    <template is="dom-if" if="[[_isNotEmpty(details.policies)]]">
+                                    <template is="dom-if" if="[[_isNotEmpty(object.policies)]]">
 
                                         <table class="g-table">
                                             <thead>
@@ -268,9 +268,7 @@
 
                                             <tbody>
 
-                                            <template is="dom-repeat"
-                                                      items="{{_asArray(details.policies)}}"
-                                                      as="policy">
+                                            <template is="dom-repeat" items="{{_asArray(object.policies)}}" as="policy">
 
                                                 <tr>
                                                     <td>[[policy.key]]</td>
@@ -287,20 +285,20 @@
                             </section>
 
                             <!-- timedstates -->
-                            <template is="dom-if" if="[[_isResource(summary.objectType)]]">
+                            <template is="dom-if" if="[[_isResource(object.objectType)]]">
                                 <section name="timedstates" class="g-p-2 g-pt-0">
-                                    <template is="dom-if" if="[[!details]]">
+                                    <template is="dom-if" if="[[!object]]">
                                         <p class="g-center">Loading...</p>
                                     </template>
-                                    <template is="dom-if" if="[[details]]">
+                                    <template is="dom-if" if="[[object]]">
 
-                                        <template is="dom-if" if="[[_isEmpty(details.timedStates)]]">
+                                        <template is="dom-if" if="[[_isEmpty(object.timedStates)]]">
                                             <p class="g-pt-4 g-center">No timed states defined on [[objectName]]
-                                                                       [[summary.id]]</p>
+                                                                       [[object.id]]</p>
                                         </template>
-                                        <template is="dom-if" if="[[_isNotEmpty(details.timedStates)]]">
+                                        <template is="dom-if" if="[[_isNotEmpty(object.timedStates)]]">
                                             <template is="dom-repeat"
-                                                      items="[[_asArray(details.timedStates)]]"
+                                                      items="[[_asArray(object.timedStates)]]"
                                                       as="timedState">
 
                                                 <paper-material class="g-card" elevation="1">
@@ -343,19 +341,18 @@
                             </template>
 
                             <!-- activity children -->
-                            <template is="dom-if" if="[[_isActivity(summary.objectType)]]">
+                            <template is="dom-if" if="[[_isActivity(object.objectType)]]">
                                 <section name="elements" class="g-p-2 g-pt-0">
-                                    <template is="dom-if" if="[[!details]]">
+                                    <template is="dom-if" if="[[!object]]">
                                         <p class="g-center">Loading...</p>
                                     </template>
-                                    <template is="dom-if" if="[[details]]">
+                                    <template is="dom-if" if="[[object]]">
 
-                                        <template is="dom-repeat" items="[[details.elements]]" as="childElement">
+                                        <template is="dom-repeat" items="[[object.elements]]" as="childElement">
                                             <strolch-wc-inspector-object base-path="[[basePath]]"
                                                                          app="[[app]]"
                                                                          realm="[[realm]]"
-                                                                         details="[[childElement]]"
-                                                                         summary="[[childElement]]"
+                                                                         object="[[childElement]]"
                                                                          class="g-m-2"></strolch-wc-inspector-object>
                                         </template>
 
@@ -402,13 +399,7 @@
                         return null;
                     }
                 },
-                summary: {
-                    type: Object,
-                    value: function () {
-                        return null;
-                    }
-                },
-                details: {
+                object: {
                     type: Object,
                     value: function () {
                         return null;
@@ -424,8 +415,7 @@
                     type: String,
                     value: function () {
                         return true;
-                    },
-                    observer: "selectedDetailTypeChanged"
+                    }
                 }
             },
 
@@ -493,25 +483,18 @@
                 }
             },
 
-            selectedDetailTypeChanged: function (newValue, oldValue) {
-                if (newValue != null) {
-                    console.log('Selected detail type changed from ' + oldValue + " to " + newValue);
-                    this.reloadDetails();
-                }
-            },
-
             reloadDetails: function () {
 
-                if (this.details != null)
-                    return;
+                var objectType = this.object.objectType;
+                var id = this.object.id;
+                var type = this.object.type;
+                this.object = null;
 
                 this._handleAjaxResponse = function (data) {
-                    this.details = data.detail.response;
-                    console.log(this.objectType);
-                    console.log(this.details);
+                    this.object = data.detail.response;
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.summary.objectType) + '/' + this.summary.type + '/' + this.summary.id;
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(objectType) + '/' + type + '/' + id;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },

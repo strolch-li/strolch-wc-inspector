@@ -40,17 +40,17 @@
 
         </style>
 
-        <template is="dom-if" if="[[_noElements(objectData)]]" restamp>
+        <template is="dom-if" if="[[_noElements(objectSummaries)]]" restamp>
             <p class="title g-center">No [[objectType]] objects exists.</p>
         </template>
 
-        <template is="dom-if" if="[[!_noElements(objectData)]]" restamp>
+        <template is="dom-if" if="[[!_noElements(objectSummaries)]]" restamp>
 
             <iron-pages selected="{{section}}" attr-for-selected="name">
 
                 <section name="typesSummary" class="g-pt-4">
 
-                    <template is="dom-repeat" items="[[objectData.types]]">
+                    <template is="dom-repeat" items="[[objectSummaries.types]]">
                         <div class="g-row">
                             <div class="g-offset-4 g-4">
                                 <paper-material class="card g-m-2 g-p-4" elevation="1" on-tap="_showTypeDetails">
@@ -70,13 +70,25 @@
                                 <span class="align-text-bottom">Showing [[objectType]] objects of type [[selectedType]]</span>
                             </paper-toolbar>
 
-                            <template is="dom-repeat" items="[[typeData.elements]]">
+                            <template is="dom-repeat" items="[[objects.data]]">
                                 <strolch-wc-inspector-object base-path="[[basePath]]"
                                                              app="[[app]]"
                                                              realm="[[realm]]"
-                                                             summary="[[item]]"></strolch-wc-inspector-object>
+                                                             object="[[item]]"></strolch-wc-inspector-object>
                             </template>
 
+                        </div>
+                    </div>
+
+                    <div class="g-row">
+                        <div class="g-12">
+                            <div class="g-m-2 g-center">
+                                <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
+                                <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
+                                <span>[[objects.offset]] to [[_getEnd(objects)]] of [[objects.size]]</span>
+                                <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
+                                <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
+                            </div>
                         </div>
                     </div>
 
@@ -123,7 +135,7 @@
                         return null;
                     }
                 },
-                objectData: {
+                objectSummaries: {
                     type: Object,
                     value: function () {
                         return null;
@@ -141,22 +153,34 @@
                         return null;
                     }
                 },
-                typeData: {
+                objects: {
                     type: Object,
                     value: function () {
                         return null;
                     }
+                },
+                offset: {
+                    type: Number,
+                    value: function () {
+                        return 0;
+                    }
+                },
+                limit: {
+                    type: Number,
+                    value: function () {
+                        return 5;
+                    }
                 }
             },
 
-            _noElements: function (objectData) {
-                return objectData == null || objectData.types.length == 0;
+            _noElements: function (objectSummaries) {
+                return objectSummaries == null || objectSummaries.types.length == 0;
             },
 
             _showTypeDetails: function (evt) {
                 this.selectedType = evt.model.item.type;
                 this.section = 'typeDetails';
-                this.typeData = null;
+                this.objects = null;
                 console.log('Showing type ' + this.selectedType);
                 Strolch.setQueryParamValue('type', this.selectedType);
                 this.reloadTypeDetails();
@@ -165,7 +189,7 @@
             _closeTypeDetails: function () {
                 this.section = 'typesSummary';
                 this.selectedType = null;
-                this.typeData = null;
+                this.objects = null;
                 Strolch.setQueryParamValue('type', null);
             },
 
@@ -181,13 +205,47 @@
                 }
             },
 
+            _hasNext: function (objects) {
+                return objects != null && objects.nextOffset > objects.offset;
+            },
+            _hasPrevious: function (objects) {
+                return objects != null && objects.previousOffset < objects.offset;
+            },
+
+            _getEnd: function (objects) {
+                if (this._hasNext(objects))
+                    return objects.nextOffset;
+                return objects == null ? 0 : objects.size;
+            },
+
+            _toFirstPage: function () {
+                this.offset = 0;
+                this.reloadTypeDetails();
+            },
+            _toPreviousPage: function () {
+                this.offset = this.objects.previousOffset;
+                this.reloadTypeDetails();
+            },
+            _toNextPage: function () {
+                this.offset = this.objects.nextOffset;
+                this.reloadTypeDetails(this.objects.nextOffset);
+            },
+            _toLastPage: function () {
+                this.offset = this.objects.lastOffset;
+                this.reloadTypeDetails(this.objects.lastOffset);
+            },
+
             reloadTypeDetails: function () {
 
                 this._handleAjaxResponse = function (data) {
-                    this.typeData = data.detail.response;
+                    this.set('objects', data.detail.response);
+                    console.log(data.detail.response);
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
+                var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
+                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id";
+
+                this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
             },
