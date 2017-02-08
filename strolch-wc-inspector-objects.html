@@ -48,13 +48,13 @@
 
             <iron-pages selected="{{section}}" attr-for-selected="name">
 
-                <section name="typesSummary">
+                <section name="typesSummary" class="g-pt-4">
 
                     <template is="dom-repeat" items="[[objectData.types]]">
                         <div class="g-row">
                             <div class="g-offset-4 g-4">
-                                <paper-material class="card g-m-2 g-p-2" elevation="1" on-tap="_showTypeDetails">
-                                    <p>[[objectName]] of type <b>[[item.type]]</b> ([[item.size]])</p>
+                                <paper-material class="card g-m-2 g-p-4" elevation="1" on-tap="_showTypeDetails">
+                                    <p class="g-mb-0">[[objectName]] of type <b>[[item.type]]</b> ([[item.size]])</p>
                                 </paper-material>
                             </div>
                         </div>
