@@ -32,6 +32,7 @@
 
             .toolbar {
                 background-color: var(--paper-blue-600);
+                color: rgba(255, 255, 255, 0.8);
                 height: 42px;
             }
 
@@ -105,14 +106,19 @@
 
             </div>
             <div class="g-9">
-                <div class="toolbar">
-                    <template is="dom-if" if="[[selectedRealm]]">
-                        <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
-                            <paper-tab name="Resource">[[resourcesSummary]]</paper-tab>
-                            <paper-tab name="Order">[[ordersSummary]]</paper-tab>
-                            <paper-tab name="Activity">[[activitiesSummary]]</paper-tab>
-                        </paper-tabs>
-                    </template>
+                <div class="g-row toolbar">
+                    <div class="g-11">
+                        <template is="dom-if" if="[[selectedRealm]]">
+                            <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
+                                <paper-tab name="Resource">[[resourcesSummary]]</paper-tab>
+                                <paper-tab name="Order">[[ordersSummary]]</paper-tab>
+                                <paper-tab name="Activity">[[activitiesSummary]]</paper-tab>
+                            </paper-tabs>
+                        </template>
+                    </div>
+                    <div class="g-1">
+                        <paper-icon-button icon="refresh" on-tap="reloadRealms"></paper-icon-button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -255,6 +261,9 @@
             reload: function () {
                 this.selectedRealm = null;
                 this.selectedObjectType = null;
+                this.resources = null;
+                this.orders = null;
+                this.activities = null;
 
                 this.reloadRealms();
             },
@@ -265,6 +274,11 @@
 
                 this._handleAjaxResponse = function (data) {
                     this.selectedRealm = null;
+                    this.selectedObjectType = null;
+                    this.resources = null;
+                    this.orders = null;
+                    this.activities = null;
+
                     this.realms = data.detail.response.realms;
 
                     if (Strolch.isNotEmptyString(realmToSelect)) {
@@ -294,6 +308,11 @@
                 }
 
                 var objectTypeToSelect = Strolch.getQueryParamValue('objectType');
+
+                this.selectedObjectType = null;
+                this.resources = null;
+                this.orders = null;
+                this.activities = null;
 
                 this._handleAjaxResponse = function (data) {
                     var elementMaps = data.detail.response.elementMaps;
@@ -334,6 +353,13 @@
                     console.log('No objectType selected!');
                     return;
                 }
+
+                if (this.selectedObjectType == 'Resource' && this.resources != null)
+                    return;
+                if (this.selectedObjectType == 'Order' && this.orders != null)
+                    return;
+                if (this.selectedObjectType == 'Activity' && this.activities != null)
+                    return;
 
                 this._handleAjaxResponse = function (data) {
                     switch (data.detail.response.objectType) {

@@ -139,7 +139,8 @@
                     type: Object,
                     value: function () {
                         return null;
-                    }
+                    },
+                    observer: "_objectSummariesChanged"
                 },
                 section: {
                     type: String,
@@ -171,6 +172,14 @@
                         return 20;
                     }
                 }
+            },
+
+            _objectSummariesChanged: function (newValue, oldValue) {
+                this.selectedType = null;
+                this.section = 'typesSummary';
+                this.selectedType = null;
+                this.objects = null;
+                Strolch.setQueryParamValue('type', null);
             },
 
             _noElements: function (objectSummaries) {
