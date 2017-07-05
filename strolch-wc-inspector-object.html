@@ -111,7 +111,9 @@
                                 <template is="dom-if" if="[[_isActivity(object.objectType)]]">
                                     <paper-tab name="elements">Elements</paper-tab>
                                 </template>
-                                <paper-tab name="model">Model</paper-tab>
+                                <template is="dom-if" if="[[isRootElement]]">
+                                    <paper-tab name="model">Model</paper-tab>
+                                </template>
                             </paper-tabs>
                         </template>
 
@@ -281,7 +283,7 @@
 
                                             <template is="dom-repeat" items="{{_asArray(object.policies)}}" as="policy">
 
-                                                <tr>textarea
+                                                <tr>
                                                     <td>[[policy.key]]</td>
                                                     <td>[[policy.value]]</td>
                                                 </tr>
@@ -372,26 +374,28 @@
                             </template>
 
                             <!-- model -->
-                            <section name="model" class="g-p-2 g-pt-0">
-                                <template is="dom-if" if="[[!object]]">
-                                    <p class="g-center">Loading...</p>
-                                </template>
-                                <template is="dom-if" if="[[object]]">
-                                    <textarea value="{{model::input}}"></textarea>
+                            <template is="dom-if" if="[[isRootElement]]">
+                                <section name="model" class="g-p-2 g-pt-0">
+                                    <template is="dom-if" if="[[!object]]">
+                                        <p class="g-center">Loading...</p>
+                                    </template>
+                                    <template is="dom-if" if="[[object]]">
+                                        <textarea value="{{model::input}}"></textarea>
 
-                                    <paper-radio-group selected="{{modelType}}" style="font-size: small">
-                                        <paper-radio-button name="xml">XML</paper-radio-button>
-                                        <paper-radio-button name="json">JSON</paper-radio-button>
-                                        <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
-                                    </paper-radio-group>
+                                        <paper-radio-group selected="{{modelType}}" style="font-size: small">
+                                            <paper-radio-button name="xml">XML</paper-radio-button>
+                                            <paper-radio-button name="json">JSON</paper-radio-button>
+                                            <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
+                                        </paper-radio-group>
 
-                                    <paper-button raised
-                                                  style="position: absolute; right: 3px; bottom: 5px"
-                                                  on-tap="_saveModel">Save
-                                    </paper-button>
+                                        <paper-button raised
+                                                      style="position: absolute; right: 3px; bottom: 5px"
+                                                      on-tap="_saveModel">Save
+                                        </paper-button>
 
-                                </template>
-                            </section>
+                                    </template>
+                                </section>
+                            </template>
 
                         </iron-pages>
 
@@ -429,6 +433,12 @@
                     type: String,
                     value: function () {
                         return null;
+                    }
+                },
+                isRootElement: {
+                    type: Boolean,
+                    value: function () {
+                        return false;
                     }
                 },
                 object: {
@@ -472,7 +482,7 @@
             },
 
             _modelTypeChanged: function (newValue, oldValue) {
-                if (newValue != oldValue) {
+                if (this.isRootElement && newValue != oldValue) {
                     this.reloadModel();
                 }
             },
@@ -566,6 +576,8 @@
             },
 
             reloadModel: function () {
+                if (this._isAction(this.object.objectType))
+                    return;
 
                 var accept = this._getAcceptHeader();
                 var url = this._getObjectUrl();
