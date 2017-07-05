@@ -2,6 +2,8 @@
 
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../paper-input/paper-textarea.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
@@ -65,6 +67,14 @@
                 color: #000000;
             }
 
+            textarea {
+                padding: 10px;
+                width: calc(100% - 20px);
+                max-width: calc(100% - 20px);
+                height: 100%;
+                min-height: 300px;
+            }
+
         </style>
 
         <paper-material class="g-card g-m-3 g-mt-4" elevation="1">
@@ -101,6 +111,7 @@
                                 <template is="dom-if" if="[[_isActivity(object.objectType)]]">
                                     <paper-tab name="elements">Elements</paper-tab>
                                 </template>
+                                <paper-tab name="model">Model</paper-tab>
                             </paper-tabs>
                         </template>
 
@@ -270,7 +281,7 @@
 
                                             <template is="dom-repeat" items="{{_asArray(object.policies)}}" as="policy">
 
-                                                <tr>
+                                                <tr>textarea
                                                     <td>[[policy.key]]</td>
                                                     <td>[[policy.value]]</td>
                                                 </tr>
@@ -360,6 +371,28 @@
                                 </section>
                             </template>
 
+                            <!-- model -->
+                            <section name="model" class="g-p-2 g-pt-0">
+                                <template is="dom-if" if="[[!object]]">
+                                    <p class="g-center">Loading...</p>
+                                </template>
+                                <template is="dom-if" if="[[object]]">
+                                    <textarea value="{{model::input}}"></textarea>
+
+                                    <paper-radio-group selected="{{modelType}}" style="font-size: small">
+                                        <paper-radio-button name="xml">XML</paper-radio-button>
+                                        <paper-radio-button name="json">JSON</paper-radio-button>
+                                        <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
+                                    </paper-radio-group>
+
+                                    <paper-button raised
+                                                  style="position: absolute; right: 3px; bottom: 5px"
+                                                  on-tap="_saveModel">Save
+                                    </paper-button>
+
+                                </template>
+                            </section>
+
                         </iron-pages>
 
                     </div>
@@ -370,7 +403,6 @@
 
         <iron-ajax id="ajax"
                    content-type="application/json"
-                   handle-as="json"
                    on-response="_handleAjaxResponse"
                    on-error="_handleAjaxError"></iron-ajax>
 
@@ -404,7 +436,20 @@
                     value: function () {
                         return null;
                     },
-                    observer : "_objectChanged"
+                    observer: "_objectChanged"
+                },
+                modelType: {
+                    type: String,
+                    value: function () {
+                        return 'xml';
+                    },
+                    observer: "_modelTypeChanged"
+                },
+                model: {
+                    type: String,
+                    value: function () {
+                        return null;
+                    }
                 },
                 expanded: {
                     type: Boolean,
@@ -416,13 +461,24 @@
                     type: String,
                     value: function () {
                         return true;
-                    }
+                    },
+                    observer: '_selectedDetailTypeChanged'
                 }
             },
 
-            _objectChanged : function (newValue, oldValue) {
-              this.expanded = false;
-              this.selectedDetailType = '';
+            _objectChanged: function (newValue, oldValue) {
+                this.expanded = false;
+                this.selectedDetailType = '';
+            },
+
+            _modelTypeChanged: function (newValue, oldValue) {
+                if (newValue != oldValue) {
+                    this.reloadModel();
+                }
+            },
+
+            _selectedDetailTypeChanged: function (newValue, oldValue) {
+                if (newValue == 'model') this.reloadModel();
             },
 
             _typeSubPath: function (selectedType) {
@@ -489,19 +545,67 @@
                 }
             },
 
-            reloadDetails: function () {
-
+            _getObjectUrl: function () {
                 var objectType = this.object.objectType;
                 var id = this.object.id;
                 var type = this.object.type;
-                this.object = null;
+
+                return this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(objectType) + '/' + type + '/' + id;
+            },
+
+            _getAcceptHeader: function () {
+                if (this.modelType == 'xml') {
+                    return 'application/xml'
+                } else if (this.modelType == 'json') {
+                    return 'application/json'
+                } else if (this.modelType == 'json-flat') {
+                    return 'application/json';
+                } else {
+                    return 'application/xml';
+                }
+            },
+
+            reloadModel: function () {
+
+                var accept = this._getAcceptHeader();
+                var url = this._getObjectUrl();
+                if (this.modelType == 'json-flat') {
+                    url += '?flat=true';
+                }
+                this.model = null;
 
                 this._handleAjaxResponse = function (data) {
-                    this.object = data.detail.response;
+                    this.model = data.detail.response;
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(objectType) + '/' + type + '/' + id;
+                this.$.ajax.url = url;
+                this.$.ajax.headers = {'Accept': accept};
+                this.$.ajax.handleAs = 'text';
                 this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            _saveModel: function (evt) {
+
+                var accept = this._getAcceptHeader();
+                var url = this._getObjectUrl();
+                if (this.modelType == 'json-flat') {
+                    url += '?flat=true';
+                }
+
+                this._handleAjaxResponse = function (data) {
+                    this.model = null;
+                    this.model = data.detail.response;
+                };
+
+                this.$.ajax.url = url;
+                this.$.ajax.headers = {
+                    'Accept': accept,
+                    'Content-Type': accept
+                };
+                this.$.ajax.handleAs = 'text';
+                this.$.ajax.method = 'PUT';
+                this.$.ajax.body = this.model;
                 this.$.ajax.generateRequest();
             },
 

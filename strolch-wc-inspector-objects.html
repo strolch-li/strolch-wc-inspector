@@ -248,7 +248,6 @@
 
                 this._handleAjaxResponse = function (data) {
                     this.set('objects', data.detail.response);
-                    console.log(data.detail.response);
                 };
 
                 var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
