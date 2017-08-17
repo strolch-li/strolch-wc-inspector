@@ -75,6 +75,7 @@
                                                              app="[[app]]"
                                                              realm="[[realm]]"
                                                              is-root-element="true"
+                                                             on-strolch-wc-obj-remove="onRemoveElement"
                                                              object="[[item]]"></strolch-wc-inspector-object>
                             </template>
 
@@ -243,6 +244,23 @@
             _toLastPage: function () {
                 this.offset = this.objects.lastOffset;
                 this.reloadTypeDetails(this.objects.lastOffset);
+            },
+
+            onRemoveElement: function (event) {
+                console.log("Delete element " + event.detail.object.id);
+
+                var id = event.detail.object.id;
+                var index = null;
+                for (var i = 0; i < this.objects.data.length; i++) {
+                    if (this.objects.data[i].id == id) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index != null) {
+                    this.splice("objects.data", index, 1);
+                }
             },
 
             reloadTypeDetails: function () {

@@ -85,8 +85,7 @@
                     <div class="g-11">
                         <h1 class="title"><span style="text-transform: uppercase">[[object.objectType]]</span> <span
                                 class="sub g-ml-4">Id:</span> [[object.id]] <span class="sub g-ml-4">Name:</span>
-                                                              [[object.name]] <span class="sub g-ml-4">Type:</span>
-                                                              [[object.type]] </h1>
+                            [[object.name]] <span class="sub g-ml-4">Type:</span> [[object.type]] </h1>
                     </div>
 
                     <div class="g-1">
@@ -212,7 +211,7 @@
 
                                     <template is="dom-if" if="[[_isEmpty(object.parameterBags)]]">
                                         <p class="g-center">No parameters defined on [[object.objectType]]
-                                                            [[object.id]]</p>
+                                            [[object.id]]</p>
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.parameterBags)]]">
 
@@ -267,7 +266,7 @@
 
                                     <template is="dom-if" if="[[_isEmpty(object.policies)]]">
                                         <p class="g-pt-4 g-center">No policies defined on [[objectName]]
-                                                                   [[object.id]]</p>
+                                            [[object.id]]</p>
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.policies)]]">
 
@@ -307,7 +306,7 @@
 
                                         <template is="dom-if" if="[[_isEmpty(object.timedStates)]]">
                                             <p class="g-pt-4 g-center">No timed states defined on [[objectName]]
-                                                                       [[object.id]]</p>
+                                                [[object.id]]</p>
                                         </template>
                                         <template is="dom-if" if="[[_isNotEmpty(object.timedStates)]]">
                                             <template is="dom-repeat"
@@ -389,8 +388,12 @@
                                         </paper-radio-group>
 
                                         <paper-button raised
-                                                      style="position: absolute; right: 3px; bottom: 5px"
+                                                      class="g-pull-right"
                                                       on-tap="_saveModel">Save
+                                        </paper-button>
+                                        <paper-button
+                                                class="g-pull-right"
+                                                on-tap="_removeModel">Remove
                                         </paper-button>
 
                                     </template>
@@ -618,6 +621,26 @@
                 this.$.ajax.handleAs = 'text';
                 this.$.ajax.method = 'PUT';
                 this.$.ajax.body = this.model;
+                this.$.ajax.generateRequest();
+            },
+
+            _removeModel: function (evt) {
+
+                var accept = this._getAcceptHeader();
+                var url = this._getObjectUrl();
+
+                var object = this.object;
+                this._handleAjaxResponse = function (data) {
+                    this.fire("strolch-wc-obj-remove", {object: object});
+                };
+
+                this.$.ajax.url = url;
+                this.$.ajax.headers = {
+                    'Accept': accept,
+                    'Content-Type': accept
+                };
+                this.$.ajax.handleAs = 'text';
+                this.$.ajax.method = 'DELETE';
                 this.$.ajax.generateRequest();
             },
 
