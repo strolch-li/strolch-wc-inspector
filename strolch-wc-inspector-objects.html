@@ -1,8 +1,10 @@
 <link rel="import" href="../polymer/polymer.html">
 
 <link rel="import" href="../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../paper-input/paper-input.html">
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
@@ -20,6 +22,9 @@
                 margin: 0;
                 padding: 0;
                 height: 100%;
+                --focus-color: white;
+                --regular-color: lightgrey;
+                --disabled-color: darkgrey;
             }
 
             .title {
@@ -36,6 +41,44 @@
 
             paper-toolbar {
                 --paper-toolbar-height: 42px;
+            }
+
+            paper-input {
+                position: absolute;
+                right: 20px;
+
+                --paper-input-container-color: var(--regular-color);
+                --paper-input-container-focus-color: var(--focus-color);
+                --paper-input-container-input-color: var(--focus-color);
+                --paper-input-container-input: {
+                    font-size: 18px;
+                    padding: 4px;
+                };
+                --paper-input-container-underline-disabled: {
+                    border-bottom-style: solid;
+                }
+            }
+
+            paper-input::shadow input::-ms-clear {
+                display: none;
+                width: 0;
+                height: 0;
+            }
+
+            paper-input iron-icon {
+                padding: 4px;
+            }
+
+            paper-input:not([focused]) iron-icon {
+                color: var(--regular-color);
+            }
+
+            paper-input[focused] iron-icon {
+                color: var(--focus-color);
+            }
+
+            #clear {
+                cursor: pointer;
             }
 
         </style>
@@ -65,9 +108,17 @@
 
                     <div class="g-row">
                         <div class="g-12">
-                            <paper-toolbar on-tap="_closeTypeDetails">
-                                <paper-icon-button icon="arrow-back"></paper-icon-button>
+                            <paper-toolbar>
+                                <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
                                 <span class="align-text-bottom">Showing [[objectType]] objects of type [[selectedType]]</span>
+                                <paper-input no-label-float value="{{searchTerm}}" class="searchField">
+                                    <template is="dom-if" if="[[isEmptyString(searchTerm)]]">
+                                        <iron-icon suffix icon="search"></iron-icon>
+                                    </template>
+                                    <template is="dom-if" if="[[!isEmptyString(searchTerm)]]">
+                                        <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
+                                    </template>
+                                </paper-input>
                             </paper-toolbar>
 
                             <template is="dom-repeat" items="[[objects.data]]">
@@ -131,6 +182,13 @@
                         return null;
                     }
                 },
+                searchTerm: {
+                    type: String,
+                    observer: "observeSearchTerm",
+                    value: function () {
+                        return "";
+                    }
+                },
                 objectType: {
                     type: String,
                     value: function () {
@@ -174,6 +232,23 @@
                         return 20;
                     }
                 }
+            },
+
+            isEmptyString: function (s) {
+                return s == null || s.length == 0;
+            },
+
+            onClearTapped: function (event) {
+                this.set("searchTerm", "");
+            },
+
+            observeSearchTerm: function (newValue, oldValue) {
+                if (this.realm == null || this.objectType == null || this.selectedType == null)
+                    return;
+
+                this.debounce("doSearch", function () {
+                    this.reloadTypeDetails();
+                }, 500);
             },
 
             _objectSummariesChanged: function (newValue, oldValue) {
@@ -270,7 +345,7 @@
                 };
 
                 var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
-                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id";
+                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + this.searchTerm;
 
                 this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
