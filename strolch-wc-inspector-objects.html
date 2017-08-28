@@ -2,10 +2,14 @@
 
 <link rel="import" href="../paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/communication-icons.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
@@ -45,7 +49,7 @@
 
             paper-input {
                 position: absolute;
-                right: 20px;
+                right: 60px;
 
                 --paper-input-container-color: var(--regular-color);
                 --paper-input-container-focus-color: var(--focus-color);
@@ -81,6 +85,32 @@
                 cursor: pointer;
             }
 
+            .add-btn {
+                position: absolute;
+                right: 20px;
+            }
+
+            textarea {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 40px);
+                height: 100%;
+                min-height: 300px;
+            }
+
+            paper-dialog {
+                width: 600px;
+            }
+
+            .g-container {
+                margin: 0 10px 50px 10px;
+                width: calc(100% - 40px);
+            }
+
+            .card-import-btn {
+                background-color: #faebd7;
+            }
+
         </style>
 
         <template is="dom-if" if="[[_noElements(objectSummaries)]]" restamp>
@@ -92,6 +122,18 @@
             <iron-pages selected="{{section}}" attr-for-selected="name">
 
                 <section name="typesSummary" class="g-pt-4">
+
+                    <div class="g-row">
+                        <div class="g-offset-4 g-4">
+                            <paper-material class="card card-import-btn g-m-2 g-p-4"
+                                            elevation="1"
+                                            on-tap="onImportTapped">
+                                <iron-icon icon="communication:import-export"></iron-icon>
+                                Import
+                            </paper-material>
+                        </div>
+                    </div>
+
 
                     <template is="dom-repeat" items="[[objectSummaries.types]]">
                         <div class="g-row">
@@ -119,11 +161,13 @@
                                         <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
                                     </template>
                                 </paper-input>
+                                <!--paper-icon-button icon="add-box"
+                                                   class="add-btn"
+                                                   on-tap="onAddTapped"></paper-icon-button-->
                             </paper-toolbar>
 
                             <template is="dom-repeat" items="[[objects.data]]">
                                 <strolch-wc-inspector-object base-path="[[basePath]]"
-                                                             app="[[app]]"
                                                              realm="[[realm]]"
                                                              is-root-element="true"
                                                              on-strolch-wc-obj-remove="onRemoveElement"
@@ -151,6 +195,31 @@
 
         </template>
 
+        <paper-dialog class="addDlg" opened="[[addDlgOpen]]" modal>
+            <h3>[[importDlgTitle]]</h3>
+
+            <textarea value="{{modelAsText::input}}"></textarea>
+
+            <div class="g-container">
+                <paper-button class="g-pull-right" on-tap="onSaveTap" raised>
+                    <iron-icon icon="add"></iron-icon>
+                    Add
+                </paper-button>
+                <paper-button class="g-pull-right" on-tap="onCancelTap" raised>
+                    <iron-icon icon="close"></iron-icon>
+                    Cancel
+                </paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="dlg" modal on-iron-overlay-closed="onCloseDlg">
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
         <iron-ajax id="ajax"
                    content-type="application/json"
                    handle-as="json"
@@ -166,15 +235,15 @@
             is: 'strolch-wc-inspector-objects',
 
             properties: {
-                app: {
-                    type: Object,
-                    value: function () {
-                        return null;
-                    }
-                },
                 basePath: {
                     type: String,
                     value: './'
+                },
+                dlgTitle: {
+                    type: String
+                },
+                dlgText: {
+                    type: String
                 },
                 realm: {
                     type: String,
@@ -231,6 +300,26 @@
                     value: function () {
                         return 20;
                     }
+                },
+
+                addDlgOpen: {
+                    type: Boolean,
+                    value: false
+                },
+                importType: {
+                    type: String,
+                    value: 'import'
+                },
+                modelAsText: {
+                    type: String,
+                    value: ''
+                },
+                modelType: {
+                    type: String,
+                    value: function () {
+                        return 'xml';
+                    },
+                    observer: "_modelTypeChanged"
                 }
             },
 
@@ -243,8 +332,7 @@
             },
 
             observeSearchTerm: function (newValue, oldValue) {
-                if (this.realm == null || this.objectType == null || this.selectedType == null)
-                    return;
+                if (this.realm == null || this.objectType == null || this.selectedType == null) return;
 
                 this.debounce("doSearch", function () {
                     this.reloadTypeDetails();
@@ -299,8 +387,7 @@
             },
 
             _getEnd: function (objects) {
-                if (this._hasNext(objects))
-                    return objects.nextOffset;
+                if (this._hasNext(objects)) return objects.nextOffset;
                 return objects == null ? 0 : objects.size;
             },
 
@@ -319,6 +406,89 @@
             _toLastPage: function () {
                 this.offset = this.objects.lastOffset;
                 this.reloadTypeDetails(this.objects.lastOffset);
+            },
+
+            onImportTapped: function (event) {
+                this.set('importDlgTitle', 'Import Elements as XML');
+                this.importType = 'import';
+                this.addDlgOpen = true;
+            },
+            onAddTapped: function (event) {
+                this.set('importDlgTitle', 'Add ' + this.objectType + ' of type ' + this.selectedType);
+                this.importType = 'add';
+                this.addDlgOpen = true;
+            },
+            onCancelTap: function (event) {
+                this.modelAsText = '';
+                this.addDlgOpen = false;
+            },
+            onSaveTap: function (event) {
+                if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
+                    this.showError('Model empty', 'Model can not be empty!');
+                    return;
+                }
+
+                if (this.importType == 'import') {
+
+                    this._handleAjaxResponse = function (data) {
+                        this.modelAsText = '';
+                        this.addDlgOpen = false;
+                        this.fire('strolch-import', {msg: data.detail.response.msg});
+                    };
+
+                    this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/import';
+                    this.$.ajax.headers = {
+                        'Accept': 'application/xml',
+                        'Content-Type': 'application/xml'
+                    };
+                    this.$.ajax.handleAs = 'json';
+                    this.$.ajax.method = 'POST';
+                    this.$.ajax.body = this.modelAsText;
+                    this.$.ajax.generateRequest();
+                } else {
+
+                    var accept = this._getAcceptHeader();
+                    var url = this._getObjectUrl();
+                    if (this.modelType == 'json-flat') {
+                        url += '?flat=true';
+                    }
+
+                    this._handleAjaxResponse = function (data) {
+                        console.log(data);
+                    };
+
+                    this.$.ajax.url = url;
+                    this.$.ajax.headers = {
+                        'Accept': accept,
+                        'Content-Type': accept
+                    };
+                    this.$.ajax.handleAs = 'text';
+                    this.$.ajax.method = 'POST';
+                    this.$.ajax.body = this.modelAsText;
+                    this.$.ajax.generateRequest();
+                }
+            },
+
+            _getAcceptHeader: function () {
+                if (this.modelType == 'xml') {
+                    return 'application/xml'
+                } else if (this.modelType == 'json') {
+                    return 'application/json'
+                } else if (this.modelType == 'json-flat') {
+                    return 'application/json';
+                } else {
+                    return 'application/xml';
+                }
+            },
+
+            _getObjectUrl: function () {
+                var objectType = this.objectType;
+                var type = this.selectedType;
+                var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(objectType);
+                if (this.modelType == 'json-flat') {
+                    url += '/' + type + '/';
+                }
+                return url;
             },
 
             onRemoveElement: function (event) {
@@ -349,6 +519,11 @@
 
                 this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
+                this.$.ajax.handleAs = 'json';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json'
+                };
+                this.$.ajax.contentType = 'application/json';
                 this.$.ajax.generateRequest();
             },
 
@@ -365,14 +540,25 @@
             },
 
             _handleAjaxError: function (data) {
-                var dlgTitle = 'Debug action failed';
+                var dlgTitle = 'Server action failed';
                 var dlgText;
                 if (data.detail.request.response) {
-                    dlgText = data.detail.request.response.msg;
+                    if (data.detail.request.response.msg) {
+                        dlgText = data.detail.request.response.msg;
+                    } else {
+                        dlgText = data.detail.request.response;
+                    }
                 } else {
                     dlgText = data.detail.error;
                 }
-                this.app.showError(dlgTitle, dlgText);
+                this.showError(dlgTitle, dlgText);
+            },
+
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
             }
         });
 

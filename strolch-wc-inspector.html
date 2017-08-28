@@ -6,6 +6,8 @@
 <link rel="import" href="../paper-styles/color.html">
 
 <link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
 
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-item/paper-item.html">
@@ -129,21 +131,19 @@
                 <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
                     <section name="Resource">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
-                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Resource"
-                                                      object-summaries="[[resources]]"></strolch-wc-inspector-objects>
+                                                      object-summaries="[[resources]]"
+                                                      on-strolch-import="onStrolchImport"></strolch-wc-inspector-objects>
                     </section>
                     <section name="Order">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
-                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Order"
                                                       object-summaries="[[orders]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="Activity">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
-                                                      app="[[app]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Activity"
                                                       object-summaries="[[activities]]"></strolch-wc-inspector-objects>
@@ -152,6 +152,14 @@
             </div>
 
         </div>
+
+        <paper-dialog id="dlg" modal on-iron-overlay-closed="onCloseDlg">
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
 
         <iron-ajax id="ajax"
                    content-type="application/json"
@@ -168,15 +176,15 @@
             is: 'strolch-wc-inspector',
 
             properties: {
-                app: {
-                    type: Object,
-                    value: function () {
-                        return null;
-                    }
-                },
                 basePath: {
                     type: String,
                     value: './'
+                },
+                dlgTitle: {
+                    type: String
+                },
+                dlgText: {
+                    type: String
                 },
                 realms: {
                     type: Array,
@@ -252,6 +260,11 @@
                     Strolch.setQueryParamValue('objectType', newValue);
                     this.reloadSelectedObjectType();
                 }
+            },
+
+            onStrolchImport: function (event) {
+                this.reload();
+                this.showError('Import complete', event.detail.msg);
             },
 
             ready: function () {
@@ -354,12 +367,9 @@
                     return;
                 }
 
-                if (this.selectedObjectType == 'Resource' && this.resources != null)
-                    return;
-                if (this.selectedObjectType == 'Order' && this.orders != null)
-                    return;
-                if (this.selectedObjectType == 'Activity' && this.activities != null)
-                    return;
+                if (this.selectedObjectType == 'Resource' && this.resources != null) return;
+                if (this.selectedObjectType == 'Order' && this.orders != null) return;
+                if (this.selectedObjectType == 'Activity' && this.activities != null) return;
 
                 this._handleAjaxResponse = function (data) {
                     switch (data.detail.response.objectType) {
@@ -406,7 +416,14 @@
                 } else {
                     dlgText = data.detail.error;
                 }
-                this.app.showError(dlgTitle, dlgText);
+                this.showError(dlgTitle, dlgText);
+            },
+
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
             }
         });
 

@@ -2,8 +2,9 @@
 
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
-<link rel="import" href="../paper-input/paper-textarea.html">
 <link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
@@ -85,7 +86,8 @@
                     <div class="g-11">
                         <h1 class="title"><span style="text-transform: uppercase">[[object.objectType]]</span> <span
                                 class="sub g-ml-4">Id:</span> [[object.id]] <span class="sub g-ml-4">Name:</span>
-                            [[object.name]] <span class="sub g-ml-4">Type:</span> [[object.type]] </h1>
+                                                              [[object.name]] <span class="sub g-ml-4">Type:</span>
+                                                              [[object.type]] </h1>
                     </div>
 
                     <div class="g-1">
@@ -211,7 +213,7 @@
 
                                     <template is="dom-if" if="[[_isEmpty(object.parameterBags)]]">
                                         <p class="g-center">No parameters defined on [[object.objectType]]
-                                            [[object.id]]</p>
+                                                            [[object.id]]</p>
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.parameterBags)]]">
 
@@ -266,7 +268,7 @@
 
                                     <template is="dom-if" if="[[_isEmpty(object.policies)]]">
                                         <p class="g-pt-4 g-center">No policies defined on [[objectName]]
-                                            [[object.id]]</p>
+                                                                   [[object.id]]</p>
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.policies)]]">
 
@@ -306,7 +308,7 @@
 
                                         <template is="dom-if" if="[[_isEmpty(object.timedStates)]]">
                                             <p class="g-pt-4 g-center">No timed states defined on [[objectName]]
-                                                [[object.id]]</p>
+                                                                       [[object.id]]</p>
                                         </template>
                                         <template is="dom-if" if="[[_isNotEmpty(object.timedStates)]]">
                                             <template is="dom-repeat"
@@ -362,7 +364,6 @@
 
                                         <template is="dom-repeat" items="[[object.elements]]" as="childElement">
                                             <strolch-wc-inspector-object base-path="[[basePath]]"
-                                                                         app="[[app]]"
                                                                          realm="[[realm]]"
                                                                          object="[[childElement]]"
                                                                          class="g-m-2"></strolch-wc-inspector-object>
@@ -387,13 +388,9 @@
                                             <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
                                         </paper-radio-group>
 
-                                        <paper-button raised
-                                                      class="g-pull-right"
-                                                      on-tap="_saveModel">Save
+                                        <paper-button raised class="g-pull-right" on-tap="_saveModel">Save
                                         </paper-button>
-                                        <paper-button
-                                                class="g-pull-right"
-                                                on-tap="_removeModel">Remove
+                                        <paper-button class="g-pull-right" on-tap="_removeModel">Remove
                                         </paper-button>
 
                                     </template>
@@ -422,15 +419,15 @@
             is: 'strolch-wc-inspector-object',
 
             properties: {
-                app: {
-                    type: Object,
-                    value: function () {
-                        return null;
-                    }
-                },
                 basePath: {
                     type: String,
                     value: './'
+                },
+                dlgTitle: {
+                    type: String
+                },
+                dlgText: {
+                    type: String
                 },
                 realm: {
                     type: String,
@@ -520,8 +517,7 @@
             },
 
             _isEmpty: function (obj) {
-                if (obj == null)
-                    return true;
+                if (obj == null) return true;
                 if (obj instanceof Array) {
                     return obj.length == 0;
                 } else if (obj instanceof Object) {
@@ -535,8 +531,7 @@
             },
 
             _asArray: function (obj) {
-                if (!obj)
-                    return [];
+                if (!obj) return [];
                 return Object.keys(obj).map(function (key) {
                     return {
                         key: key,
@@ -579,8 +574,7 @@
             },
 
             reloadModel: function () {
-                if (this._isAction(this.object.objectType))
-                    return;
+                if (this._isAction(this.object.objectType)) return;
 
                 var accept = this._getAcceptHeader();
                 var url = this._getObjectUrl();
@@ -664,7 +658,14 @@
                 } else {
                     dlgText = data.detail.error;
                 }
-                this.app.showError(dlgTitle, dlgText);
+                this.showError(dlgTitle, dlgText);
+            },
+
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
             }
         });
 
