@@ -426,9 +426,6 @@
                 dlgTitle: {
                     type: String
                 },
-                dlgText: {
-                    type: String
-                },
                 realm: {
                     type: String,
                     value: function () {
@@ -583,6 +580,7 @@
                 }
                 this.model = null;
 
+                this.dlgTitle = 'Reload model failed';
                 this._handleAjaxResponse = function (data) {
                     this.model = data.detail.response;
                 };
@@ -602,6 +600,7 @@
                     url += '?flat=true';
                 }
 
+                this.dlgTitle = 'Save model failed';
                 this._handleAjaxResponse = function (data) {
                     this.model = null;
                     this.model = data.detail.response;
@@ -624,6 +623,7 @@
                 var url = this._getObjectUrl();
 
                 var object = this.object;
+                this.dlgTitle = 'Remove model failed';
                 this._handleAjaxResponse = function (data) {
                     this.fire("strolch-wc-obj-remove", {object: object});
                 };
@@ -651,21 +651,10 @@
             },
 
             _handleAjaxError: function (data) {
-                var dlgTitle = 'Debug action failed';
-                var dlgText;
-                if (data.detail.request.response) {
-                    dlgText = data.detail.request.response.msg;
-                } else {
-                    dlgText = data.detail.error;
-                }
-                this.showError(dlgTitle, dlgText);
-            },
-
-            showError: function (title, text) {
-                this.dlgTitle = title;
-                this.dlgText = text;
-                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
-                this.$.dlg.open();
+                this.fire('strolch-handle-ajax-error', {
+                    title: this.dlgTitle,
+                    detail: data.detail
+                });
             }
         });
 

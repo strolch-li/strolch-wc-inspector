@@ -109,7 +109,7 @@
             </div>
             <div class="g-9">
                 <div class="g-row toolbar">
-                    <div class="g-11">
+                    <div class="g-10">
                         <template is="dom-if" if="[[selectedRealm]]">
                             <paper-tabs selected="{{selectedObjectType}}" attr-for-selected="name">
                                 <paper-tab name="Resource">[[resourcesSummary]]</paper-tab>
@@ -118,8 +118,11 @@
                             </paper-tabs>
                         </template>
                     </div>
-                    <div class="g-1">
-                        <paper-icon-button icon="refresh" on-tap="reloadRealms"></paper-icon-button>
+                    <div class="g-2">
+                        <paper-icon-button icon="refresh" title="Refresh" on-tap="reloadRealms"></paper-icon-button>
+                        <paper-icon-button icon="cloud-download"
+                                           title="Download entire Realm"
+                                           on-tap="exportRealm"></paper-icon-button>
                     </div>
                 </div>
             </div>
@@ -153,7 +156,7 @@
 
         </div>
 
-        <paper-dialog id="dlg" modal on-iron-overlay-closed="onCloseDlg">
+        <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
             <div class="buttons">
@@ -164,6 +167,13 @@
         <iron-ajax id="ajax"
                    content-type="application/json"
                    handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+        <iron-ajax id="ajaxXml"
+                   content-type="application/xml"
+                   handle-as="text"
+                   method="GET"
                    on-response="_handleAjaxResponse"
                    on-error="_handleAjaxError"></iron-ajax>
 
@@ -247,6 +257,11 @@
                 }
             },
 
+            listeners: {
+                "strolch-handle-ajax-error": "onAjaxError",
+                "strolch-show-dialog": "onShowDialog"
+            },
+
             selectedRealmChanged: function (newValue, oldValue) {
                 if (newValue != null) {
                     console.log('Selected realm changed from ' + oldValue + " to " + newValue);
@@ -265,6 +280,38 @@
             onStrolchImport: function (event) {
                 this.reload();
                 this.showError('Import complete', event.detail.msg);
+            },
+
+            onAjaxError: function (event) {
+                var dlgTitle = event.detail.title;
+                var data = event.detail;
+                var dlgText;
+                if (data.detail.request.response) {
+                    if (data.detail.request.response.msg) {
+                        dlgText = data.detail.request.response.msg;
+                    } else if (data.detail.request.response.charAt(0) == '{') {
+                        var json = JSON.parse(data.detail.request.response);
+                        if (json.msg) {
+                            dlgText = json.msg;
+                        } else {
+                            dlgText = data.detail.request.response;
+                        }
+                    } else {
+                        dlgText = data.detail.request.response;
+                    }
+                } else {
+                    dlgText = data.detail.error;
+                }
+
+                this.fire('strolch-show-dialog', {
+                    title: dlgTitle,
+                    text: dlgText
+                });
+            },
+            onShowDialog: function (event) {
+                var dlgTitle = event.detail.title;
+                var dlgText = event.detail.text;
+                this.showError(dlgTitle, dlgText);
             },
 
             ready: function () {
@@ -311,6 +358,20 @@
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector';
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
+            },
+
+            exportRealm: function () {
+
+                this._handleAjaxResponse = function (data) {
+                    var response = data.detail.response;
+                    var fileName = this.selectedRealm + '_' + Strolch.toDateTimeNoDelim(new Date()) + '.xml';
+                    Strolch.handleAjaxFileDownload(response, fileName, 'application/xml');
+                };
+
+                this.$.ajaxXml.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/xml';
+                this.$.ajaxXml.headers = {'Accept': 'application/xml'};
+                this.$.ajaxXml.method = 'GET';
+                this.$.ajaxXml.generateRequest();
             },
 
             reloadSelectedRealm: function () {

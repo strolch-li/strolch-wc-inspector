@@ -43,20 +43,26 @@
                 border-style: none;
             }
 
-            paper-toolbar {
-                --paper-toolbar-height: 42px;
+            .toolbar {
+                background-color: var(--paper-blue-900);
+                color: rgba(255, 255, 255, 0.8);
+                height: 42px;
+            }
+
+            .toolbar-title {
+                line-height: 42px;
             }
 
             paper-input {
-                position: absolute;
-                right: 60px;
 
+                --paper-input-container: {
+                    padding-top: 12px;
+                };
                 --paper-input-container-color: var(--regular-color);
                 --paper-input-container-focus-color: var(--focus-color);
                 --paper-input-container-input-color: var(--focus-color);
                 --paper-input-container-input: {
                     font-size: 18px;
-                    padding: 4px;
                 };
                 --paper-input-container-underline-disabled: {
                     border-bottom-style: solid;
@@ -69,10 +75,6 @@
                 height: 0;
             }
 
-            paper-input iron-icon {
-                padding: 4px;
-            }
-
             paper-input:not([focused]) iron-icon {
                 color: var(--regular-color);
             }
@@ -81,13 +83,12 @@
                 color: var(--focus-color);
             }
 
-            #clear {
-                cursor: pointer;
+            .toolbar-icon {
+                margin-top: 4px;
             }
 
-            .add-btn {
-                position: absolute;
-                right: 20px;
+            #clear {
+                cursor: pointer;
             }
 
             textarea {
@@ -111,6 +112,10 @@
                 background-color: #faebd7;
             }
 
+            .card-export-btn {
+                background-color: #faa193;
+            }
+
         </style>
 
         <template is="dom-if" if="[[_noElements(objectSummaries)]]" restamp>
@@ -124,12 +129,20 @@
                 <section name="typesSummary" class="g-pt-4">
 
                     <div class="g-row">
-                        <div class="g-offset-4 g-4">
+                        <div class="g-offset-4 g-2">
                             <paper-material class="card card-import-btn g-m-2 g-p-4"
                                             elevation="1"
                                             on-tap="onImportTapped">
-                                <iron-icon icon="communication:import-export"></iron-icon>
+                                <iron-icon icon="cloud-upload"></iron-icon>
                                 Import
+                            </paper-material>
+                        </div>
+                        <div class="g-2">
+                            <paper-material class="card card-export-btn g-m-2 g-p-4"
+                                            elevation="1"
+                                            on-tap="onExportTapped">
+                                <iron-icon icon="cloud-download"></iron-icon>
+                                Export
                             </paper-material>
                         </div>
                     </div>
@@ -148,24 +161,33 @@
 
                 <section name="typeDetails">
 
+                    <div class="g-row toolbar">
+                        <div class="g-1">
+                            <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
+                        </div>
+                        <div class="g-7">
+                            <span class="toolbar-title">[[selectedType]] types</span>
+                        </div>
+                        <div class="g-3">
+                            <paper-input no-label-float value="{{searchTerm}}" class="searchField">
+                                <template is="dom-if" if="[[isEmptyString(searchTerm)]]">
+                                    <iron-icon suffix icon="search"></iron-icon>
+                                </template>
+                                <template is="dom-if" if="[[!isEmptyString(searchTerm)]]">
+                                    <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
+                                </template>
+                            </paper-input>
+                        </div>
+                        <div class="g-1">
+                            <paper-icon-button class="toolbar-icon"
+                                               icon="cloud-download"
+                                               title="Download queried elements"
+                                               on-tap="onExportQueriedElements"></paper-icon-button>
+                        </div>
+                    </div>
+
                     <div class="g-row">
                         <div class="g-12">
-                            <paper-toolbar>
-                                <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
-                                <span class="align-text-bottom">Showing [[objectType]] objects of type [[selectedType]]</span>
-                                <paper-input no-label-float value="{{searchTerm}}" class="searchField">
-                                    <template is="dom-if" if="[[isEmptyString(searchTerm)]]">
-                                        <iron-icon suffix icon="search"></iron-icon>
-                                    </template>
-                                    <template is="dom-if" if="[[!isEmptyString(searchTerm)]]">
-                                        <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
-                                    </template>
-                                </paper-input>
-                                <!--paper-icon-button icon="add-box"
-                                                   class="add-btn"
-                                                   on-tap="onAddTapped"></paper-icon-button-->
-                            </paper-toolbar>
-
                             <template is="dom-repeat" items="[[objects.data]]">
                                 <strolch-wc-inspector-object base-path="[[basePath]]"
                                                              realm="[[realm]]"
@@ -173,7 +195,6 @@
                                                              on-strolch-wc-obj-remove="onRemoveElement"
                                                              object="[[item]]"></strolch-wc-inspector-object>
                             </template>
-
                         </div>
                     </div>
 
@@ -212,17 +233,16 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="dlg" modal on-iron-overlay-closed="onCloseDlg">
-            <h2>[[dlgTitle]]</h2>
-            <p>[[dlgText]]</p>
-            <div class="buttons">
-                <paper-button dialog-confirm autofocus>Close</paper-button>
-            </div>
-        </paper-dialog>
-
         <iron-ajax id="ajax"
                    content-type="application/json"
                    handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+        <iron-ajax id="ajaxXml"
+                   content-type="application/xml"
+                   handle-as="text"
+                   method="GET"
                    on-response="_handleAjaxResponse"
                    on-error="_handleAjaxError"></iron-ajax>
 
@@ -239,10 +259,7 @@
                     type: String,
                     value: './'
                 },
-                dlgTitle: {
-                    type: String
-                },
-                dlgText: {
+                dlgTitle : {
                     type: String
                 },
                 realm: {
@@ -318,8 +335,7 @@
                     type: String,
                     value: function () {
                         return 'xml';
-                    },
-                    observer: "_modelTypeChanged"
+                    }
                 }
             },
 
@@ -413,6 +429,37 @@
                 this.importType = 'import';
                 this.addDlgOpen = true;
             },
+            onExportTapped: function (event) {
+                this.dlgTitle = 'Export failed';
+                this._handleAjaxResponse = function (data) {
+                    var response = data.detail.response;
+                    var fileName = this.realm + '_' + this.objectType + '_' + Strolch.toDateTimeNoDelim(new Date()) + '.xml';
+                    Strolch.handleAjaxFileDownload(response, fileName, 'application/xml');
+                };
+
+                this.$.ajaxXml.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/xml';
+                this.$.ajaxXml.headers = {'Accept': 'application/xml'};
+                this.$.ajaxXml.method = 'GET';
+                this.$.ajaxXml.generateRequest();
+
+            },
+            onExportQueriedElements: function (event) {
+                this.dlgTitle = 'Export failed';
+                this._handleAjaxResponse = function (data) {
+                    var response = data.detail.response;
+                    var fileName = this.realm + '_' + this.objectType + '_' + this.selectedType + '_' + Strolch.toDateTimeNoDelim(new Date()) + '.xml';
+                    Strolch.handleAjaxFileDownload(response, fileName, 'application/xml');
+                };
+
+                var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType + '/xml';
+                url += '?query=' + this.searchTerm;
+
+                this.$.ajaxXml.url = url;
+                this.$.ajaxXml.headers = {'Accept': 'application/xml'};
+                this.$.ajaxXml.method = 'GET';
+                this.$.ajaxXml.generateRequest();
+            },
+
             onAddTapped: function (event) {
                 this.set('importDlgTitle', 'Add ' + this.objectType + ' of type ' + this.selectedType);
                 this.importType = 'add';
@@ -424,10 +471,14 @@
             },
             onSaveTap: function (event) {
                 if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
-                    this.showError('Model empty', 'Model can not be empty!');
+                    this.fire('strolch-show-dialog', {
+                        title: 'Model empty',
+                        text: 'Model can not be empty!'
+                    });
                     return;
                 }
 
+                this.dlgTitle = 'Import failed';
                 if (this.importType == 'import') {
 
                     this._handleAjaxResponse = function (data) {
@@ -510,6 +561,7 @@
 
             reloadTypeDetails: function () {
 
+                this.dlgTitle = 'Reload failed';
                 this._handleAjaxResponse = function (data) {
                     this.set('objects', data.detail.response);
                 };
@@ -540,25 +592,10 @@
             },
 
             _handleAjaxError: function (data) {
-                var dlgTitle = 'Server action failed';
-                var dlgText;
-                if (data.detail.request.response) {
-                    if (data.detail.request.response.msg) {
-                        dlgText = data.detail.request.response.msg;
-                    } else {
-                        dlgText = data.detail.request.response;
-                    }
-                } else {
-                    dlgText = data.detail.error;
-                }
-                this.showError(dlgTitle, dlgText);
-            },
-
-            showError: function (title, text) {
-                this.dlgTitle = title;
-                this.dlgText = text;
-                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
-                this.$.dlg.open();
+                this.fire('strolch-handle-ajax-error', {
+                    title: this.dlgTitle,
+                    detail: data.detail
+                });
             }
         });
 
