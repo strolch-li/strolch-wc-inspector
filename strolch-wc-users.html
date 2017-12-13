@@ -1,0 +1,212 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<dom-module id="strolch-wc-users">
+
+    <template>
+
+        <style is="strolch-wc-styles">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            .g-table {
+                font-size: small;
+            }
+
+            .g-table thead {
+                font-weight: bold;
+            }
+
+            .g-table th, .g-table td {
+                vertical-align: inherit;
+            }
+
+        </style>
+
+        <div class="g-row">
+
+            <div class="g-12">
+
+                <table class="g-table">
+
+                    <thead>
+                    <tr>
+                        <td>User Id</td>
+                        <td>Username</td>
+                        <td>Firstname</td>
+                        <td>Lastname</td>
+                        <td>State</td>
+                        <td>Locale</td>
+                        <td>Roles</td>
+                        <td></td>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <template is="dom-repeat" items="[[users]]">
+
+                        <tr>
+                            <td>[[item.userId]]</td>
+                            <td>[[item.username]]</td>
+                            <td>[[item.firstname]]</td>
+                            <td>[[item.lastname]]</td>
+                            <td>[[item.userState]]</td>
+                            <td>[[item.locale]]</td>
+                            <td>[[item.roles]]</td>
+                            <td>
+                                <!--paper-icon-button icon="delete"
+                                                   title="Remove"
+                                                   on-tap="removeSession"></paper-icon-button-->
+                            </td>
+                        </tr>
+
+                    </template>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="_handleAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-users',
+
+            properties: {
+                basePath: {
+                    type: String,
+                    value: './'
+                },
+                dlgTitle: {
+                    type: String
+                },
+                dlgText: {
+                    type: String
+                },
+                users: {
+                    type: Array
+                }
+            },
+
+            toLocalDateTime: function (val) {
+                return Strolch.toLocalDateTime(val);
+            },
+
+            listeners: {},
+
+            onAjaxError: function (event) {
+                var dlgTitle = event.detail.title;
+                var data = event.detail;
+                var dlgText;
+                if (data.detail.request.response) {
+                    if (data.detail.request.response.msg) {
+                        dlgText = data.detail.request.response.msg;
+                    } else if (data.detail.request.response.charAt(0) == '{') {
+                        var json = JSON.parse(data.detail.request.response);
+                        if (json.msg) {
+                            dlgText = json.msg;
+                        } else {
+                            dlgText = data.detail.request.response;
+                        }
+                    } else {
+                        dlgText = data.detail.request.response;
+                    }
+                } else {
+                    dlgText = data.detail.error;
+                }
+
+                this.fire('strolch-show-dialog', {
+                    title: dlgTitle,
+                    text: dlgText
+                });
+            },
+            onShowDialog: function (event) {
+                var dlgTitle = event.detail.title;
+                var dlgText = event.detail.text;
+                this.showError(dlgTitle, dlgText);
+            },
+
+            ready: function () {
+                //
+            },
+
+            reload: function () {
+
+                this.dlgTitle = 'User query failed';
+                this._handleAjaxResponse = function (data) {
+                    this.users = data.detail.response;
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _handleAjaxError: function (data) {
+                var dlgTitle = 'Debug action failed';
+                var dlgText;
+                if (data.detail.request.response) {
+                    dlgText = data.detail.request.response.msg;
+                } else {
+                    dlgText = data.detail.error;
+                }
+                this.showError(dlgTitle, dlgText);
+            },
+
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
+            }
+        });
+
+    </script>
+
+</dom-module>
