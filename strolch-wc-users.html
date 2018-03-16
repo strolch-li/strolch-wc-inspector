@@ -74,7 +74,7 @@
                             <td>[[item.lastname]]</td>
                             <td>[[item.userState]]</td>
                             <td>[[item.locale]]</td>
-                            <td>[[item.roles]]</td>
+                            <td>[[arrayToString(item.roles)]]</td>
                             <td>
                                 <!--paper-icon-button icon="delete"
                                                    title="Remove"
@@ -132,6 +132,16 @@
 
             toLocalDateTime: function (val) {
                 return Strolch.toLocalDateTime(val);
+            },
+            arrayToString: function (arr) {
+                var s = '';
+                for (var i = 0; i < arr.length; i++) {
+                    s += arr[i];
+                    if (i < arr.length)
+                        s += ', ';
+                }
+
+                return s;
             },
 
             listeners: {},
