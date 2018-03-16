@@ -2,12 +2,15 @@
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
 
 <link rel="import" href="../paper-styles/color.html">
 
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button">
 
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-item/paper-item.html">
@@ -48,48 +51,48 @@
 
             <div class="g-12">
 
-                <table class="g-table">
+                <paper-material elevation="1">
 
-                    <thead>
-                    <tr>
-                        <td>User Id</td>
-                        <td>Username</td>
-                        <td>Firstname</td>
-                        <td>Lastname</td>
-                        <td>State</td>
-                        <td>Locale</td>
-                        <td>Roles</td>
-                        <td></td>
-                    </tr>
-                    </thead>
+                    <table class="g-table g-m-0 g-12">
 
-                    <tbody>
-
-                    <template is="dom-repeat" items="[[users]]">
-
+                        <thead>
                         <tr>
-                            <td>[[item.userId]]</td>
-                            <td>[[item.username]]</td>
-                            <td>[[item.firstname]]</td>
-                            <td>[[item.lastname]]</td>
-                            <td>[[item.userState]]</td>
-                            <td>[[item.locale]]</td>
-                            <td>[[arrayToString(item.roles)]]</td>
-                            <td>
-                                <!--paper-icon-button icon="delete"
-                                                   title="Remove"
-                                                   on-tap="removeSession"></paper-icon-button-->
-                            </td>
+                            <td>User Id</td>
+                            <td>Username</td>
+                            <td>Firstname</td>
+                            <td>Lastname</td>
+                            <td>State</td>
+                            <td>Locale</td>
+                            <td>Roles</td>
+                            <td></td>
                         </tr>
+                        </thead>
 
-                    </template>
+                        <tbody>
 
-                    </tbody>
+                        <template is="dom-repeat" items="[[users]]">
 
-                </table>
+                            <tr>
+                                <td>[[item.userId]]</td>
+                                <td>[[item.username]]</td>
+                                <td>[[item.firstname]]</td>
+                                <td>[[item.lastname]]</td>
+                                <td>[[item.userState]]</td>
+                                <td>[[item.locale]]</td>
+                                <td>[[arrayToString(item.roles)]]</td>
+                                <td>
+                                    <paper-icon-button icon="create" title="Edit" on-tap="editUser"></paper-icon-button>
+                                </td>
+                            </tr>
+
+                        </template>
+
+                        </tbody>
+
+                    </table>
+                </paper-material>
 
             </div>
-
         </div>
 
         <paper-dialog id="dlg" modal>
@@ -97,6 +100,60 @@
             <p>[[dlgText]]</p>
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="userDlg" modal>
+            <h2>[[user.userId]] [[user.username]]</h2>
+
+            <div class="g-row">
+                <div class="g-6 g-p-4">
+
+                    <paper-input label="Firstname" value="{{user.firstname}}"></paper-input>
+                    <paper-input label="Lastname" value="{{user.lastname}}"></paper-input>
+
+                    <paper-dropdown-menu always-float-label label="Locale" class="custom">
+                        <paper-listbox label="sdsdf"
+                                       attr-for-selected="value"
+                                       class="dropdown-content"
+                                       selected="{{user.locale}}">
+                            <paper-item value="en">English</paper-item>
+                            <paper-item value="de">German</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+
+                    <paper-dropdown-menu always-float-label label="State" class="custom">
+                        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{user.userState}}">
+
+                            <paper-item value="NEW">NEW</paper-item>
+                            <paper-item value="EXPIRED">EXPIRED</paper-item>
+                            <paper-item value="ENABLED">ENABLED</paper-item>
+                            <paper-item value="DISABLED">DISABLED</paper-item>
+                            <paper-item value="SYSTEM">SYSTEM</paper-item>
+
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+
+                </div>
+
+                <div class="g-6 g-p-4">
+                    Roles:
+                    <paper-listbox always-float-label
+                                   label="Roles"
+                                   class="dropdown-content"
+                                   multi
+                                   attr-for-selected="value"
+                                   selected-values="[[selectedRoles]]">
+                        <template is="dom-repeat" items="[[roles]]">
+                            <paper-item value="[[item.position]]">[[item.name]]</paper-item>
+                        </template>
+                    </paper-listbox>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_saveUser" autofocus>Save</paper-button>
             </div>
         </paper-dialog>
 
@@ -125,8 +182,18 @@
                 dlgText: {
                     type: String
                 },
+                roles: {
+                    type: Array
+                },
                 users: {
                     type: Array
+                },
+                user: {
+                    type: Object
+                },
+                selectedRoles: {
+                    type: Array,
+                    value: []
                 }
             },
 
@@ -137,7 +204,7 @@
                 var s = '';
                 for (var i = 0; i < arr.length; i++) {
                     s += arr[i];
-                    if (i < arr.length)
+                    if (i + 1 < arr.length)
                         s += ', ';
                 }
 
@@ -187,11 +254,63 @@
                 this.dlgTitle = 'User query failed';
                 this._handleAjaxResponse = function (data) {
                     this.users = data.detail.response;
+
+                    this.dlgTitle = 'Role query failed';
+                    this._handleAjaxResponse = function (data) {
+                        var response = data.detail.response;
+                        for (var i = 0; i < response.length; i++) {
+                            response[i].position = i;
+                        }
+                        this.roles = response;
+                    };
+
+                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
+                    this.$.ajax.method = 'GET';
+                    this.$.ajax.generateRequest();
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
                 this.$.ajax.method = 'GET';
                 this.$.ajax.generateRequest();
+            },
+
+            _saveUser: function () {
+
+                var roles = [];
+
+                for (var i = 0; i < this.selectedRoles.length; i++) {
+                    var selectedRoleIndex = this.selectedRoles[i];
+                    var selectedRole = this.roles[Number(selectedRoleIndex)];
+                    var selectedRoleName = selectedRole.name;
+                    roles.push(selectedRoleName);
+                }
+
+                var that = this;
+
+                function updateRoles() {
+
+                    that.dlgTitle = 'Update roles failed';
+                    that._handleAjaxResponse = function (data) {
+                        this.reload();
+                    };
+
+                    that.$.ajax.url = that.basePath + 'rest/strolch/privilege/users/' + that.user.username + '/roles';
+                    that.$.ajax.method = 'PUT';
+                    that.$.ajax.body = roles;
+                    that.$.ajax.generateRequest();
+                    that.$.userDlg.close();
+                }
+
+                that.dlgTitle = 'Save user failed';
+                that._handleAjaxResponse = function (data) {
+                    updateRoles();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + that.user.username;
+                this.$.ajax.method = 'PUT';
+                this.$.ajax.body = that.user;
+                this.$.ajax.generateRequest();
+                this.$.userDlg.close();
             },
 
             _handleAjaxResponse: function (evt) {
@@ -207,6 +326,22 @@
                     dlgText = data.detail.error;
                 }
                 this.showError(dlgTitle, dlgText);
+            },
+
+            editUser: function (e) {
+                this.user = e.model.item;
+                var selectedRoles = [];
+                for (var i = 0; i < this.roles.length; i++) {
+                    var role = this.roles[i];
+                    for (var j = 0; j < this.user.roles.length; j++) {
+                        var r = this.user.roles[j];
+                        if (role.name == r)
+                            selectedRoles.push('' + i);
+                    }
+                }
+
+                this.selectedRoles = selectedRoles;
+                this.$.userDlg.open();
             },
 
             showError: function (title, text) {

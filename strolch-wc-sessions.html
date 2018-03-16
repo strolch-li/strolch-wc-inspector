@@ -44,45 +44,49 @@
 
             <div class="g-12">
 
-                <table class="g-table">
+                <paper-material elevation="1">
 
-                    <thead>
-                    <tr>
-                        <td>Session Id</td>
-                        <td>Username</td>
-                        <td>Firstname</td>
-                        <td>Lastname</td>
-                        <td>Roles</td>
-                        <td>Login time</td>
-                        <td>Last Access</td>
-                        <td></td>
-                    </tr>
-                    </thead>
+                    <table class="g-table g-m-0 g-12">
 
-                    <tbody>
-
-                    <template is="dom-repeat" items="[[sessions]]">
-
+                        <thead>
                         <tr>
-                            <td>[[item.sessionId]]</td>
-                            <td>[[item.username]]</td>
-                            <td>[[item.firstname]]</td>
-                            <td>[[item.lastname]]</td>
-                            <td>[[arrayToString(item.roles)]]</td>
-                            <td>[[toLocalDateTime(item.loginTime)]]</td>
-                            <td>[[toLocalDateTime(item.lastAccess)]]</td>
-                            <td>
-                                <paper-icon-button icon="delete"
-                                                   title="Remove"
-                                                   on-tap="removeSession"></paper-icon-button>
-                            </td>
+                            <td>Session Id</td>
+                            <td>Username</td>
+                            <td>Firstname</td>
+                            <td>Lastname</td>
+                            <td>Roles</td>
+                            <td>Login time</td>
+                            <td>Last Access</td>
+                            <td></td>
                         </tr>
+                        </thead>
 
-                    </template>
+                        <tbody>
 
-                    </tbody>
+                        <template is="dom-repeat" items="[[sessions]]">
 
-                </table>
+                            <tr>
+                                <td>[[item.sessionId]]</td>
+                                <td>[[item.username]]</td>
+                                <td>[[item.firstname]]</td>
+                                <td>[[item.lastname]]</td>
+                                <td>[[arrayToString(item.roles)]]</td>
+                                <td>[[toLocalDateTime(item.loginTime)]]</td>
+                                <td>[[toLocalDateTime(item.lastAccess)]]</td>
+                                <td>
+                                    <paper-icon-button icon="delete"
+                                                       title="Remove"
+                                                       on-tap="removeSession"></paper-icon-button>
+                                </td>
+                            </tr>
+
+                        </template>
+
+                        </tbody>
+
+                    </table>
+
+                </paper-material>
 
             </div>
 
@@ -133,7 +137,7 @@
                 var s = '';
                 for (var i = 0; i < arr.length; i++) {
                     s += arr[i];
-                    if (i < arr.length)
+                    if (i + 1 < arr.length)
                         s += ', ';
                 }
 
