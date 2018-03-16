@@ -259,7 +259,7 @@
                     type: String,
                     value: './'
                 },
-                dlgTitle : {
+                dlgTitle: {
                     type: String
                 },
                 realm: {
@@ -348,9 +348,12 @@
             },
 
             observeSearchTerm: function (newValue, oldValue) {
-                if (this.realm == null || this.objectType == null || this.selectedType == null) return;
+                if (this.realm == null || this.objectType == null || this.selectedType == null) {
+                    return;
+                }
 
                 this.debounce("doSearch", function () {
+                    this.offset = 0;
                     this.reloadTypeDetails();
                 }, 500);
             },
@@ -560,7 +563,6 @@
             },
 
             reloadTypeDetails: function () {
-
                 this.dlgTitle = 'Reload failed';
                 this._handleAjaxResponse = function (data) {
                     this.set('objects', data.detail.response);
