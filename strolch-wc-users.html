@@ -20,6 +20,8 @@
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
 <dom-module id="strolch-wc-users">
 
     <template>
@@ -217,7 +219,7 @@
                    content-type="application/json"
                    handle-as="json"
                    on-response="_handleAjaxResponse"
-                   on-error="_handleAjaxError"></iron-ajax>
+                   on-error="onAjaxError"></iron-ajax>
 
     </template>
 
@@ -227,17 +229,11 @@
 
             is: 'strolch-wc-users',
 
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
             properties: {
-                basePath: {
-                    type: String,
-                    value: './'
-                },
-                dlgTitle: {
-                    type: String
-                },
-                dlgText: {
-                    type: String
-                },
                 roles: {
                     type: Array
                 },
@@ -253,61 +249,21 @@
                 }
             },
 
-            toLocalDateTime: function (val) {
-                return Strolch.toLocalDateTime(val);
-            },
-            arrayToString: function (arr) {
-                var s = '';
-                for (var i = 0; i < arr.length; i++) {
-                    s += arr[i];
-                    if (i + 1 < arr.length)
-                        s += ', ';
-                }
-
-                return s;
-            },
-            isEmptyString: function (v) {
-                return v != null && v.length == 0
-            },
-            isNotEmptyString: function (v) {
-                return v != null && v.length > 0
-            },
             _getName: function (user) {
                 return user.firstname + ' ' + user.lastname;
             },
 
-            listeners: {},
-
-            onAjaxError: function (event) {
-                var dlgTitle = event.detail.title;
-                var data = event.detail;
-                var dlgText;
-                if (data.detail.request.response) {
-                    if (data.detail.request.response.msg) {
-                        dlgText = data.detail.request.response.msg;
-                    } else if (data.detail.request.response.charAt(0) == '{') {
-                        var json = JSON.parse(data.detail.request.response);
-                        if (json.msg) {
-                            dlgText = json.msg;
-                        } else {
-                            dlgText = data.detail.request.response;
-                        }
-                    } else {
-                        dlgText = data.detail.request.response;
-                    }
-                } else {
-                    dlgText = data.detail.error;
-                }
-
-                this.fire('strolch-show-dialog', {
-                    title: dlgTitle,
-                    text: dlgText
-                });
+            listeners: {
+                "strolch-show-dialog": "onShowDialog"
             },
             onShowDialog: function (event) {
-                var dlgTitle = event.detail.title;
-                var dlgText = event.detail.text;
-                this.showError(dlgTitle, dlgText);
+                this.showError(event.detail.title, event.detail.text);
+            },
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
             },
 
             ready: function () {
@@ -420,16 +376,6 @@
                 console.log('NOT YET DEFINED!');
             },
 
-            _handleAjaxError: function (data) {
-                var dlgText;
-                if (data.detail.request.response) {
-                    dlgText = data.detail.request.response.msg;
-                } else {
-                    dlgText = data.detail.error;
-                }
-                this.showError(this.dlgTitle, dlgText);
-            },
-
             _validateUser: function (user) {
                 if (this.isEmptyString(user.username))
                     return 'Username is not set!';
@@ -509,13 +455,6 @@
 
                 this.selectedRoles = selectedRoles;
                 this.$.userDlg.open();
-            },
-
-            showError: function (title, text) {
-                this.dlgTitle = title;
-                this.dlgText = text;
-                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
-                this.$.dlg.open();
             }
         });
 

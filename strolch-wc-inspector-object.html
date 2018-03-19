@@ -16,6 +16,8 @@
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
 <dom-module id="strolch-wc-inspector-object">
 
     <template>
@@ -408,7 +410,7 @@
         <iron-ajax id="ajax"
                    content-type="application/json"
                    on-response="_handleAjaxResponse"
-                   on-error="_handleAjaxError"></iron-ajax>
+                   on-error="onAjaxError"></iron-ajax>
 
     </template>
 
@@ -418,14 +420,11 @@
 
             is: 'strolch-wc-inspector-object',
 
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
             properties: {
-                basePath: {
-                    type: String,
-                    value: './'
-                },
-                dlgTitle: {
-                    type: String
-                },
                 realm: {
                     type: String,
                     value: function () {
@@ -648,13 +647,6 @@
 
             _handleAjaxResponse: function (evt) {
                 console.log('NOT YET DEFINED!');
-            },
-
-            _handleAjaxError: function (data) {
-                this.fire('strolch-handle-ajax-error', {
-                    title: this.dlgTitle,
-                    detail: data.detail
-                });
             }
         });
 

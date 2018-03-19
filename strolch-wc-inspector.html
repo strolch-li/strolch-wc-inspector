@@ -17,6 +17,7 @@
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
+<link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-objects.html">
 
 <dom-module id="strolch-wc-inspector">
@@ -95,7 +96,7 @@
 
                 <div class="toolbar">
 
-                    <paper-dropdown-menu always-float-label label="select realm" class="custom">
+                    <paper-dropdown-menu no-label-float label="select realm" class="custom">
                         <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
 
                             <template is="dom-repeat" items="{{realms}}">
@@ -168,14 +169,14 @@
                    content-type="application/json"
                    handle-as="json"
                    on-response="_handleAjaxResponse"
-                   on-error="_handleAjaxError"></iron-ajax>
+                   on-error="onAjaxError"></iron-ajax>
 
         <iron-ajax id="ajaxXml"
                    content-type="application/xml"
                    handle-as="text"
                    method="GET"
                    on-response="_handleAjaxResponse"
-                   on-error="_handleAjaxError"></iron-ajax>
+                   on-error="onAjaxError"></iron-ajax>
 
     </template>
 
@@ -185,17 +186,11 @@
 
             is: 'strolch-wc-inspector',
 
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
             properties: {
-                basePath: {
-                    type: String,
-                    value: './'
-                },
-                dlgTitle: {
-                    type: String
-                },
-                dlgText: {
-                    type: String
-                },
                 realms: {
                     type: Array,
                     value: function () {
@@ -258,8 +253,21 @@
             },
 
             listeners: {
-                "strolch-handle-ajax-error": "onAjaxError",
                 "strolch-show-dialog": "onShowDialog"
+            },
+
+            onStrolchImport: function (event) {
+                this.reload();
+                this.showError('Import complete', event.detail.msg);
+            },
+            onShowDialog: function (event) {
+                this.showError(event.detail.title, event.detail.text);
+            },
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
             },
 
             selectedRealmChanged: function (newValue, oldValue) {
@@ -275,43 +283,6 @@
                     Strolch.setQueryParamValue('objectType', newValue);
                     this.reloadSelectedObjectType();
                 }
-            },
-
-            onStrolchImport: function (event) {
-                this.reload();
-                this.showError('Import complete', event.detail.msg);
-            },
-
-            onAjaxError: function (event) {
-                var dlgTitle = event.detail.title;
-                var data = event.detail;
-                var dlgText;
-                if (data.detail.request.response) {
-                    if (data.detail.request.response.msg) {
-                        dlgText = data.detail.request.response.msg;
-                    } else if (data.detail.request.response.charAt(0) == '{') {
-                        var json = JSON.parse(data.detail.request.response);
-                        if (json.msg) {
-                            dlgText = json.msg;
-                        } else {
-                            dlgText = data.detail.request.response;
-                        }
-                    } else {
-                        dlgText = data.detail.request.response;
-                    }
-                } else {
-                    dlgText = data.detail.error;
-                }
-
-                this.fire('strolch-show-dialog', {
-                    title: dlgTitle,
-                    text: dlgText
-                });
-            },
-            onShowDialog: function (event) {
-                var dlgTitle = event.detail.title;
-                var dlgText = event.detail.text;
-                this.showError(dlgTitle, dlgText);
             },
 
             ready: function () {
@@ -467,24 +438,6 @@
 
             _handleAjaxResponse: function (evt) {
                 console.log('NOT YET DEFINED!');
-            },
-
-            _handleAjaxError: function (data) {
-                var dlgTitle = 'Debug action failed';
-                var dlgText;
-                if (data.detail.request.response) {
-                    dlgText = data.detail.request.response.msg;
-                } else {
-                    dlgText = data.detail.error;
-                }
-                this.showError(dlgTitle, dlgText);
-            },
-
-            showError: function (title, text) {
-                this.dlgTitle = title;
-                this.dlgText = text;
-                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
-                this.$.dlg.open();
             }
         });
 

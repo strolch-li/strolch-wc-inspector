@@ -1,0 +1,248 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-role-privilege">
+
+    <template>
+
+        <style is="strolch-wc-styles">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            paper-material {
+                background-color: white;
+            }
+
+            ul {
+                list-style: none;
+            }
+
+        </style>
+
+        <paper-material class="g-m-4" elevation="1">
+            <h3 class="g-pl-4 g-pt-1 g-pb-1" on-tap="_toggleOpened">
+                <template is="dom-if" if="[[!opened]]">
+                    <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
+                </template>
+                <template is="dom-if" if="[[opened]]">
+                    <paper-icon-button icon="arrow-drop-up"></paper-icon-button>
+                </template>
+                [[privilege.name]]
+            </h3>
+
+            <template is="dom-if" if="[[opened]]">
+
+                <div class="g-pt-1 g-pl-4 g-pr-4">
+
+                    <p class="g-mt-0">Policy: [[privilege.policy]]</p>
+
+                    <paper-checkbox checked="{{privilege.allAllowed}}">All allowed</paper-checkbox>
+
+                    <template is="dom-if" if="[[!privilege.allAllowed]]">
+                        <br />
+
+                        <template is="dom-if" if="[[!hasAllows]]">
+                            <p>Allow List: <i>none</i></p>
+                        </template>
+                        <template is="dom-if" if="[[hasAllows]]">
+                            <p>Allow List:</p>
+                            <ul>
+                                <template is="dom-repeat" items="[[privilege.allowList]]">
+                                    <li>
+                                        <paper-icon-button icon="delete"
+                                                           title="Remove"
+                                                           on-tap="_removeAllowValue"></paper-icon-button>
+                                        [[item]]
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+
+                        <template is="dom-if" if="[[!hasDenies]]">
+                            <p>Deny List: <i>none</i></p>
+                        </template>
+                        <template is="dom-if" if="[[hasDenies]]">
+                            <p>Deny List:</p>
+                            <ul>
+                                <template is="dom-repeat" items="[[privilege.denyList]]">
+                                    <li>
+                                        <paper-icon-button icon="delete"
+                                                           title="Remove"
+                                                           on-tap="_removeDenyValue"></paper-icon-button>
+                                        [[item]]
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+
+                        <paper-button on-tap="_addAllowValue">Add Allow</paper-button>
+                        <paper-button on-tap="_addDenyValue">Add Deny</paper-button>
+
+                    </template>
+                </div>
+            </template>
+
+        </paper-material>
+
+        <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+
+            <paper-input value="{{listValue}}"></paper-input>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_saveAllowDenyValue">Add</paper-button>
+            </div>
+        </paper-dialog>
+
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-role-privilege',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                opened: {
+                    type: Boolean,
+                    value: false
+                },
+                role: {
+                    type: Object
+                },
+                privilege: {
+                    type: Object
+                },
+                hasAllows: {
+                    type: Boolean,
+                    computed: 'isNotEmptyArray(privilege.allowList)'
+                },
+                hasDenies: {
+                    type: Boolean,
+                    computed: 'isNotEmptyArray(privilege.denyList)'
+                },
+                listToAddTo: {
+                    type: String
+                },
+                listValue: {
+                    type: String
+                }
+            },
+
+            observers: [],
+
+            ready: function () {
+                //
+            },
+
+            reload: function () {
+
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _toggleOpened: function (e) {
+                this.opened = !this.opened;
+            },
+
+            _addAllowValue: function (e) {
+                this.dlgTitle = "Add Allow Value";
+                this.listToAddTo = 'allowList';
+                this.$.dlg.open();
+            },
+
+            _addDenyValue: function (e) {
+                this.dlgTitle = "Add Deny Value";
+                this.listToAddTo = 'denyList';
+                this.$.dlg.open();
+            },
+
+            _saveAllowDenyValue: function (e) {
+                var path = 'privilege.' + this.listToAddTo;
+                this.push(path, this.listValue);
+                this.notifyPath(path);
+
+                this.listToAddTo = '';
+                this.listValue = '';
+                this.$.dlg.close();
+            },
+
+            _removeAllowValue: function (e) {
+                var value = e.model.item;
+                var list = this.privilege.allowList;
+                var path = 'privilege.allowList';
+                this._removeValue(value, list, path);
+            },
+            _removeDenyValue: function (e) {
+                var value = e.model.item;
+                var list = this.privilege.denyList;
+                var path = 'privilege.denyList';
+                this._removeValue(value, list, path);
+            },
+
+            _removeValue: function (value, list, path) {
+
+                console.log('Removing vlaue ' + value + ' for path ' + path);
+
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i] === value) {
+                        list.splice(i, 1);
+                        this.notifySplices(path, [
+                            {
+                                index: i,
+                                removed: [value],
+                                addedCount: 0,
+                                obect: list,
+                                type: 'splice'
+                            }
+                        ]);
+                        this.notifyPath(path);
+                    }
+                }
+            }
+        });
+
+    </script>
+
+</dom-module>

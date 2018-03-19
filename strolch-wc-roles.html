@@ -1,0 +1,142 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-role.html">
+
+<dom-module id="strolch-wc-roles">
+
+    <template>
+
+        <style is="strolch-wc-styles">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            paper-button, paper-material {
+                background-color: white;
+            }
+
+            .g-table {
+                font-size: small;
+            }
+
+            .g-table thead {
+                font-weight: bold;
+            }
+
+            .g-table th, .g-table td {
+                vertical-align: inherit;
+            }
+
+        </style>
+
+        <!--div class="g-row g-pt-4">
+            <div class="g-12 g-right">
+                <paper-button on-tap="_addRole" raised>Add</paper-button>
+            </div>
+        </div-->
+
+        <template is="dom-repeat" items="[[roles]]" as="role">
+            <strolch-wc-role base-path="[[basePath]]"
+                             role="[[role]]"
+                             on-strolch-role-reload-needed="onReload"></strolch-wc-role>
+        </template>
+
+
+        <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-roles',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                roles: {
+                    type: Array
+                }
+            },
+
+            listeners: {
+                "strolch-show-dialog": "onShowDialog"
+            },
+            onShowDialog: function (event) {
+                this.showError(event.detail.title, event.detail.text);
+            },
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
+            },
+
+            ready: function () {
+                //
+            },
+
+            onReload: function (e) {
+                this.reload();
+            },
+
+            reload: function () {
+
+                this.dlgTitle = 'Role query failed';
+                this._handleAjaxResponse = function (data) {
+                    this.roles = data.detail.response;
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            }
+        });
+
+    </script>
+
+</dom-module>
