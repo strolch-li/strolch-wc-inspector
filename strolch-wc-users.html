@@ -10,7 +10,7 @@
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-icon-button/paper-icon-button">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-item/paper-item.html">
@@ -33,6 +33,10 @@
                 height: 100%;
             }
 
+            paper-button {
+                background-color: white;
+            }
+
             .g-table {
                 font-size: small;
             }
@@ -47,7 +51,13 @@
 
         </style>
 
-        <div class="g-row">
+        <div class="g-row g-pt-4">
+            <div class="g-12 g-right">
+                <paper-button on-tap="_addUser" raised>Add</paper-button>
+            </div>
+        </div>
+
+        <div class="g-row g-pt-4">
 
             <div class="g-12">
 
@@ -57,14 +67,12 @@
 
                         <thead>
                         <tr>
-                            <td>User Id</td>
                             <td>Username</td>
-                            <td>Firstname</td>
-                            <td>Lastname</td>
-                            <td>State</td>
-                            <td>Locale</td>
+                            <td>Name</td>
+                            <td width="100px">State</td>
+                            <td width="80px">Locale</td>
                             <td>Roles</td>
-                            <td></td>
+                            <td width="130px"></td>
                         </tr>
                         </thead>
 
@@ -73,15 +81,21 @@
                         <template is="dom-repeat" items="[[users]]">
 
                             <tr>
-                                <td>[[item.userId]]</td>
                                 <td>[[item.username]]</td>
-                                <td>[[item.firstname]]</td>
-                                <td>[[item.lastname]]</td>
+                                <td>[[_getName(item)]]</td>
                                 <td>[[item.userState]]</td>
                                 <td>[[item.locale]]</td>
                                 <td>[[arrayToString(item.roles)]]</td>
                                 <td>
-                                    <paper-icon-button icon="create" title="Edit" on-tap="editUser"></paper-icon-button>
+                                    <paper-icon-button icon="create"
+                                                       title="Edit"
+                                                       on-tap="_editUser"></paper-icon-button>
+                                    <paper-icon-button icon="lock-outline"
+                                                       title="Set password"
+                                                       on-tap="_openPwDlg"></paper-icon-button>
+                                    <paper-icon-button icon="delete"
+                                                       title="Remove"
+                                                       on-tap="_removeUser"></paper-icon-button>
                                 </td>
                             </tr>
 
@@ -103,22 +117,41 @@
             </div>
         </paper-dialog>
 
+        <paper-dialog id="pwDlg" modal>
+            <h2>Set Password for [[user.username]]</h2>
+            <paper-input label="Password" value="{{password0}}" type="password"></paper-input>
+            <paper-input label="Repeat" value="{{password1}}" type="password"></paper-input>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_setPassword" autofocus>Save</paper-button>
+            </div>
+        </paper-dialog>
+
         <paper-dialog id="userDlg" modal>
-            <h2>[[user.userId]] [[user.username]]</h2>
+            <h2>
+                <template is="dom-if" if="[[isEmptyString(user.userId)]]">New User</template>
+                <template is="dom-if" if="[[isNotEmptyString(user.userId)]]">Edit User</template>
+            </h2>
 
             <div class="g-row">
                 <div class="g-6 g-p-4">
+
+                    <paper-input label="UserId" value="{{user.userId}}" readonly></paper-input>
+                    <paper-input label="Username"
+                                 value="{{user.username}}"
+                                 readonly="[[isNotEmptyString(user.userId)]]"></paper-input>
 
                     <paper-input label="Firstname" value="{{user.firstname}}"></paper-input>
                     <paper-input label="Lastname" value="{{user.lastname}}"></paper-input>
 
                     <paper-dropdown-menu always-float-label label="Locale" class="custom">
-                        <paper-listbox label="sdsdf"
+                        <paper-listbox label="Locale"
                                        attr-for-selected="value"
                                        class="dropdown-content"
                                        selected="{{user.locale}}">
                             <paper-item value="en">English</paper-item>
                             <paper-item value="de">German</paper-item>
+                            <paper-item value="fr">French</paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
 
@@ -143,7 +176,7 @@
                                    class="dropdown-content"
                                    multi
                                    attr-for-selected="value"
-                                   selected-values="[[selectedRoles]]">
+                                   selected-values="{{selectedRoles}}">
                         <template is="dom-repeat" items="[[roles]]">
                             <paper-item value="[[item.position]]">[[item.name]]</paper-item>
                         </template>
@@ -151,9 +184,32 @@
                 </div>
             </div>
 
+            <div class="g-row g-m-0">
+                <div class="g-12 g-pr-4 g-pl-4">
+                    Properties:
+                    <template is="dom-repeat" items="[[user.properties]]" as="property">
+                        <div class="g-row">
+                            <div class="g-5">
+                                <paper-input value="{{property.key}}"></paper-input>
+                            </div>
+                            <div class="g-5 g-pl-4">
+                                <paper-input value="{{property.value}}"></paper-input>
+                            </div>
+                            <div class="g-2" style="line-height: 62px">
+                                <paper-icon-button icon="clear"
+                                                   title="Remove"
+                                                   on-tap="_removeProperty"></paper-icon-button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <paper-button class="g-pull-right" on-tap="_addEmptyProperty">Add</paper-button>
+                </div>
+            </div>
+
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
-                <paper-button on-tap="_saveUser" autofocus>Save</paper-button>
+                <paper-button on-tap="_addOrUpdateUser" autofocus>Save</paper-button>
             </div>
         </paper-dialog>
 
@@ -209,6 +265,15 @@
                 }
 
                 return s;
+            },
+            isEmptyString: function (v) {
+                return v != null && v.length == 0
+            },
+            isNotEmptyString: function (v) {
+                return v != null && v.length > 0
+            },
+            _getName: function (user) {
+                return user.firstname + ' ' + user.lastname;
             },
 
             listeners: {},
@@ -274,43 +339,81 @@
                 this.$.ajax.generateRequest();
             },
 
-            _saveUser: function () {
+            _setPassword: function (e) {
+
+                if (this.isEmptyString(this.password0)) {
+                    this.showError('Password invalid', 'Password can not be empty!');
+                    return;
+                }
+                if (this.password0 !== this.password1) {
+                    this.showError('Password invalid', 'Password are not the same!');
+                    return;
+                }
+
+                this.dlgTitle = 'Set password failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+
+                    this.password0 = '';
+                    this.password1 = '';
+                    this.$.pwDlg.close();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
+                this.$.ajax.method = 'PUT';
+                this.$.ajax.body = {password: btoa(this.password0)};
+                this.$.ajax.generateRequest();
+            },
+
+            _removeUser: function (e) {
+                var user = e.model.item;
+                if (!confirm('Do you really want to delete user ' + user.username + ': ' + user.firstname + ' ' + user.lastname)) {
+                    return;
+                }
+
+                this.dlgTitle = 'User query failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + user.username;
+                this.$.ajax.method = 'DELETE';
+                this.$.ajax.body = {};
+                this.$.ajax.generateRequest();
+            },
+
+            _addOrUpdateUser: function () {
+
+                var msg = this._validateUser(this.user);
+                if (this.isNotEmptyString(msg)) {
+                    this.showError('Empty field', msg);
+                    return;
+                }
 
                 var roles = [];
-
                 for (var i = 0; i < this.selectedRoles.length; i++) {
                     var selectedRoleIndex = this.selectedRoles[i];
                     var selectedRole = this.roles[Number(selectedRoleIndex)];
                     var selectedRoleName = selectedRole.name;
                     roles.push(selectedRoleName);
                 }
+                this.user.roles = roles;
 
-                var that = this;
-
-                function updateRoles() {
-
-                    that.dlgTitle = 'Update roles failed';
-                    that._handleAjaxResponse = function (data) {
-                        this.reload();
-                    };
-
-                    that.$.ajax.url = that.basePath + 'rest/strolch/privilege/users/' + that.user.username + '/roles';
-                    that.$.ajax.method = 'PUT';
-                    that.$.ajax.body = roles;
-                    that.$.ajax.generateRequest();
-                    that.$.userDlg.close();
-                }
-
-                that.dlgTitle = 'Save user failed';
-                that._handleAjaxResponse = function (data) {
-                    updateRoles();
+                this.dlgTitle = 'Save user failed';
+                this._handleAjaxResponse = function (data) {
+                    this.$.userDlg.close();
+                    this.reload();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + that.user.username;
-                this.$.ajax.method = 'PUT';
-                this.$.ajax.body = that.user;
+                if (this.isEmptyString(this.user.userId)) {
+                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
+                    this.$.ajax.method = 'POST';
+                } else {
+                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username;
+                    this.$.ajax.method = 'PUT';
+                }
+                this.$.ajax.body = this.user;
                 this.$.ajax.generateRequest();
-                this.$.userDlg.close();
             },
 
             _handleAjaxResponse: function (evt) {
@@ -318,17 +421,81 @@
             },
 
             _handleAjaxError: function (data) {
-                var dlgTitle = 'Debug action failed';
                 var dlgText;
                 if (data.detail.request.response) {
                     dlgText = data.detail.request.response.msg;
                 } else {
                     dlgText = data.detail.error;
                 }
-                this.showError(dlgTitle, dlgText);
+                this.showError(this.dlgTitle, dlgText);
             },
 
-            editUser: function (e) {
+            _validateUser: function (user) {
+                if (this.isEmptyString(user.username))
+                    return 'Username is not set!';
+                if (this.isEmptyString(user.firstname))
+                    return 'Firstname is not set!';
+                if (this.isEmptyString(user.lastname))
+                    return 'Lastname is not set!';
+                if (this.isEmptyString(user.userState))
+                    return 'User state is not set!';
+                if (this.isEmptyString(user.locale))
+                    return 'Locale is not set!';
+                if (this.selectedRoles.length == 0)
+                    return 'No role selected!';
+
+                return '';
+            },
+
+            _addEmptyProperty: function () {
+                this.push('user.properties', {
+                    key: '',
+                    value: ''
+                });
+            },
+
+            _removeProperty: function (e) {
+                var property = e.model.property;
+
+                var i = 0;
+                for (; i < this.user.properties.length; i++) {
+                    if (this.user.properties[i].key == property.key) {
+                        this.user.properties.splice(i, 1);
+                        this.notifySplices('user.properties', [
+                            {
+                                index: i,
+                                removed: [property],
+                                addedCount: 0,
+                                obect: this.user.properties,
+                                type: 'splice'
+                            }
+                        ]);
+                    }
+                }
+            },
+
+            _addUser: function () {
+                this.user = {
+                    userId: '',
+                    username: '',
+                    firstname: '',
+                    lastname: '',
+                    userState: 'NEW',
+                    locale: 'en',
+                    roles: [],
+                    properties: []
+                };
+
+                this.selectedRoles = [];
+                this.$.userDlg.open();
+            },
+
+            _openPwDlg: function (e) {
+                this.user = e.model.item;
+                this.$.pwDlg.open();
+            },
+
+            _editUser: function (e) {
                 this.user = e.model.item;
                 var selectedRoles = [];
                 for (var i = 0; i < this.roles.length; i++) {
@@ -336,7 +503,7 @@
                     for (var j = 0; j < this.user.roles.length; j++) {
                         var r = this.user.roles[j];
                         if (role.name == r)
-                            selectedRoles.push('' + i);
+                            selectedRoles.push(i);
                     }
                 }
 

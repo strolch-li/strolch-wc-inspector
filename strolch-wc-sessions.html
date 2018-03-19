@@ -40,7 +40,7 @@
 
         </style>
 
-        <div class="g-row">
+        <div class="g-row g-pt-4">
 
             <div class="g-12">
 
@@ -52,8 +52,7 @@
                         <tr>
                             <td>Session Id</td>
                             <td>Username</td>
-                            <td>Firstname</td>
-                            <td>Lastname</td>
+                            <td>Name</td>
                             <td>Roles</td>
                             <td>Login time</td>
                             <td>Last Access</td>
@@ -68,8 +67,7 @@
                             <tr>
                                 <td>[[item.sessionId]]</td>
                                 <td>[[item.username]]</td>
-                                <td>[[item.firstname]]</td>
-                                <td>[[item.lastname]]</td>
+                                <td>[[_getName(item)]]</td>
                                 <td>[[arrayToString(item.roles)]]</td>
                                 <td>[[toLocalDateTime(item.loginTime)]]</td>
                                 <td>[[toLocalDateTime(item.lastAccess)]]</td>
@@ -142,6 +140,9 @@
                 }
 
                 return s;
+            },
+            _getName: function (user) {
+                return user.firstname + ' ' + user.lastname;
             },
 
             listeners: {},
