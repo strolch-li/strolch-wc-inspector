@@ -54,15 +54,16 @@
 
         </style>
 
-        <!--div class="g-row g-pt-4">
+        <div class="g-row g-pt-4">
             <div class="g-12 g-right">
-                <paper-button on-tap="_addRole" raised>Add</paper-button>
+                <paper-button on-tap="_openAddRoleDlg" raised>Add</paper-button>
             </div>
-        </div-->
+        </div>
 
         <template is="dom-repeat" items="[[roles]]" as="role">
             <strolch-wc-role base-path="[[basePath]]"
                              role="[[role]]"
+                             on-strolch-remove-role="onRemoveRole"
                              on-strolch-role-reload-needed="onReload"></strolch-wc-role>
         </template>
 
@@ -72,6 +73,17 @@
             <p>[[dlgText]]</p>
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="addRoleDlg" modal>
+            <h2>[[dlgTitle]]</h2>
+
+            <paper-input label="role name" value="{{roleName}}"></paper-input>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_addRole">Add</paper-button>
             </div>
         </paper-dialog>
 
@@ -96,6 +108,9 @@
             properties: {
                 roles: {
                     type: Array
+                },
+                roleName: {
+                    type: String
                 }
             },
 
@@ -129,6 +144,44 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
                 this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            _openAddRoleDlg: function (e) {
+                this.dlgTitle = 'Add Role';
+                this.$.addRoleDlg.open();
+            },
+
+            _addRole: function (e) {
+                if (this.isEmptyString(this.roleName)) {
+                    return;
+                }
+
+                this.push('roles', {
+                    isNew: true,
+                    name: this.roleName,
+                    privileges: []
+                });
+
+                this.roleName = '';
+                this.$.addRoleDlg.close();
+            },
+
+            onRemoveRole: function (e) {
+
+                var role = e.detail.role;
+                if (!confirm('Do you really want to delete role ' + role.name)) {
+                    return;
+                }
+
+                this.dlgTitle = 'Remove role failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles/' + role.name;
+                this.$.ajax.method = 'DELETE';
+                this.$.ajax.body = {};
                 this.$.ajax.generateRequest();
             },
 

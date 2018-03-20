@@ -33,17 +33,20 @@
                 display: block;
                 margin: 0;
                 padding: 0;
-                height: 100%;
             }
 
             paper-material {
                 background-color: white;
             }
 
+            .content {
+                border-top: 1px black solid;
+            }
+
         </style>
 
         <paper-material elevation="1">
-            <h3 class="g-m-3 g-p-2" on-tap="_toggleOpened">
+            <h3 class="g-m-3 g-pt-2 g-pl-2 g-pr-2" on-tap="_toggleOpened">
                 <template is="dom-if" if="[[!opened]]">
                     <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
                 </template>
@@ -51,22 +54,41 @@
                     <paper-icon-button icon="arrow-drop-up"></paper-icon-button>
                 </template>
                 [[role.name]]
+                <paper-icon-button on-tap="_removeRole" class="g-pull-right" icon="delete"></paper-icon-button>
             </h3>
 
             <template is="dom-if" if="[[opened]]">
-                <template is="dom-repeat" items="[[role.privileges]]" as="privilege">
-                    <strolch-wc-role-privilege base-path="[[basePath]]"
-                                               role="[[role]]"
-                                               privilege="[[privilege]]"></strolch-wc-role-privilege>
-                </template>
+                <div class="content">
+                    <template is="dom-repeat" items="[[role.privileges]]" as="privilege">
+                        <strolch-wc-role-privilege base-path="[[basePath]]"
+                                                   role="[[role]]"
+                                                   privilege="[[privilege]]"
+                                                   on-strolch-changed="onChanged"
+                                                   on-strolch-remove-privilege="onRemovePrivilege"></strolch-wc-role-privilege>
+                    </template>
 
 
-                <paper-button on-tap="reload" autofocus>Cancel</paper-button>
-                <paper-button on-tap="_addOrUpdateRole">Save</paper-button>
+                    <div class="g-pt-2 g-pb-2">
+                        <paper-button on-tap="reload" autofocus disabled="[[!changed]]">Cancel</paper-button>
+                        <paper-button on-tap="_addOrUpdateRole" disabled="[[!changed]]">Save</paper-button>
+                        <paper-button on-tap="_openAddPrivilegeDlg">Add Privilege</paper-button>
+                    </div>
+                </div>
 
             </template>
 
         </paper-material>
+
+        <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+
+            <paper-input value="{{privilegeName}}"></paper-input>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_addPrivilege">Add</paper-button>
+            </div>
+        </paper-dialog>
 
         <iron-ajax id="ajax"
                    content-type="application/json"
@@ -92,17 +114,31 @@
                     value: false
                 },
                 role: {
-                    type: Object
+                    type: Object,
+                    observer: 'roleChanged'
                 },
-                isNew: {
-                    type: Boolean
+                privilegeName: {
+                    type: String
+                },
+                changed: {
+                    type: Boolean,
+                    value: false
                 }
             },
 
-            listeners: {},
-
             ready: function () {
                 //
+            },
+
+            roleChanged: function (newValue, oldValue) {
+                if (newValue != null && newValue.isNew) {
+                    this.changed = true;
+                }
+
+                if ((newValue != null && oldValue == null)
+                    || (newValue != null && newValue.name != oldValue.name)) {
+                    this.opened = false;
+                }
             },
 
             reload: function () {
@@ -110,6 +146,7 @@
                 this.dlgTitle = 'Role query failed';
                 this._handleAjaxResponse = function (data) {
                     this.role = data.detail.response;
+                    this.changed = false;
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles/' + this.role.name;
@@ -125,14 +162,37 @@
                 this.opened = !this.opened;
             },
 
+            _openAddPrivilegeDlg: function (e) {
+                this.dlgTitle = "Add Privilege";
+                this.$.dlg.open();
+            },
+            _addPrivilege: function (e) {
+                if (this.isEmptyString(this.privilegeName)) {
+                    return;
+                }
+
+                this.push('role.privileges', {
+                    name: this.privilegeName,
+                    policy: "DefaultPrivilege",
+                    allAllowed: false,
+                    allowList: [],
+                    denyList: []
+                });
+                this.changed = true;
+
+                this.privilegeName = '';
+                this.$.dlg.close();
+            },
+
             _addOrUpdateRole: function (e) {
 
                 this.dlgTitle = 'Save role failed';
                 this._handleAjaxResponse = function (data) {
+                    this.changed = false;
                     this.fire('strolch-role-reload-needed');
                 };
 
-                if (this.isNew) {
+                if (this.role.isNew) {
                     this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
                     this.$.ajax.method = 'POST';
                 } else {
@@ -141,6 +201,33 @@
                 }
                 this.$.ajax.body = this.role;
                 this.$.ajax.generateRequest();
+            },
+
+            _removeRole: function (e) {
+                e.stopPropagation();
+                this.fire('strolch-remove-role', {role: this.role})
+            },
+
+            onChanged: function (e) {
+                this.changed = true;
+            },
+
+            onRemovePrivilege: function (e) {
+                var privilege = e.detail.privilege;
+                var index = this.role.privileges.indexOf(privilege);
+                if (index >= 0) {
+                    this.role.privileges.splice(index, 1);
+                    this.notifySplices('role.privileges', [
+                        {
+                            index: index,
+                            removed: [privilege],
+                            addedCount: 0,
+                            obect: this.role.privileges,
+                            type: 'splice'
+                        }
+                    ]);
+                    this.changed = true;
+                }
             }
         });
 

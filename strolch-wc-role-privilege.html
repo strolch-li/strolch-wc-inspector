@@ -33,7 +33,6 @@
                 display: block;
                 margin: 0;
                 padding: 0;
-                height: 100%;
             }
 
             paper-material {
@@ -44,10 +43,14 @@
                 list-style: none;
             }
 
+            .content {
+                border-top: 1px black solid;
+            }
+
         </style>
 
-        <paper-material class="g-m-4" elevation="1">
-            <h3 class="g-pl-4 g-pt-1 g-pb-1" on-tap="_toggleOpened">
+        <paper-material class="g-mt-0 g-mb-0 g-ml-4 g-mr-4" elevation="1">
+            <h3 class="g-pl-2 g-pt-1 g-pb-0" on-tap="_toggleOpened">
                 <template is="dom-if" if="[[!opened]]">
                     <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
                 </template>
@@ -55,15 +58,20 @@
                     <paper-icon-button icon="arrow-drop-up"></paper-icon-button>
                 </template>
                 [[privilege.name]]
+                <paper-icon-button on-tap="_removePrivilege" class="g-pull-right" icon="delete"></paper-icon-button>
             </h3>
 
             <template is="dom-if" if="[[opened]]">
 
-                <div class="g-pt-1 g-pl-4 g-pr-4">
+                <div class="content g-pt-0 g-pb-2 g-pl-4 g-pr-4">
 
-                    <p class="g-mt-0">Policy: [[privilege.policy]]</p>
+                    <paper-input class="g-mt-2"
+                                 label="Policy"
+                                 on-input="_inputChanged"
+                                 value="{{privilege.policy}}"></paper-input>
 
-                    <paper-checkbox checked="{{privilege.allAllowed}}">All allowed</paper-checkbox>
+                    <paper-checkbox class="g-mt-3" on-tap="_inputChanged" checked="{{privilege.allAllowed}}">All allowed
+                    </paper-checkbox>
 
                     <template is="dom-if" if="[[!privilege.allAllowed]]">
                         <br />
@@ -76,7 +84,7 @@
                             <ul>
                                 <template is="dom-repeat" items="[[privilege.allowList]]">
                                     <li>
-                                        <paper-icon-button icon="delete"
+                                        <paper-icon-button icon="remove-circle-outline"
                                                            title="Remove"
                                                            on-tap="_removeAllowValue"></paper-icon-button>
                                         [[item]]
@@ -93,7 +101,7 @@
                             <ul>
                                 <template is="dom-repeat" items="[[privilege.denyList]]">
                                     <li>
-                                        <paper-icon-button icon="delete"
+                                        <paper-icon-button icon="remove-circle-outline"
                                                            title="Remove"
                                                            on-tap="_removeDenyValue"></paper-icon-button>
                                         [[item]]
@@ -114,14 +122,13 @@
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>
 
-            <paper-input value="{{listValue}}"></paper-input>
+            <paper-input label="value" value="{{listValue}}"></paper-input>
 
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
                 <paper-button on-tap="_saveAllowDenyValue">Add</paper-button>
             </div>
         </paper-dialog>
-
 
         <iron-ajax id="ajax"
                    content-type="application/json"
@@ -168,8 +175,6 @@
                 }
             },
 
-            observers: [],
-
             ready: function () {
                 //
             },
@@ -186,6 +191,10 @@
                 this.opened = !this.opened;
             },
 
+            _inputChanged: function (e) {
+                this.fire('strolch-changed', {});
+            },
+
             _addAllowValue: function (e) {
                 this.dlgTitle = "Add Allow Value";
                 this.listToAddTo = 'allowList';
@@ -199,9 +208,14 @@
             },
 
             _saveAllowDenyValue: function (e) {
+                if (this.isEmptyString(this.listValue)) {
+                    return;
+                }
+
                 var path = 'privilege.' + this.listToAddTo;
                 this.push(path, this.listValue);
                 this.notifyPath(path);
+                this.fire('strolch-changed', {});
 
                 this.listToAddTo = '';
                 this.listValue = '';
@@ -223,7 +237,7 @@
 
             _removeValue: function (value, list, path) {
 
-                console.log('Removing vlaue ' + value + ' for path ' + path);
+                console.log('Removing value ' + value + ' for path ' + path);
 
                 for (var i = 0; i < list.length; i++) {
                     if (list[i] === value) {
@@ -238,8 +252,14 @@
                             }
                         ]);
                         this.notifyPath(path);
+                        this.fire('strolch-changed', {});
                     }
                 }
+            },
+
+            _removePrivilege: function (e) {
+                e.stopPropagation();
+                this.fire('strolch-remove-privilege', {privilege: this.privilege})
             }
         });
 
