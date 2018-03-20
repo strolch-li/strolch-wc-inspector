@@ -88,6 +88,18 @@
                 background-color: #ffffff;
             }
 
+            .addDlg {
+                width: 600px;
+            }
+
+            textarea {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 40px);
+                height: 100%;
+                min-height: 300px;
+            }
+
         </style>
 
         <div class="g-row">
@@ -124,6 +136,9 @@
                         <paper-icon-button icon="cloud-download"
                                            title="Download entire Realm"
                                            on-tap="exportRealm"></paper-icon-button>
+                        <paper-icon-button icon="cloud-upload"
+                                           title="Upload data to realm"
+                                           on-tap="onAddTapped"></paper-icon-button>
                     </div>
                 </div>
             </div>
@@ -137,8 +152,7 @@
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Resource"
-                                                      object-summaries="[[resources]]"
-                                                      on-strolch-import="onStrolchImport"></strolch-wc-inspector-objects>
+                                                      object-summaries="[[resources]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="Order">
                         <strolch-wc-inspector-objects base-path="[[basePath]]"
@@ -162,6 +176,23 @@
             <p>[[dlgText]]</p>
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="addDlg" class="addDlg" modal>
+            <h3>Import elements</h3>
+
+            <textarea value="{{modelAsText::input}}"></textarea>
+
+            <div class="buttons">
+                <paper-button class="g-pull-right" on-tap="onSaveTap" raised>
+                    <iron-icon icon="add"></iron-icon>
+                    Add
+                </paper-button>
+                <paper-button class="g-pull-right" on-tap="onCancelTap" raised>
+                    <iron-icon icon="close"></iron-icon>
+                    Cancel
+                </paper-button>
             </div>
         </paper-dialog>
 
@@ -249,6 +280,10 @@
                     value: function () {
                         return null;
                     }
+                },
+                modelAsText: {
+                    type: String,
+                    value: ''
                 }
             },
 
@@ -256,10 +291,6 @@
                 "strolch-show-dialog": "onShowDialog"
             },
 
-            onStrolchImport: function (event) {
-                this.reload();
-                this.showError('Import complete', event.detail.msg);
-            },
             onShowDialog: function (event) {
                 this.showError(event.detail.title, event.detail.text);
             },
@@ -343,6 +374,41 @@
                 this.$.ajaxXml.headers = {'Accept': 'application/xml'};
                 this.$.ajaxXml.method = 'GET';
                 this.$.ajaxXml.generateRequest();
+            },
+
+            onAddTapped: function (event) {
+                this.modelAsText = '';
+                this.$.addDlg.open();
+            },
+            onCancelTap: function (event) {
+                this.modelAsText = '';
+                this.$.addDlg.close();
+            },
+            onSaveTap: function (event) {
+                if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
+                    this.showError('Model empty', 'Model can not be empty!');
+                    return;
+                }
+
+                this.dlgTitle = 'Import failed';
+                this._handleAjaxResponse = function (data) {
+                    this.modelAsText = '';
+                    this.$.addDlg.close();
+
+                    this.dlgTitle = 'Import done';
+                    this.dlgText = data.detail.response.msg;
+                    this.$.dlg.open();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import';
+                this.$.ajax.headers = {
+                    'Accept': 'application/xml',
+                    'Content-Type': 'application/xml'
+                };
+                this.$.ajax.handleAs = 'json';
+                this.$.ajax.method = 'POST';
+                this.$.ajax.body = this.modelAsText;
+                this.$.ajax.generateRequest();
             },
 
             reloadSelectedRealm: function () {

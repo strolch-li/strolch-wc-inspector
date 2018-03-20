@@ -92,18 +92,6 @@
                 cursor: pointer;
             }
 
-            textarea {
-                padding: 10px;
-                margin: 10px;
-                width: calc(100% - 40px);
-                height: 100%;
-                min-height: 300px;
-            }
-
-            paper-dialog {
-                width: 600px;
-            }
-
             .g-container {
                 margin: 0 10px 50px 10px;
                 width: calc(100% - 40px);
@@ -130,15 +118,7 @@
                 <section name="typesSummary" class="g-pt-4">
 
                     <div class="g-row">
-                        <div class="g-offset-4 g-2">
-                            <paper-material class="card card-import-btn g-m-2 g-p-4"
-                                            elevation="1"
-                                            on-tap="onImportTapped">
-                                <iron-icon icon="cloud-upload"></iron-icon>
-                                Import
-                            </paper-material>
-                        </div>
-                        <div class="g-2">
+                        <div class="g-offset-4 g-4">
                             <paper-material class="card card-export-btn g-m-2 g-p-4"
                                             elevation="1"
                                             on-tap="onExportTapped">
@@ -163,8 +143,8 @@
                 <section name="typeDetails">
 
                     <div class="g-row toolbar">
-                        <div class="g-1">
-                            <paper-icon-button icon="arrow-back" on-tap="_closeTypeDetails"></paper-icon-button>
+                        <div class="g-1" on-tap="_closeTypeDetails">
+                            <paper-icon-button icon="arrow-back"></paper-icon-button>
                         </div>
                         <div class="g-7">
                             <span class="toolbar-title">[[selectedType]] types</span>
@@ -216,23 +196,6 @@
             </iron-pages>
 
         </template>
-
-        <paper-dialog class="addDlg" opened="[[addDlgOpen]]" modal>
-            <h3>[[importDlgTitle]]</h3>
-
-            <textarea value="{{modelAsText::input}}"></textarea>
-
-            <div class="g-container">
-                <paper-button class="g-pull-right" on-tap="onSaveTap" raised>
-                    <iron-icon icon="add"></iron-icon>
-                    Add
-                </paper-button>
-                <paper-button class="g-pull-right" on-tap="onCancelTap" raised>
-                    <iron-icon icon="close"></iron-icon>
-                    Cancel
-                </paper-button>
-            </div>
-        </paper-dialog>
 
         <iron-ajax id="ajax"
                    content-type="application/json"
@@ -317,18 +280,11 @@
                     }
                 },
 
-                addDlgOpen: {
-                    type: Boolean,
-                    value: false
-                },
                 importType: {
                     type: String,
                     value: 'import'
                 },
-                modelAsText: {
-                    type: String,
-                    value: ''
-                },
+
                 modelType: {
                     type: String,
                     value: function () {
@@ -461,88 +417,6 @@
                 this.$.ajaxXml.generateRequest();
             },
 
-            onAddTapped: function (event) {
-                this.set('importDlgTitle', 'Add ' + this.objectType + ' of type ' + this.selectedType);
-                this.importType = 'add';
-                this.addDlgOpen = true;
-            },
-            onCancelTap: function (event) {
-                this.modelAsText = '';
-                this.addDlgOpen = false;
-            },
-            onSaveTap: function (event) {
-                if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
-                    this.fire('strolch-show-dialog', {
-                        title: 'Model empty',
-                        text: 'Model can not be empty!'
-                    });
-                    return;
-                }
-
-                this.dlgTitle = 'Import failed';
-                if (this.importType == 'import') {
-
-                    this._handleAjaxResponse = function (data) {
-                        this.modelAsText = '';
-                        this.addDlgOpen = false;
-                        this.fire('strolch-import', {msg: data.detail.response.msg});
-                    };
-
-                    this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/import';
-                    this.$.ajax.headers = {
-                        'Accept': 'application/xml',
-                        'Content-Type': 'application/xml'
-                    };
-                    this.$.ajax.handleAs = 'json';
-                    this.$.ajax.method = 'POST';
-                    this.$.ajax.body = this.modelAsText;
-                    this.$.ajax.generateRequest();
-                } else {
-
-                    var accept = this._getAcceptHeader();
-                    var url = this._getObjectUrl();
-                    if (this.modelType == 'json-flat') {
-                        url += '?flat=true';
-                    }
-
-                    this._handleAjaxResponse = function (data) {
-                        console.log(data);
-                    };
-
-                    this.$.ajax.url = url;
-                    this.$.ajax.headers = {
-                        'Accept': accept,
-                        'Content-Type': accept
-                    };
-                    this.$.ajax.handleAs = 'text';
-                    this.$.ajax.method = 'POST';
-                    this.$.ajax.body = this.modelAsText;
-                    this.$.ajax.generateRequest();
-                }
-            },
-
-            _getAcceptHeader: function () {
-                if (this.modelType == 'xml') {
-                    return 'application/xml'
-                } else if (this.modelType == 'json') {
-                    return 'application/json'
-                } else if (this.modelType == 'json-flat') {
-                    return 'application/json';
-                } else {
-                    return 'application/xml';
-                }
-            },
-
-            _getObjectUrl: function () {
-                var objectType = this.objectType;
-                var type = this.selectedType;
-                var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(objectType);
-                if (this.modelType == 'json-flat') {
-                    url += '/' + type + '/';
-                }
-                return url;
-            },
-
             onRemoveElement: function (event) {
                 console.log("Delete element " + event.detail.object.id);
 
@@ -567,7 +441,7 @@
                 };
 
                 var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
-                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + this.searchTerm+'&overview=true';
+                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + this.searchTerm + '&overview=true';
 
                 this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
