@@ -473,18 +473,25 @@
             },
 
             _objectChanged: function (newValue, oldValue) {
-                this.expanded = false;
-                this.selectedDetailType = '';
+                if (newValue != null && oldValue == null || (newValue != null && oldValue != null && newValue.id != oldValue.id)) {
+                    this.expanded = false;
+                    this.selectedDetailType = '';
+                }
             },
 
             _modelTypeChanged: function (newValue, oldValue) {
-                if (this.isRootElement && newValue != oldValue) {
+                if (this.expanded && this.isRootElement && newValue != oldValue) {
                     this.reloadModel();
                 }
             },
 
             _selectedDetailTypeChanged: function (newValue, oldValue) {
-                if (newValue == 'model') this.reloadModel();
+                if (this.expanded) {
+                    if (newValue == 'model')
+                        this.reloadModel();
+                    else
+                        this.reloadObject();
+                }
             },
 
             _typeSubPath: function (selectedType) {
@@ -569,8 +576,27 @@
                 }
             },
 
+            reloadObject: function () {
+                if (this._isAction(this.object.objectType)) {
+                    return;
+                }
+
+                this.dlgTitle = 'Reload object failed';
+                this._handleAjaxResponse = function (data) {
+                    this.object = data.detail.response;
+                };
+
+                this.$.ajax.url = this._getObjectUrl();
+                this.$.ajax.headers = {'Accept': 'application/json'};
+                this.$.ajax.handleAs = 'json';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
             reloadModel: function () {
-                if (this._isAction(this.object.objectType)) return;
+                if (this._isAction(this.object.objectType)) {
+                    return;
+                }
 
                 var accept = this._getAcceptHeader();
                 var url = this._getObjectUrl();
