@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "authors": "Robert von Burg",
   "keywords": [
     "strolch",
@@ -17,15 +17,19 @@
   "homepage": "https://github.com/4treesCH/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
-    "strolchjs" : "4treesCH/strolchjs#^0.2.3",
-    "strolch-wc-styles" : "4treesCH/strolch-wc-styles#^0.1.7",
+    "strolchjs": "4treesCH/strolchjs#^0.2.3",
+    "strolch-wc-styles": "4treesCH/strolch-wc-styles#^0.1.7",
+
     "polymer": "Polymer/polymer#^1.11.3",
+
     "iron-ajax": "PolymerElements/iron-ajax#^1.4.4",
     "iron-pages": "PolymerElements/iron-pages#^1.0.9",
     "iron-icons": "PolymerElements/iron-icons#^1.2.1",
     "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.9",
+
     "app-route": "PolymerElements/app-route#^1.0.1",
     "app-layout": "PolymerElements/app-layout#^1.0.1",
+
     "paper-material": "PolymerElements/paper-material#^1.0.7",
     "paper-header-panel": "PolymerElements/paper-header-panel#^1.1.7",
     "paper-card": "PolymerElements/paper-card#^1.1.6",
@@ -41,8 +45,9 @@
     "paper-input": "PolymerElements/paper-input#^1.2.1",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.4.2",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.2"
+
   },
   "devDependencies": {
-    "strolch-wc-auth" : "4treesCH/strolch-wc-auth#^0.6.3"
+    "strolch-wc-auth": "4treesCH/strolch-wc-auth#^0.6.3"
   }
 }
