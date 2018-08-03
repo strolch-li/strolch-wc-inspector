@@ -68,109 +68,122 @@
                 };
             }
 
+            paper-material {
+                background: white;
+                margin-top: 0.3em;
+                margin-bottom: 0.3em;
+                padding: 0.3em;
+            }
+
         </style>
 
-        <div class="g-row g-pt-4">
+        <paper-material elevation="1" class="g-m-3">
 
-            <div class="g-3">
-                <paper-dropdown-menu no-label-float label="select realm" class="custom">
-                    <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
+            <div class="g-row g-pt-4">
 
-                        <template is="dom-repeat" items="[[realms]]">
-                            <paper-item value="[[item.name]]">[[item.name]]</paper-item>
-                        </template>
+                <div class="g-3">
+                    <paper-dropdown-menu no-label-float label="select realm" class="custom">
+                        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
 
-                    </paper-listbox>
-                </paper-dropdown-menu>
-            </div>
+                            <template is="dom-repeat" items="[[realms]]">
+                                <paper-item value="[[item.name]]">[[item.name]]</paper-item>
+                            </template>
 
-            <div class="g-3 g-pl-2">
-                <paper-dropdown-menu no-label-float label="select severity" class="custom">
-                    <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedSeverity}}">
-
-                        <paper-item value=""></paper-item>
-                        <template is="dom-repeat" items="[[severities]]">
-                            <paper-item value="[[item]]">[[item]]</paper-item>
-                        </template>
-
-                    </paper-listbox>
-                </paper-dropdown-menu>
-            </div>
-
-            <div class="g-3 g-pl-2">
-                <paper-input no-label-float value="{{searchTerm}}" class="searchField">
-                    <template is="dom-if" if="[[isEmptyString(searchTerm)]]">
-                        <iron-icon suffix icon="search"></iron-icon>
-                    </template>
-                    <template is="dom-if" if="[[!isEmptyString(searchTerm)]]">
-                        <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
-                    </template>
-                </paper-input>
-            </div>
-
-            <div class="g-3">
-                <paper-icon-button class="g-pull-right"
-                                   icon="refresh"
-                                   title="Refresh"
-                                   on-tap="reloadOperationsLog"></paper-icon-button>
-            </div>
-
-        </div>
-
-        <div class="g-row">
-            <div class="g-2">
-                <vaadin-date-picker label="from" value="{{from}}" i18n="{{i18n}}"></vaadin-date-picker>
-            </div>
-            <div class="g-2 g-pl-2">
-                <vaadin-date-picker label="to" value="{{to}}" i18n="{{i18n}}"></vaadin-date-picker>
-            </div>
-        </div>
-
-        <div class="g-row g-pt-4">
-
-            <div class="g-12">
-
-                <div class="g-row">
-                    <div class="g-2"><b>ID</b></div>
-                    <div class="g-3"><b>Date</b></div>
-                    <div class="g-2"><b>Severity</b></div>
-                    <div class="g-5"><b>Locator</b></div>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
                 </div>
 
-                <template is="dom-repeat" items="[[operationsLog.data]]" as="log">
+                <div class="g-3 g-pl-2">
+                    <paper-dropdown-menu no-label-float label="select severity" class="custom">
+                        <paper-listbox attr-for-selected="value"
+                                       class="dropdown-content"
+                                       selected="{{selectedSeverity}}">
 
-                    <hr>
+                            <paper-item value=""></paper-item>
+                            <template is="dom-repeat" items="[[severities]]">
+                                <paper-item value="[[item]]">[[item]]</paper-item>
+                            </template>
 
-                    <div class="g-row ">
-                        <div class="g-2">[[log.id]]</div>
-                        <div class="g-3">[[log.date]]</div>
-                        <div class="g-2">[[log.severity]]</div>
-                        <div class="g-5">[[log.locator]]</div>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                </div>
+
+                <div class="g-3 g-pl-2">
+                    <paper-input no-label-float value="{{searchTerm}}" class="searchField">
+                        <template is="dom-if" if="[[isEmptyString(searchTerm)]]">
+                            <iron-icon suffix icon="search"></iron-icon>
+                        </template>
+                        <template is="dom-if" if="[[!isEmptyString(searchTerm)]]">
+                            <iron-icon suffix icon="clear" id="clear" on-tap="onClearTapped"></iron-icon>
+                        </template>
+                    </paper-input>
+                </div>
+
+                <div class="g-3">
+                    <paper-icon-button class="g-pull-right"
+                                       icon="refresh"
+                                       title="Refresh"
+                                       on-tap="reloadOperationsLog"></paper-icon-button>
+                </div>
+
+            </div>
+
+            <div class="g-row">
+                <div class="g-2">
+                    <vaadin-date-picker label="from" value="{{from}}" i18n="{{i18n}}"></vaadin-date-picker>
+                </div>
+                <div class="g-2 g-pl-2">
+                    <vaadin-date-picker label="to" value="{{to}}" i18n="{{i18n}}"></vaadin-date-picker>
+                </div>
+            </div>
+
+            <div class="g-row g-pt-4">
+
+                <div class="g-12">
+
+                    <div class="g-row">
+                        <div class="g-2"><b>ID</b></div>
+                        <div class="g-3"><b>Date</b></div>
+                        <div class="g-2"><b>Severity</b></div>
+                        <div class="g-5"><b>Locator</b></div>
                     </div>
+
+                    <template is="dom-repeat" items="[[operationsLog.data]]" as="log">
+
+                        <hr />
+
+                        <div class="g-row ">
+                            <div class="g-2">[[log.id]]</div>
+                            <div class="g-3">[[log.date]]</div>
+                            <div class="g-2">[[log.severity]]</div>
+                            <div class="g-5">[[log.locator]]</div>
+                        </div>
+                        <div class="g-row">
+                            <div class="g-12">
+                                <p>[[log.message]]</p>
+                            </div>
+                        </div>
+
+
+                    </template>
+
                     <div class="g-row">
                         <div class="g-12">
-                            <p>[[log.message]]</p>
+                            <div class="g-m-2 g-center">
+                                <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
+                                <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
+                                <span>[[operationsLog.offset]] to [[_getEnd(operationsLog)]] of [[operationsLog.size]]</span>
+                                <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
+                                <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
+                            </div>
                         </div>
                     </div>
 
-
-                </template>
-
-                <div class="g-row">
-                    <div class="g-12">
-                        <div class="g-m-2 g-center">
-                            <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
-                            <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
-                            <span>[[operationsLog.offset]] to [[_getEnd(operationsLog)]] of [[operationsLog.size]]</span>
-                            <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
-                            <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
-                        </div>
-                    </div>
                 </div>
 
             </div>
 
-        </div>
+        </paper-material>
 
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>

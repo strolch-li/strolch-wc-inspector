@@ -39,16 +39,11 @@
                 background-color: white;
             }
 
-            .g-table {
-                font-size: small;
-            }
-
-            .g-table thead {
-                font-weight: bold;
-            }
-
-            .g-table th, .g-table td {
-                vertical-align: inherit;
+            paper-material {
+                background: white;
+                margin-top: 0.3em;
+                margin-bottom: 0.3em;
+                padding: 0.3em;
             }
 
         </style>
@@ -59,57 +54,47 @@
             </div>
         </div>
 
-        <div class="g-row g-pt-4">
+        <paper-material elevation="1" class="g-ml-3 g-mr-3">
 
-            <div class="g-12">
+            <div class="g-row g-pt-4">
 
-                <paper-material elevation="1">
+                <div class="g-12">
 
-                    <table class="g-table g-m-0 g-12">
+                    <div class="g-row">
+                        <div class="g-2">Username</div>
+                        <div class="g-3">Name</div>
+                        <div class="g-1">State</div>
+                        <div class="g-1">Locale</div>
+                        <div class="g-3">Roles</div>
+                        <div class="g-2"></div>
+                    </div>
 
-                        <thead>
-                        <tr>
-                            <td>Username</td>
-                            <td>Name</td>
-                            <td width="100px">State</td>
-                            <td width="80px">Locale</td>
-                            <td>Roles</td>
-                            <td width="130px"></td>
-                        </tr>
-                        </thead>
+                    <template is="dom-repeat" items="[[users]]">
 
-                        <tbody>
+                        <hr />
 
-                        <template is="dom-repeat" items="[[users]]">
+                        <div class="g-row">
+                            <div class="g-2">[[item.username]]</div>
+                            <div class="g-3">[[_getName(item)]]</div>
+                            <div class="g-1">[[item.userState]]</div>
+                            <div class="g-1">[[item.locale]]</div>
+                            <div class="g-3">[[arrayToString(item.roles)]]</div>
+                            <div class="g-2">
+                                <paper-icon-button icon="create" title="Edit" on-tap="_editUser"></paper-icon-button>
+                                <paper-icon-button icon="lock-outline"
+                                                   title="Set password"
+                                                   on-tap="_openPwDlg"></paper-icon-button>
+                                <paper-icon-button icon="delete"
+                                                   title="Remove"
+                                                   on-tap="_removeUser"></paper-icon-button>
+                            </div>
+                        </div>
 
-                            <tr>
-                                <td>[[item.username]]</td>
-                                <td>[[_getName(item)]]</td>
-                                <td>[[item.userState]]</td>
-                                <td>[[item.locale]]</td>
-                                <td>[[arrayToString(item.roles)]]</td>
-                                <td>
-                                    <paper-icon-button icon="create"
-                                                       title="Edit"
-                                                       on-tap="_editUser"></paper-icon-button>
-                                    <paper-icon-button icon="lock-outline"
-                                                       title="Set password"
-                                                       on-tap="_openPwDlg"></paper-icon-button>
-                                    <paper-icon-button icon="delete"
-                                                       title="Remove"
-                                                       on-tap="_removeUser"></paper-icon-button>
-                                </td>
-                            </tr>
+                    </template>
 
-                        </template>
-
-                        </tbody>
-
-                    </table>
-                </paper-material>
-
+                </div>
             </div>
-        </div>
+        </paper-material>
 
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>

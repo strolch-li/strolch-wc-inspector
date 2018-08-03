@@ -78,6 +78,17 @@
                 min-height: 300px;
             }
 
+            .cell {
+                margin-top: 0.5em;
+                overflow: auto;
+            }
+
+            .data-list {
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
         </style>
 
         <paper-material class="g-card g-m-3 g-mt-4" elevation="1">
@@ -219,43 +230,34 @@
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.parameterBags)]]">
 
-                                        <table class="g-table">
-                                            <thead>
-                                            <tr>
-                                                <th>ParameterBag</th>
-                                                <th>Parameter Id</th>
-                                                <th>Name</th>
-                                                <th>Interpretation</th>
-                                                <th>UOM</th>
-                                                <th>Type</th>
-                                                <th>Value</th>
-                                            </tr>
-                                            </thead>
+                                        <div class="g-row g-pt-2">
+                                            <div class="g-2"><b>ParameterBag</b></div>
+                                            <div class="g-2"><b>Parameter Id</b></div>
+                                            <div class="g-2"><b>Name</b></div>
+                                            <div class="g-2"><b>Interpretation</b></div>
+                                            <div class="g-1"><b>UOM</b></div>
+                                            <div class="g-1"><b>Type</b></div>
+                                            <div class="g-2"><b>Value</b></div>
+                                        </div>
 
-                                            <tbody>
-
+                                        <template is="dom-repeat" items="{{_asArray(object.parameterBags)}}" as="bag">
                                             <template is="dom-repeat"
-                                                      items="{{_asArray(object.parameterBags)}}"
-                                                      as="bag">
-                                                <template is="dom-repeat"
-                                                          items="{{_asArray(bag.value.parameters)}}"
-                                                          as="param">
+                                                      items="{{_asArray(bag.value.parameters)}}"
+                                                      as="param">
 
-                                                    <tr>
-                                                        <td>[[bag.value.id]]</td>
-                                                        <td>[[param.value.id]]</td>
-                                                        <td>[[param.value.name]]</td>
-                                                        <td>[[param.value.interpretation]]</td>
-                                                        <td>[[param.value.uom]]</td>
-                                                        <td>[[param.value.type]]</td>
-                                                        <td>[[param.value.value]]</td>
-                                                    </tr>
+                                                <div class="g-row">
+                                                    <div class="g-2 cell">[[bag.value.id]]</div>
+                                                    <div class="g-2 cell">[[param.value.id]]</div>
+                                                    <div class="g-2 cell">[[param.value.name]]</div>
+                                                    <div class="g-2 cell">[[param.value.interpretation]]</div>
+                                                    <div class="g-1 cell">[[param.value.uom]]</div>
+                                                    <div class="g-1 cell">[[param.value.type]]</div>
+                                                    <div class="g-2 cell">[[param.value.value]]</div>
+                                                </div>
 
-                                                </template>
                                             </template>
+                                        </template>
 
-                                            </tbody>
-                                        </table>
                                     </template>
 
                                 </template>
@@ -274,27 +276,18 @@
                                     </template>
                                     <template is="dom-if" if="[[_isNotEmpty(object.policies)]]">
 
-                                        <table class="g-table">
-                                            <thead>
-                                            <tr>
-                                                <th>Type</th>
-                                                <th>Value</th>
-                                            </tr>
-                                            </thead>
+                                        <div class="g-row g-pt-2 data-list">
+                                            <div class="g-6"><b>Type</b></div>
+                                            <div class="g-6"><b>Value</b></div>
+                                        </div>
 
-                                            <tbody>
+                                        <template is="dom-repeat" items="{{_asArray(object.policies)}}" as="policy">
+                                            <div class="g-row data-list">
+                                                <div class="g-6 cell">[[policy.key]]</div>
+                                                <div class="g-6 g-pl-2 cell">[[policy.value]]</div>
+                                            </div>
+                                        </template>
 
-                                            <template is="dom-repeat" items="{{_asArray(object.policies)}}" as="policy">
-
-                                                <tr>
-                                                    <td>[[policy.key]]</td>
-                                                    <td>[[policy.value]]</td>
-                                                </tr>
-
-                                            </template>
-
-                                            </tbody>
-                                        </table>
                                     </template>
 
                                 </template>
@@ -317,37 +310,26 @@
                                                       items="[[_asArray(object.timedStates)]]"
                                                       as="timedState">
 
-                                                <paper-material class="g-card" elevation="1">
-                                                    <table class="g-table table-title">
-                                                        <tbody>
-                                                        <tr>
-                                                            <td><b>Id</b> [[timedState.value.id]]</td>
-                                                            <td><b>Name</b> [[timedState.value.name]]</td>
-                                                            <td><b>Type</b> [[timedState.value.type]]</td>
-                                                        </tr>
-                                                        </tbody>
-                                                    </table>
+                                                <div class="g-row g-pt-2">
+                                                    <div class="g-4"><b>Id</b> [[timedState.value.id]]</div>
+                                                    <div class="g-4"><b>Name</b> [[timedState.value.name]]</div>
+                                                    <div class="g-4"><b>Type</b> [[timedState.value.type]]</div>
+                                                </div>
 
-                                                    <table class="g-table">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>Time</th>
-                                                            <th>Value</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        <template is="dom-repeat"
-                                                                  items="[[timedState.value.values]]"
-                                                                  as="timedStateValue">
-                                                            <tr>
-                                                                <td>[[timedStateValue.time]]</td>
-                                                                <td>[[timedStateValue.value]]</td>
-                                                            </tr>
-                                                        </template>
-                                                        </tbody>
-                                                    </table>
+                                                <div class="g-row g-pt-4 data-list">
+                                                    <div class="g-6"><b>Time</b></div>
+                                                    <div class="g-6"><b>Value</b></div>
+                                                </div>
 
-                                                </paper-material>
+                                                <template is="dom-repeat"
+                                                          items="[[timedState.value.values]]"
+                                                          as="timedStateValue">
+                                                    <div class="g-row data-list">
+                                                        <div class="g-6 cell">[[timedStateValue.time]]</div>
+                                                        <div class="g-6 g-pl-2 cell">[[timedStateValue.value]]</div>
+                                                    </div>
+                                                </template>
+
 
                                             </template>
                                         </template>

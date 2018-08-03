@@ -32,65 +32,54 @@
                 height: 100%;
             }
 
-            .g-table {
-                font-size: small;
-            }
-
-            .g-table th, .g-table td {
-                vertical-align: inherit;
+            paper-material {
+                background: white;
+                margin-top: 0.3em;
+                margin-bottom: 0.3em;
+                padding: 0.3em;
             }
 
         </style>
 
-        <div class="g-row g-pt-4">
+        <paper-material elevation="1" class="g-m-3">
 
-            <div class="g-12">
+            <div class="g-row g-pt-4">
 
-                <paper-material elevation="1">
+                <div class="g-12">
 
-                    <table class="g-table g-m-0 g-12">
+                    <div class="g-row">
+                        <div class="g-2"><b>Username</b></div>
+                        <div class="g-2"><b>Name</b></div>
+                        <div class="g-3"><b>Roles</b></div>
+                        <div class="g-2"><b>Login time</b></div>
+                        <div class="g-2"><b>Last Access</b></div>
+                        <div class="g-1"></div>
+                    </div>
 
-                        <thead>
-                        <tr>
-                            <td>Session Id</td>
-                            <td>Username</td>
-                            <td>Name</td>
-                            <td>Roles</td>
-                            <td>Login time</td>
-                            <td>Last Access</td>
-                            <td></td>
-                        </tr>
-                        </thead>
+                    <template is="dom-repeat" items="[[sessions]]">
 
-                        <tbody>
+                        <hr />
 
-                        <template is="dom-repeat" items="[[sessions]]">
+                        <div class="g-row">
+                            <div class="g-2 g-auto-middle">[[item.username]]</div>
+                            <div class="g-2 g-auto-middle">[[_getName(item)]]</div>
+                            <div class="g-3 g-auto-middle">[[arrayToString(item.roles)]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.loginTime)]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastAccess)]]</div>
+                            <div class="g-1 g-auto-middle">
+                                <paper-icon-button icon="delete"
+                                                   title="Remove"
+                                                   on-tap="removeSession"></paper-icon-button>
+                            </div>
+                        </div>
 
-                            <tr>
-                                <td>[[item.sessionId]]</td>
-                                <td>[[item.username]]</td>
-                                <td>[[_getName(item)]]</td>
-                                <td>[[arrayToString(item.roles)]]</td>
-                                <td>[[toLocalDateTime(item.loginTime)]]</td>
-                                <td>[[toLocalDateTime(item.lastAccess)]]</td>
-                                <td>
-                                    <paper-icon-button icon="delete"
-                                                       title="Remove"
-                                                       on-tap="removeSession"></paper-icon-button>
-                                </td>
-                            </tr>
+                    </template>
 
-                        </template>
-
-                        </tbody>
-
-                    </table>
-
-                </paper-material>
+                </div>
 
             </div>
 
-        </div>
+        </paper-material>
 
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>
