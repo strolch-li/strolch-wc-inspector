@@ -44,7 +44,9 @@
     "paper-item": "PolymerElements/paper-item#^1.2.2",
     "paper-input": "PolymerElements/paper-input#^1.2.1",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.4.2",
-    "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.2"
+    "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.2",
+
+    "vaadin-date-picker": "vaadin/vaadin-date-picker#^1.2.4"
 
   },
   "devDependencies": {
