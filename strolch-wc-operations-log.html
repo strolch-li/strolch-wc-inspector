@@ -75,6 +75,21 @@
                 padding: 0.3em;
             }
 
+            .dlg {
+                width: 100vw;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            textarea {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 40px);
+                height: 100%;
+                min-height: 300px;
+            }
+
         </style>
 
         <paper-material elevation="1" class="g-m-3">
@@ -156,7 +171,10 @@
                             <div class="g-2">[[log.id]]</div>
                             <div class="g-3">[[log.date]]</div>
                             <div class="g-2">[[log.severity]]</div>
-                            <div class="g-5">[[log.locator]]</div>
+                            <div class="g-4">[[log.locator]]</div>
+                            <div class="g-1">
+                                <paper-icon-button icon="bug-report" on-tap="showException" hidden="[[!log.exception]]"></paper-icon-button>
+                            </div>
                         </div>
                         <div class="g-row">
                             <div class="g-12">
@@ -188,6 +206,16 @@
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="exDlg" class="dlg" modal>
+            <h3>Exception</h3>
+
+            <textarea value="{{exception::input}}"></textarea>
+
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
             </div>
@@ -233,6 +261,11 @@
                 selectedSeverity: {
                     type: String,
                     observer: 'severityChanged'
+                },
+
+                exception: {
+                    type: String,
+                    value: ''
                 },
 
                 searchTerm: {
@@ -363,6 +396,11 @@
                     Strolch.setQueryParamValue('realm', newValue);
                     this.reloadOperationsLog();
                 }
+            },
+
+            showException: function (e) {
+                this.exception = e.model.log.exception;
+                this.$.exDlg.open();
             },
 
             onShowDialog: function (event) {
