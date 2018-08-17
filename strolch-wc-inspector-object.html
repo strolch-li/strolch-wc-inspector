@@ -559,7 +559,7 @@
             },
 
             reloadObject: function () {
-                if (this._isAction(this.object.objectType)) {
+                if (!this.isRootElement) {
                     return;
                 }
 
