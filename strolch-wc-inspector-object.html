@@ -92,7 +92,9 @@
             <div class="g-row title-div" on-tap="_toggleExpanded">
                 <div class="g-12">
                     <h1 class="title">
-                        <paper-checkbox checked="{{object._checked}}" on-tap="onCheckTapped"></paper-checkbox>
+                        <template is="dom-if" if="[[isRootElement]]">
+                            <paper-checkbox checked="{{object._checked}}" on-tap="onCheckTapped"></paper-checkbox>
+                        </template>
                         <span style="text-transform: uppercase">[[object.objectType]]</span> <span class="sub g-ml-4">Id:</span>
                         [[object.id]] <span class="sub g-ml-4">Name:</span> [[object.name]] <span class="sub g-ml-4">Type:</span>
                         [[object.type]]
