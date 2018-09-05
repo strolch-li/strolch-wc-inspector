@@ -1,8 +1,8 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.8.3",
-  "authors": "Robert von Burg",
+  "version": "0.9.0",
+  "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
     "inspector"
@@ -33,6 +33,7 @@
     "paper-material": "PolymerElements/paper-material#^1.0.7",
     "paper-header-panel": "PolymerElements/paper-header-panel#^1.1.7",
     "paper-card": "PolymerElements/paper-card#^1.1.6",
+    "paper-badge": "PolymerElements/paper-badge#^1.1.4",
     "paper-dialog": "PolymerElements/paper-dialog#^1.1.0",
     "paper-button": "PolymerElements/paper-button#^1.0.15",
     "paper-toolbar": "PolymerElements/paper-toolbar#^1.1.7",

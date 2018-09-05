@@ -3,6 +3,7 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
 
@@ -28,34 +29,23 @@
                 display: block;
             }
 
-            .card {
-                padding: 1.0em;
-                margin: 1.0em;
-                cursor: pointer;
+            .object-div {
+                background: #ffffff;
             }
 
-            .title-bar {
-                background-color: var(--google-grey-300);
-                color: var(--google-grey-700);
+            .title-div {
+                padding-left: 30px;
             }
 
             .title {
-                padding: 8px;
-                background-color: rgb(224, 224, 224);
-                color: rgb(97, 97, 97);
                 font-size: 16px;
                 font-weight: 400;
-                line-height: 1.3;
+                line-height: 40px;
                 margin: 0;
             }
 
             .sub {
                 font-size: small;
-            }
-
-            .table-title {
-                margin-bottom: 0;
-                padding: 0;
             }
 
             paper-material {
@@ -89,53 +79,60 @@
                 margin-right: auto;
             }
 
+            section {
+                margin-bottom: 10px;
+                margin-left: 30px;
+                margin-right: 10px;
+            }
+
         </style>
 
-        <paper-material class="g-card g-m-3 g-mt-4" elevation="1">
+        <div class="object-div">
 
-            <div class="g-container">
-                <div class="g-row title-bar" on-tap="_toggleExpanded">
+            <div class="g-row title-div" on-tap="_toggleExpanded">
+                <div class="g-12">
+                    <h1 class="title">
+                        <paper-checkbox checked="{{object._checked}}" on-tap="onCheckTapped"></paper-checkbox>
+                        <span style="text-transform: uppercase">[[object.objectType]]</span> <span class="sub g-ml-4">Id:</span>
+                        [[object.id]] <span class="sub g-ml-4">Name:</span> [[object.name]] <span class="sub g-ml-4">Type:</span>
+                        [[object.type]]
 
-                    <div class="g-11">
-                        <h1 class="title"><span style="text-transform: uppercase">[[object.objectType]]</span> <span
-                                class="sub g-ml-4">Id:</span> [[object.id]] <span class="sub g-ml-4">Name:</span>
-                                                              [[object.name]] <span class="sub g-ml-4">Type:</span>
-                                                              [[object.type]] </h1>
-                    </div>
-
-                    <div class="g-1">
-                        <paper-icon-button id="expandedIcon" icon="expand-more"></paper-icon-button>
-                    </div>
-
+                        <paper-icon-button class="g-pull-right"
+                                           id="expandedIcon"
+                                           icon="expand-more"></paper-icon-button>
+                    </h1>
                 </div>
+            </div>
+
+            <template is="dom-if" if="[[expanded]]">
                 <div class="g-row">
                     <div class="g-12">
 
                         <!-- Tabs -->
-                        <template is="dom-if" if="[[expanded]]">
-                            <paper-tabs selected="{{selectedDetailType}}"
-                                        attr-for-selected="name"
-                                        fallback-selection="none">
-                                <paper-tab name="details">Details</paper-tab>
-                                <paper-tab name="parameters">Parameters</paper-tab>
-                                <paper-tab name="policies">Policies</paper-tab>
-                                <template is="dom-if" if="[[_isResource(object.objectType)]]">
-                                    <paper-tab name="timedstates">Timed States</paper-tab>
-                                </template>
-                                <template is="dom-if" if="[[_isActivity(object.objectType)]]">
-                                    <paper-tab name="elements">Elements</paper-tab>
-                                </template>
-                                <template is="dom-if" if="[[isRootElement]]">
-                                    <paper-tab name="model">Model</paper-tab>
-                                </template>
-                            </paper-tabs>
-                        </template>
+
+                        <paper-tabs selected="{{selectedDetailType}}"
+                                    attr-for-selected="name"
+                                    fallback-selection="none">
+                            <paper-tab name="details">Details</paper-tab>
+                            <paper-tab name="parameters">Parameters</paper-tab>
+                            <paper-tab name="policies">Policies</paper-tab>
+                            <template is="dom-if" if="[[_isResource(object.objectType)]]">
+                                <paper-tab name="timedstates">Timed States</paper-tab>
+                            </template>
+                            <template is="dom-if" if="[[_isActivity(object.objectType)]]">
+                                <paper-tab name="elements">Elements</paper-tab>
+                            </template>
+                            <template is="dom-if" if="[[isRootElement]]">
+                                <paper-tab name="model">Model</paper-tab>
+                            </template>
+                        </paper-tabs>
+
 
                         <!-- Tab sections -->
-                        <iron-pages selected="[[selectedDetailType]]" attr-for-selected="name">
+                        <iron-pages selected="{{selectedDetailType}}" attr-for-selected="name">
 
                             <!-- details -->
-                            <section name="details" class="g-p-2 g-pt-0">
+                            <section name="details">
                                 <template is="dom-if" if="[[!object]]">
                                     <p class="g-center">Loading...</p>
                                 </template>
@@ -218,7 +215,7 @@
                             </section>
 
                             <!-- parameters -->
-                            <section name="parameters" class="g-p-2 g-pt-0">
+                            <section name="parameters">
                                 <template is="dom-if" if="[[!object]]">
                                     <p class="g-center">Loading...</p>
                                 </template>
@@ -264,7 +261,7 @@
                             </section>
 
                             <!-- policies -->
-                            <section name="policies" class="g-p-2 g-pt-0">
+                            <section name="policies">
                                 <template is="dom-if" if="[[!object]]">
                                     <p class="g-m-4 g-center">Loading...</p>
                                 </template>
@@ -295,7 +292,7 @@
 
                             <!-- timedstates -->
                             <template is="dom-if" if="[[_isResource(object.objectType)]]">
-                                <section name="timedstates" class="g-p-2 g-pt-0">
+                                <section name="timedstates">
                                     <template is="dom-if" if="[[!object]]">
                                         <p class="g-center">Loading...</p>
                                     </template>
@@ -340,7 +337,7 @@
 
                             <!-- activity children -->
                             <template is="dom-if" if="[[_isActivity(object.objectType)]]">
-                                <section name="elements" class="g-p-2 g-pt-0">
+                                <section name="elements">
                                     <template is="dom-if" if="[[!object]]">
                                         <p class="g-center">Loading...</p>
                                     </template>
@@ -359,23 +356,25 @@
 
                             <!-- model -->
                             <template is="dom-if" if="[[isRootElement]]">
-                                <section name="model" class="g-p-2 g-pt-0">
+                                <section name="model">
                                     <template is="dom-if" if="[[!object]]">
                                         <p class="g-center">Loading...</p>
                                     </template>
                                     <template is="dom-if" if="[[object]]">
                                         <textarea value="{{model::input}}"></textarea>
 
-                                        <paper-radio-group selected="{{modelType}}" style="font-size: small">
-                                            <paper-radio-button name="xml">XML</paper-radio-button>
-                                            <paper-radio-button name="json">JSON</paper-radio-button>
-                                            <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
-                                        </paper-radio-group>
+                                        <div class="g-mt-3">
+                                            <paper-radio-group selected="{{modelType}}" style="font-size: small">
+                                                <paper-radio-button name="xml">XML</paper-radio-button>
+                                                <paper-radio-button name="json">JSON</paper-radio-button>
+                                                <paper-radio-button name="json-flat">JSON Flat</paper-radio-button>
+                                            </paper-radio-group>
 
-                                        <paper-button raised class="g-pull-right" on-tap="_saveModel">Save
-                                        </paper-button>
-                                        <paper-button class="g-pull-right" on-tap="_removeModel">Remove
-                                        </paper-button>
+                                            <paper-button raised class="g-pull-right" on-tap="_saveModel">Save
+                                            </paper-button>
+                                            <paper-button class="g-pull-right" on-tap="_removeModel">Remove
+                                            </paper-button>
+                                        </div>
 
                                     </template>
                                 </section>
@@ -385,9 +384,12 @@
 
                     </div>
                 </div>
-            </div>
 
-        </paper-material>
+            </template>
+
+            <hr />
+        </div>
+
 
         <iron-ajax id="ajax"
                    content-type="application/json"
@@ -435,23 +437,22 @@
                 },
                 model: {
                     type: String,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 expanded: {
                     type: Boolean,
-                    value: function () {
-                        return false;
-                    }
+                    value: false
                 },
                 selectedDetailType: {
                     type: String,
-                    value: function () {
-                        return true;
-                    },
+                    value: '',
                     observer: '_selectedDetailTypeChanged'
                 }
+            },
+
+            onCheckTapped: function (evt) {
+                evt.cancelBubble = true;
+                this.fire('strolch-element-selected', {object: this.object});
             },
 
             _objectChanged: function (newValue, oldValue) {
@@ -468,6 +469,9 @@
             },
 
             _selectedDetailTypeChanged: function (newValue, oldValue) {
+                if (newValue == null || newValue.length == 0 || newValue == 'none')
+                    return;
+
                 if (this.expanded) {
                     if (newValue == 'model')
                         this.reloadModel();
@@ -533,8 +537,11 @@
                 this.expanded = !this.expanded;
                 this.$.expandedIcon.icon = this.expanded ? 'expand-less' : 'expand-more';
 
-                if (!this.expanded) {
-                    this.selectedDetailType = null;
+                if (this.expanded) {
+                    if (this.selectedDetailType == 'model')
+                        this.reloadModel();
+                    else
+                        this.reloadObject();
                 }
             },
 

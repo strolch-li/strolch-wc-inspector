@@ -4,6 +4,8 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-badge/paper-badge.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
@@ -48,6 +50,7 @@
                 background-color: var(--paper-blue-900);
                 color: rgba(255, 255, 255, 0.8);
                 height: 42px;
+                padding-left: 20px;
             }
 
             .toolbar-title {
@@ -90,15 +93,6 @@
 
             #clear {
                 cursor: pointer;
-            }
-
-            .g-container {
-                margin: 0 10px 50px 10px;
-                width: calc(100% - 40px);
-            }
-
-            .card-import-btn {
-                background-color: #faebd7;
             }
 
             .card-export-btn {
@@ -174,13 +168,24 @@
                                                              realm="[[realm]]"
                                                              is-root-element="true"
                                                              on-strolch-wc-obj-remove="onRemoveElement"
+                                                             on-strolch-element-selected="onElementSelected"
                                                              object="[[item]]"></strolch-wc-inspector-object>
                             </template>
                         </div>
                     </div>
 
-                    <div class="g-row">
-                        <div class="g-12">
+                    <div class="g-row g-mb-1">
+                        <div class="g-3 g-pt-3 g-pl-4">
+                            <paper-button on-tap="_toggleAllSelected" raised>
+                                <template is="dom-if" if="[[allSelected]]">Select None</template>
+                                <template is="dom-if" if="[[!allSelected]]">Select All</template>
+                            </paper-button>
+                            <paper-button on-tap="_removeSelected" raised>Remove
+                                <paper-badge label="[[selectedObjectIds.length]]"></paper-badge>
+                            </paper-button>
+
+                        </div>
+                        <div class="g-6">
                             <div class="g-m-2 g-center">
                                 <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
                                 <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
@@ -188,6 +193,9 @@
                                 <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
                                 <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
                             </div>
+                        </div>
+                        <div class="g-3">
+
                         </div>
                     </div>
 
@@ -278,6 +286,15 @@
                     value: function () {
                         return 20;
                     }
+                },
+
+                allSelected: {
+                    type: Boolean,
+                    value: false
+                },
+                selectedObjectIds: {
+                    type: Array,
+                    value: []
                 },
 
                 importType: {
@@ -417,6 +434,46 @@
                 this.$.ajaxXml.generateRequest();
             },
 
+            _toggleAllSelected: function (evt) {
+                var select = !this.allSelected;
+                console.log(select ? 'Selecting ALL' : 'Selecting NONE');
+                this.set('selectedObjectIds', []);
+                for (var i = 0; i < this.objects.data.length; i++) {
+                    var path = 'objects.data.' + i + '._checked';
+                    this.set(path, !select);
+                    this.set(path, select);
+                    console.log('Set path ' + path + ' = ' + select);
+
+                    if (select) {
+                        var object = this.objects.data[i];
+                        this.push('selectedObjectIds', object.id);
+                        console.log('Added ' + object.id + ' as selected');
+                    }
+                }
+
+                this.set('allSelected', select);
+            },
+            onElementSelected: function (evt) {
+                var index = this.selectedObjectIds.indexOf(evt.detail.object.id);
+                var selected = evt.detail.object._checked;
+                console.log('Element ' + evt.detail.object.id + ' is ' + (selected ? 'selected' : 'not selected') + ' and its index is ' + index);
+
+                if (selected) {
+                    if (index < 0) {
+                        this.push('selectedObjectIds', evt.detail.object.id);
+                        console.log('Added ' + evt.detail.object.id + ' as selected');
+                    }
+                } else {
+                    if (index >= 0) {
+                        this.splice('selectedObjectIds', index, 1);
+                        console.log('Removed ' + evt.detail.object.id + ' from selected');
+                    }
+                }
+
+                this.set('allSelected', this.selectedObjectIds.length == this.objects.data.length);
+                console.log(this.allSelected ? 'All are selected' : 'None or some are selected');
+            },
+
             onRemoveElement: function (event) {
                 console.log("Delete element " + event.detail.object.id);
 
@@ -463,6 +520,36 @@
 
             _handleAjaxResponse: function (evt) {
                 console.log('NOT YET DEFINED!');
+            },
+
+            _removeSelected: function (evt) {
+                if (!confirm('Do you really want to delete ' + this.selectedObjectIds.length + ' ' + this.selectedType + ' ' + this.objectType + ' elements?')) {
+                    return;
+                }
+
+                this.dlgTitle = 'Remove elements failed';
+                this._handleAjaxResponse = function (data) {
+                    this.set('objects', null);
+                    this.set('selectedObjectIds', []);
+                    this.set('allSelected', false);
+                    this.reloadTypeDetails();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
+                this.$.ajax.params = {
+                    ids: ''
+                };
+
+                for (var i = 0; i < this.selectedObjectIds.length; i++) {
+                    this.$.ajax.params.ids += this.selectedObjectIds[i];
+                    if (i < this.selectedObjectIds.length - 1) {
+                        this.$.ajax.params.ids += ',';
+                    }
+                }
+
+                this.$.ajax.handleAs = 'text';
+                this.$.ajax.method = 'DELETE';
+                this.$.ajax.generateRequest();
             }
         });
 
