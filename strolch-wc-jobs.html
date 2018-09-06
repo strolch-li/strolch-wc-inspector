@@ -1,0 +1,241 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-jobs">
+
+    <template>
+
+        <style is="strolch-wc-styles">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            paper-material {
+                background: white;
+                margin-top: 0.3em;
+                margin-bottom: 0.3em;
+                padding: 0.3em;
+            }
+
+            .dlg {
+                width: 100vw;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            textarea {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 40px);
+                height: 100%;
+                min-height: 300px;
+            }
+
+        </style>
+
+        <div class="g-row g-pt-4">
+            <div class="g-12 g-right">
+                <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+            </div>
+        </div>
+
+        <paper-material elevation="1" class="g-m-3">
+
+            <div class="g-row g-pt-4">
+
+                <div class="g-12">
+
+                    <div class="g-row">
+                        <div class="g-2"><b>Name</b></div>
+                        <div class="g-2"><b>Realm</b></div>
+                        <div class="g-2"><b>Delay</b></div>
+                        <div class="g-1"><b>Executions</b></div>
+                        <div class="g-2"><b>Next Execution</b></div>
+                        <div class="g-3"></div>
+                    </div>
+
+                    <template is="dom-repeat" items="[[jobs]]">
+
+                        <hr />
+
+                        <div class="g-row">
+                            <div class="g-2 g-auto-middle">[[item.name]]</div>
+                            <div class="g-2 g-auto-middle">[[item.realm]]</div>
+                            <div class="g-2 g-auto-middle">[[item.initialDelay]] [[item.initialDelayTimeUnit]] /
+                                                           [[item.delay]] [[item.delayTimeUnit]]
+                            </div>
+                            <div class="g-1 g-auto-middle">[[item.nrOfExecutions]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.nextExecution)]]</div>
+
+                            <div class="g-3 g-auto-middle">
+                                <paper-icon-button icon="cancel" title="Cancel" on-tap="cancel"></paper-icon-button>
+                                <paper-icon-button icon="alarm" title="Schedule" on-tap="schedule"></paper-icon-button>
+                                <paper-icon-button icon="av:play-arrow"
+                                                   title="Run now"
+                                                   on-tap="runNow"></paper-icon-button>
+
+                                <paper-icon-button icon="bug-report"
+                                                   on-tap="showException"
+                                                   hidden="[[!item.lastException]]"></paper-icon-button>
+                            </div>
+                        </div>
+
+                    </template>
+
+                </div>
+
+            </div>
+
+        </paper-material>
+
+        <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="exDlg" class="dlg" modal>
+            <h3>Exception</h3>
+
+            <textarea value="{{exception::input}}"></textarea>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-jobs',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                jobs: {
+                    type: Array
+                }
+            },
+
+            toLocalDateTime: function (val) {
+                return Strolch.toLocalDateTime(val);
+            },
+            arrayToString: function (arr) {
+                var s = '';
+                for (var i = 0; i < arr.length; i++) {
+                    s += arr[i];
+                    if (i + 1 < arr.length)
+                        s += ', ';
+                }
+
+                return s;
+            },
+            _getName: function (user) {
+                return user.firstname + ' ' + user.lastname;
+            },
+
+            listeners: {
+                "strolch-show-dialog": "onShowDialog"
+            },
+            onShowDialog: function (event) {
+                this.showError(event.detail.title, event.detail.text);
+            },
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
+            },
+
+            ready: function () {
+                //
+            },
+
+            reload: function () {
+
+                this.dlgTitle = 'Sessions query failed';
+                this._handleAjaxResponse = function (data) {
+                    this.jobs = data.detail.response.data;
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/jobs';
+                this.$.ajax.params = null;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.generateRequest();
+            },
+
+            cancel: function (evt) {
+                var jobName = evt.model.item.name;
+                this.doAction(jobName, 'cancel');
+            },
+            schedule: function (evt) {
+                var jobName = evt.model.item.name;
+                this.doAction(jobName, 'schedule');
+            },
+            runNow: function (evt) {
+                var jobName = evt.model.item.name;
+                this.doAction(jobName, 'runNow');
+            },
+
+            doAction: function (jobName, action) {
+
+                this.dlgTitle = 'Action failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/jobs/' + jobName + '/action';
+                this.$.ajax.params = {action: action};
+                this.$.ajax.method = 'PUT';
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            showException: function (e) {
+                this.exception = e.model.item.lastException;
+                this.$.exDlg.open();
+            }
+        });
+
+    </script>
+
+</dom-module>
