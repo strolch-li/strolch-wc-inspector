@@ -27,7 +27,7 @@
 
     <template>
 
-        <style is="strolch-wc-styles">
+        <style is="custom-style" include="strolch-wc-styles">
 
             :host {
                 display: block;
@@ -62,7 +62,8 @@
         </div>
 
         <template is="dom-repeat" items="[[roles]]" as="role">
-            <strolch-wc-role class="g-ml-3 g-mr-3" base-path="[[basePath]]"
+            <strolch-wc-role class="g-ml-3 g-mr-3"
+                             base-path="[[basePath]]"
                              role="[[role]]"
                              on-strolch-remove-role="onRemoveRole"
                              on-strolch-role-reload-needed="onReload"></strolch-wc-role>

@@ -26,7 +26,7 @@
 
     <template>
 
-        <style is="strolch-wc-styles">
+        <style is="custom-style" include="strolch-wc-styles">
 
             :host {
                 display: block;
@@ -173,7 +173,9 @@
                             <div class="g-2">[[log.severity]]</div>
                             <div class="g-4">[[log.locator]]</div>
                             <div class="g-1">
-                                <paper-icon-button icon="bug-report" on-tap="showException" hidden="[[!log.exception]]"></paper-icon-button>
+                                <paper-icon-button icon="bug-report"
+                                                   on-tap="showException"
+                                                   hidden="[[!log.exception]]"></paper-icon-button>
                             </div>
                         </div>
                         <div class="g-row">
