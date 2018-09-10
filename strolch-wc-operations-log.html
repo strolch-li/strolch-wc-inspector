@@ -244,15 +244,11 @@
             properties: {
                 realms: {
                     type: Array,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 selectedRealm: {
                     type: Object,
-                    value: function () {
-                        return null;
-                    },
+                    value: null,
                     observer: 'realmChanged'
                 },
 
@@ -334,15 +330,11 @@
                 },
                 offset: {
                     type: Number,
-                    value: function () {
-                        return 0;
-                    }
+                    value: 0
                 },
                 limit: {
                     type: Number,
-                    value: function () {
-                        return 100;
-                    }
+                    value: 100
                 }
             },
 
@@ -415,11 +407,14 @@
                 this.$.dlg.open();
             },
 
-            ready: function () {
+            reload: function () {
                 this.reloadRealms();
             },
 
             reloadOperationsLog: function () {
+                if (this.realms == null) {
+                    return;
+                }
 
                 this.dlgTitle = 'Fetching log failed';
                 this._handleAjaxResponse = function (data) {
