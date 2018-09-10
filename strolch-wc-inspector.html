@@ -360,6 +360,11 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector';
                 this.$.ajax.method = 'GET';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+
                 this.$.ajax.generateRequest();
             },
 
@@ -406,7 +411,6 @@
                     'Accept': 'application/xml',
                     'Content-Type': 'application/xml'
                 };
-                this.$.ajax.handleAs = 'json';
                 this.$.ajax.method = 'POST';
                 this.$.ajax.body = this.modelAsText;
                 this.$.ajax.generateRequest();
@@ -452,6 +456,10 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm;
                 this.$.ajax.method = 'GET';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
                 this.$.ajax.generateRequest();
             },
 
@@ -488,6 +496,10 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/' + this._typeSubPath(this.selectedObjectType);
                 this.$.ajax.method = 'GET';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
                 this.$.ajax.generateRequest();
             },
 

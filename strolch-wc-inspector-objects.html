@@ -548,6 +548,9 @@
                 }
 
                 this.$.ajax.handleAs = 'text';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json'
+                };
                 this.$.ajax.method = 'DELETE';
                 this.$.ajax.generateRequest();
             }
