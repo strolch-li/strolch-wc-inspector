@@ -70,11 +70,13 @@
 
                     <div class="g-row">
                         <div class="g-2"><b>Name</b></div>
-                        <div class="g-2"><b>Realm</b></div>
-                        <div class="g-2"><b>Delay</b></div>
+                        <div class="g-1"><b>Realm</b></div>
+                        <div class="g-1"><b>Mode</b></div>
+                        <div class="g-1"><b>Delay</b></div>
                         <div class="g-1"><b>Executions</b></div>
+                        <div class="g-2"><b>Last Execution</b></div>
                         <div class="g-2"><b>Next Execution</b></div>
-                        <div class="g-3"></div>
+                        <div class="g-2"></div>
                     </div>
 
                     <template is="dom-repeat" items="[[jobs]]">
@@ -83,14 +85,16 @@
 
                         <div class="g-row">
                             <div class="g-2 g-auto-middle">[[item.name]]</div>
-                            <div class="g-2 g-auto-middle">[[item.realm]]</div>
-                            <div class="g-2 g-auto-middle">[[item.initialDelay]] [[item.initialDelayTimeUnit]] /
+                            <div class="g-1 g-auto-middle">[[item.realm]]</div>
+                            <div class="g-1 g-auto-middle">[[item.mode]]</div>
+                            <div class="g-1 g-auto-middle">[[item.initialDelay]] [[item.initialDelayTimeUnit]] <br />
                                                            [[item.delay]] [[item.delayTimeUnit]]
                             </div>
                             <div class="g-1 g-auto-middle">[[item.nrOfExecutions]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastExecution)]]</div>
                             <div class="g-2 g-auto-middle">[[toLocalDateTime(item.nextExecution)]]</div>
 
-                            <div class="g-3 g-auto-middle">
+                            <div class="g-2 g-auto-middle">
                                 <paper-icon-button icon="cancel" title="Cancel" on-tap="cancel"></paper-icon-button>
                                 <paper-icon-button icon="alarm" title="Schedule" on-tap="schedule"></paper-icon-button>
                                 <paper-icon-button icon="av:play-arrow"
@@ -99,7 +103,7 @@
 
                                 <paper-icon-button icon="bug-report"
                                                    on-tap="showException"
-                                                   hidden="[[!item.lastException]]"></paper-icon-button>
+                                                   hidden$="[[!item.lastException]]"></paper-icon-button>
                             </div>
                         </div>
 
