@@ -150,19 +150,22 @@
             <div class="g-12">
                 <iron-pages selected="{{selectedObjectType}}" attr-for-selected="name">
                     <section name="Resource">
-                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                        <strolch-wc-inspector-objects id="resourcesInspector"
+                                                      base-path="[[basePath]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Resource"
                                                       object-summaries="[[resources]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="Order">
-                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                        <strolch-wc-inspector-objects id="ordersInspector"
+                                                      base-path="[[basePath]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Order"
                                                       object-summaries="[[orders]]"></strolch-wc-inspector-objects>
                     </section>
                     <section name="Activity">
-                        <strolch-wc-inspector-objects base-path="[[basePath]]"
+                        <strolch-wc-inspector-objects id="activitiesInspector"
+                                                      base-path="[[basePath]]"
                                                       realm="[[selectedRealm]]"
                                                       object-type="Activity"
                                                       object-summaries="[[activities]]"></strolch-wc-inspector-objects>
@@ -313,6 +316,9 @@
                 if (newValue != null) {
                     console.log('Selected object type changed from ' + oldValue + " to " + newValue);
                     Strolch.setQueryParamValue('objectType', newValue);
+                    if (oldValue != null && newValue != oldValue) {
+                        Strolch.setQueryParamValue('type', null);
+                    }
                     this.reloadSelectedObjectType();
                 }
             },
@@ -474,21 +480,46 @@
                     return;
                 }
 
-                if (this.selectedObjectType == 'Resource' && this.resources != null) return;
-                if (this.selectedObjectType == 'Order' && this.orders != null) return;
-                if (this.selectedObjectType == 'Activity' && this.activities != null) return;
+                if (this.selectedObjectType == 'Resource' && this.resources != null) {
+                    this.$$('#resourcesInspector').show();
+                    return;
+                }
+                if (this.selectedObjectType == 'Order' && this.orders != null) {
+                    this.$$('#ordersInspector').show();
+                    return;
+                }
+                if (this.selectedObjectType == 'Activity' && this.activities != null) {
+                    this.$$('#activitiesInspector').show();
+                    return;
+                }
+
+                var typeToSelect = Strolch.getQueryParamValue('type');
+
+                function hasType(type, list) {
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].type == type)
+                            return true;
+                    }
+                    return false;
+                }
 
                 this._handleAjaxResponse = function (data) {
                     switch (data.detail.response.objectType) {
                         case 'Resource':
                             this.resources = data.detail.response;
+                            this.$$('#resourcesInspector').selectType(hasType(typeToSelect, this.resources.types) ? typeToSelect : null);
                             break;
+
                         case 'Order':
                             this.orders = data.detail.response;
+                            this.$$('#ordersInspector').selectType(hasType(typeToSelect, this.orders.types) ? typeToSelect : null);
                             break;
+
                         case 'Activity':
                             this.activities = data.detail.response;
+                            this.$$('#activitiesInspector').selectType(hasType(typeToSelect, this.activities.types) ? typeToSelect : null);
                             break;
+
                         default:
                             console.log('Unhandled object type: ' + data.detail.response.objectType);
                     }

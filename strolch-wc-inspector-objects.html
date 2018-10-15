@@ -334,7 +334,6 @@
                 this.section = 'typesSummary';
                 this.selectedType = null;
                 this.objects = null;
-                Strolch.setQueryParamValue('type', null);
             },
 
             _noElements: function (objectSummaries) {
@@ -342,8 +341,13 @@
             },
 
             _showTypeDetails: function (evt) {
-                this.selectedType = evt.model.item.type;
-                this.section = 'typeDetails';
+                this.offset = 0;
+                this.selectType(evt.model.item.type);
+            },
+
+            selectType: function (type) {
+                this.selectedType = type;
+                this.section = type == null ? 'typesSummary' : 'typeDetails';
                 this.objects = null;
                 console.log('Showing type ' + this.selectedType);
                 Strolch.setQueryParamValue('type', this.selectedType);
@@ -514,8 +518,8 @@
 
             },
 
-            reload: function () {
-
+            show: function () {
+                Strolch.setQueryParamValue('type', this.selectedType);
             },
 
             _handleAjaxResponse: function (evt) {
