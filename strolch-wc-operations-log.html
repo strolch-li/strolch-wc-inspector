@@ -171,7 +171,7 @@
 
                         <div class="g-row ">
                             <div class="g-2">[[log.id]]</div>
-                            <div class="g-2">[[log.date]]</div>
+                            <div class="g-2">[[toLocalDateTime(log.date)]]</div>
                             <div class="g-2">[[log.severity]]</div>
                             <div class="g-2">[[log.username]]</div>
                             <div class="g-3">[[log.locator]]</div>
@@ -257,7 +257,7 @@
 
                 severities: {
                     type: Array,
-                    value: ['Notification', 'Info', 'Warning', 'Error', 'Exception']
+                    value: ['Info', 'Notification', 'Warning', 'Error', 'Exception']
                 },
                 selectedSeverity: {
                     type: String,
