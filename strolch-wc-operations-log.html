@@ -158,9 +158,11 @@
 
                     <div class="g-row">
                         <div class="g-2"><b>ID</b></div>
-                        <div class="g-3"><b>Date</b></div>
+                        <div class="g-2"><b>Date</b></div>
                         <div class="g-2"><b>Severity</b></div>
-                        <div class="g-5"><b>Locator</b></div>
+                        <div class="g-2"><b>Username</b></div>
+                        <div class="g-3"><b>Locator</b></div>
+                        <div class="g-1"></div>
                     </div>
 
                     <template is="dom-repeat" items="[[operationsLog.data]]" as="log">
@@ -169,9 +171,10 @@
 
                         <div class="g-row ">
                             <div class="g-2">[[log.id]]</div>
-                            <div class="g-3">[[log.date]]</div>
+                            <div class="g-2">[[log.date]]</div>
                             <div class="g-2">[[log.severity]]</div>
-                            <div class="g-4">[[log.locator]]</div>
+                            <div class="g-2">[[log.username]]</div>
+                            <div class="g-3">[[log.locator]]</div>
                             <div class="g-1">
                                 <paper-icon-button icon="bug-report"
                                                    on-tap="showException"
