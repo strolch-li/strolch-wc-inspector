@@ -346,12 +346,20 @@
             },
 
             selectType: function (type) {
+                var typeChanged = this.selectedType != type;
                 this.selectedType = type;
                 this.section = type == null ? 'typesSummary' : 'typeDetails';
                 this.objects = null;
                 console.log('Showing type ' + this.selectedType);
                 Strolch.setQueryParamValue('type', this.selectedType);
-                this.reloadTypeDetails();
+                if (this.selectedType == null) {
+                    this.offset = 0;
+                } else {
+                    if (typeChanged) {
+                        this.offset = 0;
+                    }
+                    this.reloadTypeDetails();
+                }
             },
 
             _closeTypeDetails: function () {

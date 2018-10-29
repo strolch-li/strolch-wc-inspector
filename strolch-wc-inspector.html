@@ -410,6 +410,8 @@
                     this.dlgTitle = 'Import done';
                     this.dlgText = data.detail.response.msg;
                     this.$.dlg.open();
+
+                    this.reloadRealms();
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import';

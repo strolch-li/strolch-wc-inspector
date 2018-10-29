@@ -198,8 +198,10 @@
 
                                             <template is="dom-if" if="[[object.version]]" restamp="true">
                                                 <dl class="g-dl">
-                                                    <dt>CreatedAt</dt>
-                                                    <dd>[[_formatDate(object.version.createdAt)]]</dd>
+                                                    <dt>Created</dt>
+                                                    <dd>[[_formatDate(object.version.created)]]</dd>
+                                                    <dt>Updated</dt>
+                                                    <dd>[[_formatDate(object.version.updated)]]</dd>
                                                     <dt>CreatedBy</dt>
                                                     <dd>[[object.version.createdBy]]</dd>
                                                     <dt>Deleted</dt>
@@ -620,6 +622,7 @@
                 this._handleAjaxResponse = function (data) {
                     this.model = null;
                     this.model = data.detail.response;
+                    this.reloadObject();
                 };
 
                 this.$.ajax.url = url;
