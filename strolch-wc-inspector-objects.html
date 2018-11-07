@@ -510,7 +510,7 @@
                 };
 
                 var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
-                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + this.searchTerm + '&overview=true';
+                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + encodeURIComponent(this.searchTerm) + '&overview=true';
 
                 this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
