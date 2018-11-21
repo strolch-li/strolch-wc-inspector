@@ -121,6 +121,7 @@
 
                         </paper-listbox>
                     </paper-dropdown-menu>
+                    <paper-checkbox checked="{{exactSeverity}}">Exact</paper-checkbox>
                 </div>
 
                 <div class="g-3 g-pl-2">
@@ -261,6 +262,10 @@
                 },
                 selectedSeverity: {
                     type: String,
+                    observer: 'severityChanged'
+                },
+                exactSeverity: {
+                    type: Boolean,
                     observer: 'severityChanged'
                 },
 
@@ -414,6 +419,10 @@
                 this.reloadRealms();
             },
 
+            onClearTapped: function () {
+                this.searchTerm = '';
+            },
+
             reloadOperationsLog: function () {
                 if (this.realms == null) {
                     return;
@@ -430,6 +439,7 @@
                 this.$.ajax.method = 'GET';
                 this.$.ajax.params = {
                     severity: this.selectedSeverity ? this.selectedSeverity : null,
+                    exactSeverity: this.exactSeverity,
                     from: this.from,
                     to: this.to,
                     query: this.searchTerm,
