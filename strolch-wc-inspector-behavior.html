@@ -71,6 +71,8 @@
                 } else {
                     dlgText = data.detail.request.response;
                 }
+            } else if (data.detail.error.message) {
+                dlgText = data.detail.error.message;
             } else {
                 dlgText = data.detail.error;
             }

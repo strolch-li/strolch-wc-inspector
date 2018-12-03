@@ -1,0 +1,527 @@
+<!-- Imports -->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-ripple/paper-ripple.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="../strolch-wc-tree/strolch-wc-tree.html">
+
+<dom-module id="strolch-wc-control">
+    <template>
+
+        <!-- Style -->
+        <style is="custom-style" include="strolch-wc-styles">
+            :host {
+                @apply(--layout-vertical);
+            }
+
+            .toolbar {
+                margin: 10px;
+            }
+
+            .content {
+                @apply(--layout-horizontal);
+                @apply(--layout-start-aligned);
+            }
+
+            paper-card {
+                width: 50%;
+                margin: 16px;
+                padding: 16px;
+            }
+
+            .label {
+                font-weight: bolder;
+                width: 100px;
+            }
+
+            .item-btns {
+                margin-top: 50px;
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            .icon-img {
+                margin-bottom: -4px;
+            }
+
+            #modelDlg {
+                width: 600px;
+            }
+
+            textarea {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 40px);
+                height: 100%;
+                min-height: 300px;
+            }
+
+            .action-btns {
+                display: flex;
+            }
+
+        </style>
+
+        <!-- Requests -->
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+        <iron-ajax id="ajaxGetActivities"
+                   content-type="application/json"
+                   handle-as="json"
+                   method="GET"
+                   on-response="onGetActivitiesResponse"
+                   on-error="onAjaxError"></iron-ajax>
+        <iron-ajax id="ajaxSetState"
+                   content-type="application/json"
+                   handle-as="json"
+                   method="PUT"
+                   on-response="onPutActivitiesResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+        <!-- Content -->
+
+        <div class="toolbar">
+
+            <paper-dropdown-menu always-float-label label="Realm" class="custom">
+                <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
+
+                    <template is="dom-repeat" items="{{realms}}">
+                        <paper-item value="[[item.name]]">[[item.name]]</paper-item>
+                    </template>
+
+                </paper-listbox>
+            </paper-dropdown-menu>
+
+            <div class="g-pull-right action-btns">
+                <paper-input no-label-float label="Activity/<Type>/<ID>" value="{{newLocator}}"></paper-input>
+                <paper-button raised on-tap="onAddActivity">Add</paper-button>
+
+                <paper-button raised on-tap="onTrigger">Trigger</paper-button>
+                <paper-button raised on-tap="onRemoveAll">Remove All</paper-button>
+                <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+            </div>
+
+        </div>
+
+        <template is="dom-if" if="[[empty(elements)]]">
+            <p class="g-center"><i>No activities currently available</i></p>
+        </template>
+        <template is="dom-if" if="[[!empty(elements)]]">
+            <div class="content">
+
+                <paper-card>
+                    <strolch-wc-tree title-html func-obj="{{funcObj}}" elements="[[elements]]" />
+                </paper-card>
+
+                <paper-card class="item">
+
+                    <template is="dom-if" if="[[!selectedItem]]">
+                        <p class="g-center"><i>Select an item in the tree view</i></p>
+                    </template>
+
+                    <template is="dom-if" if="[[selectedItem]]">
+
+                        <paper-button class="g-pull-right" raised on-tap="onShowModel">JSON</paper-button>
+                        <h3>[[selectedItem.objectType]]</h3>
+
+                        <table class="g-table g-table-no-border">
+
+                            <tr>
+                                <td class="label">Id:</td>
+                                <td>[[selectedItem.id]]</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Name:</td>
+                                <td>[[selectedItem.name]]</td>
+                            </tr>
+
+                            <tr>
+                                <td class="label">Type:</td>
+                                <td>[[selectedItem.type]]</td>
+                            </tr>
+                            <tr>
+                                <td class="label">State:</td>
+                                <td><img height="16" width="16" class="icon-img" src$="{{_getIcon(selectedItem)}}" />
+                                    [[selectedItem.state]]
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="label">Start:</td>
+                                <td>[[formatDateTime(selectedItem.start)]]</td>
+                            </tr>
+                            <tr>
+                                <td class="label">End:</td>
+                                <td>[[formatDateTime(selectedItem.end)]]</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Duration:</td>
+                                <td>[[calcDuration(selectedItem)]]</td>
+                            </tr>
+
+                            <template is="dom-if" if="[[isActivity(selectedItem)]]">
+                                <tr>
+                                    <td class="label">TimeOrdering:</td>
+                                    <td>[[selectedItem.timeOrdering]]</td>
+                                </tr>
+                            </template>
+
+                            <template is="dom-if" if="[[isAction(selectedItem)]]">
+                                <tr>
+                                    <td class="label">Resource:</td>
+                                    <td>Resource/[[selectedItem.resourceType]]/[[selectedItem.resourceId]]</td>
+                                </tr>
+                            </template>
+
+                        </table>
+
+                        <div class="item-btns">
+
+                            <template is="dom-if" if="[[canExecute(selectedItem)]]">
+                                <paper-button raised on-tap="onToExecution">Execute</paper-button>
+                            </template>
+
+                            <template is="dom-if" if="[[isAction(selectedItem)]]">
+                                <paper-button raised on-tap="onToWarning">Warning</paper-button>
+                                <paper-button raised on-tap="onToError">Error</paper-button>
+                                <paper-button raised on-tap="onToStopped">Stop</paper-button>
+                                <paper-button raised on-tap="onToExecuted">Executed</paper-button>
+                            </template>
+                        </div>
+
+                    </template>
+
+                </paper-card>
+
+            </div>
+        </template>
+
+        <paper-dialog id="modelDlg" modal>
+            <h3>[[selectedItem.objectType]]</h3>
+            <h4>[[selectedItem.name]]</h4>
+            <textarea value="{{modelAsText::input}}"></textarea>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+
+    </template>
+
+    <script>
+        Polymer({
+
+            /* Component */
+            is: "strolch-wc-control",
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            /* Properties */
+            properties: {
+
+                selectedRealm: {
+                    type: Object,
+                    value: function () {
+                        return null;
+                    },
+                    observer: 'selectedRealmChanged'
+                },
+
+                selectedItem: {
+                    type: Object,
+                    value: null
+                },
+
+                newLocator: {
+                    type: String,
+                    value: ''
+                },
+
+                modelAsText: {
+                    type: String,
+                    value: ''
+                },
+
+                elements: {
+                    type: Array,
+                    value: null
+                },
+
+                funcObj: {
+                    type: Object,
+                    value: null
+                }
+            },
+
+            /* Computations */
+            formatDateTime: function (string) {
+                return Strolch.toLocalDateTime(string);
+            },
+            calcDuration: function (element) {
+                if (element == null) return "-";
+                if (element.start == '-' || element.end == '-') return "-";
+                var a = new Date(element.start);
+                var b = new Date(element.end);
+                return this.formatMsDuration(b.getTime() - a.getTime());
+            },
+            formatMsDuration: function (millis) {
+                if (millis >= 3600000) {
+                    return (millis / 3600000.0) + "h";
+                } else if (millis >= 60000) {
+                    return (millis / 60000.0) + "m";
+                } else if (millis >= 1000) {
+                    return (millis / 1000.0) + "s";
+                } else if (millis == 0) {
+                    return "0s";
+                } else {
+                    return millis + "ms";
+                }
+            },
+            empty: function (arr) {
+                return arr == null || arr.length == 0;
+            },
+            isActivity: function (item) {
+                return item != null && item.objectType == 'Activity';
+            },
+            isAction: function (item) {
+                return item != null && item.objectType == 'Action';
+            },
+            isRootElement: function (item) {
+                return item != null && this.elements.indexOf(item) >= 0;
+            },
+            canExecute: function (item) {
+                return item != null && (item.objectType == 'Action' || this.isRootElement(item));
+            },
+
+            /* Observers */
+            observers: [],
+
+            selectedRealmChanged: function (newValue, oldValue) {
+                if (newValue != null) {
+                    Strolch.setQueryParamValue('realm', newValue);
+                    this.reloadControllers();
+                }
+            },
+
+            onShowModel: function (e) {
+                this.modelAsText = JSON.stringify(this.selectedItem, null, 2);
+                this.$.modelDlg.open();
+            },
+
+            onToExecution: function (e) {
+                if (this.selectedItem != null)
+                    this._setState('Execution');
+            },
+            onToWarning: function (e) {
+                if (this.selectedItem != null)
+                    this._setState('Warning');
+            },
+            onToError: function (e) {
+                if (this.selectedItem != null)
+                    this._setState('Error');
+            },
+            onToStopped: function (e) {
+                if (this.selectedItem != null)
+                    this._setState('Stopped');
+            },
+            onToExecuted: function (e) {
+                if (this.selectedItem != null)
+                    this._setState('Executed');
+            },
+            _setState: function (state) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    locator: this.selectedItem.locator,
+                    state: state
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+            onTrigger: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    state: 'Trigger'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+
+            onAddActivity: function (e) {
+                if (this.newLocator == null || this.newLocator.length == 0) {
+                    this.fire('strolch-show-dialog', {
+                        title: 'Error',
+                        text: 'Please enter a locator'
+                    });
+
+                    return;
+                }
+
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.method = 'POST';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    locator: this.newLocator,
+                    state: 'Execution'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+            onRemoveAll: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/all';
+                this.$.ajaxSetState.method = 'DELETE';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+
+            reloadRealms: function () {
+
+                var realmToSelect = Strolch.getQueryParamValue('realm');
+
+                this._handleAjaxResponse = function (data) {
+                    this.selectedRealm = null;
+                    this.realms = data.detail.response.realms;
+
+                    if (Strolch.isNotEmptyString(realmToSelect)) {
+                        for (var i = 0; i < this.realms.length; i++) {
+                            if (this.realms[i].name == realmToSelect) {
+                                this.selectedRealm = realmToSelect;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (this.selectedRealm == null && this.realms.length > 0) {
+                        this.selectedRealm = this.realms[0].name;
+                    }
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+
+                this.$.ajax.generateRequest();
+            },
+
+            reloadControllers: function (e) {
+                clearTimeout(this.reloadTimeout);
+                if (this.selectedRealm != null) {
+                    this.$.ajaxGetActivities.url = this.basePath + 'rest/strolch/control';
+                    this.$.ajaxGetActivities.params = {realm: this.selectedRealm};
+                    this.$.ajaxGetActivities.generateRequest();
+                }
+            },
+
+            onGetActivitiesResponse: function (e) {
+                var elements = e.detail.response.data;
+                var elementToSelect = null;
+
+                if (this.selectedItem != null) {
+                    for (var i = 0; i < elements.length; i++) {
+                        var rootElement = elements[i];
+                        if (this.selectedItem.locator.startsWith(rootElement.locator)) {
+
+                            var parts = this.selectedItem.locator.split('/');
+                            if (parts.length == 3) {
+                                elementToSelect = rootElement;
+                                break;
+                            }
+
+                            var depth = 3;
+                            var element = rootElement;
+                            while (depth < parts.length && element.elements != null && element.elements.length > 0) {
+
+                                for (var j = 0; j < element.elements.length; j++) {
+                                    if (element.elements[j].id == parts[depth]) {
+                                        element = element.elements[j];
+                                        depth++;
+                                        break;
+                                    }
+                                }
+
+                                if (element.locator == this.selectedItem.locator) {
+                                    elementToSelect = element;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (this.selectedItem != null && elementToSelect == null) {
+                    this.elements = elements;
+                    this.selectedItem = null;
+                } else {
+                    this.elements = elements;
+                }
+
+                var that = this;
+                if (this.$$('.toolbar').offsetParent != null) {
+                    this.reloadTimeout = setTimeout(function (e) {
+                        that.reloadControllers();
+                    }, 3000);
+                }
+            },
+            onPutActivitiesResponse: function (e) {
+                this.newLocator = null;
+                this.reloadControllers();
+            },
+
+            /* Listeners */
+            listeners: {
+                'strolch-wc-tree-item-selected': 'onItemSelected'
+            },
+
+            onItemSelected: function (e) {
+                this.selectedItem = e.detail.item;
+            },
+
+            /* Private */
+            _getIcon: function (item) {
+                if (item == null || item.state == null || item.state == '') return '';
+                return this.resolveUrl('icons/' + item.state + '.png');
+            },
+
+            /* Public */
+
+            /* Lifecycle */
+            ready: function () {
+                var that = this;
+                this.funcObj = {
+                    getTitle: function (item) {
+                        return item == null ? "" : "<b>" + item.type + "</b>:&#9;&#9;" + item.name;
+                    },
+                    getIcon: function (item) {
+                        if (item == null || item.state == null || item.state == '') return '';
+                        return that.resolveUrl('icons/' + item.state + '.png');
+                    },
+                    hasElements: function (item) {
+                        return item != null && item.elements && item.elements.length > 0;
+                    },
+                    getElements: function (item) {
+                        return item == null ? [] : (item.elements ? item.elements : []);
+                    }
+                };
+            },
+            reload: function () {
+                this.reloadRealms();
+            }
+        });
+    </script>
+</dom-module>
