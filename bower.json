@@ -19,7 +19,7 @@
   "dependencies": {
     "strolchjs": "4treesCH/strolchjs#^0.2.4",
     "strolch-wc-styles": "4treesCH/strolch-wc-styles#^0.2.0",
-    "strolch-wc-tree": "4treesCH/strolch-wc-tree#^0.1.2",
+    "strolch-wc-tree": "4treesCH/strolch-wc-tree#^0.1.3",
 
     "polymer": "Polymer/polymer#^1.11.3",
 
