@@ -108,6 +108,7 @@
 
                 <paper-button raised on-tap="onTrigger">Trigger</paper-button>
                 <paper-button raised on-tap="onRemoveAll">Remove All</paper-button>
+                <paper-button raised on-tap="onReload">Reload</paper-button>
                 <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
             </div>
 
@@ -183,12 +184,20 @@
                                 </tr>
                             </template>
 
+                            <tr>
+                                <td class="label">Locator:</td>
+                                <td>[[selectedItem.locator]]</td>
+                            </tr>
+
                         </table>
 
                         <div class="item-btns">
 
                             <template is="dom-if" if="[[canExecute(selectedItem)]]">
                                 <paper-button raised on-tap="onToExecution">Execute</paper-button>
+                            </template>
+                            <template is="dom-if" if="[[isRootElement(selectedItem)]]">
+                                <paper-button raised on-tap="onRemove">Remove</paper-button>
                             </template>
 
                             <template is="dom-if" if="[[isAction(selectedItem)]]">
@@ -349,12 +358,30 @@
                 };
                 this.$.ajaxSetState.generateRequest();
             },
+            onRemove: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.method = 'DELETE';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    locator: this.selectedItem.locator
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
             onTrigger: function (e) {
                 this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
                 this.$.ajaxSetState.method = 'PUT';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
                     state: 'Trigger'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+            onReload: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    state: 'ReloadActivities'
                 };
                 this.$.ajaxSetState.generateRequest();
             },
