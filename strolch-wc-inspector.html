@@ -288,6 +288,12 @@
                 modelAsText: {
                     type: String,
                     value: ''
+                },
+                propagateShowDialog: {
+                    type: Boolean,
+                    value: function () {
+                        return false
+                    }
                 }
             },
 
@@ -296,7 +302,11 @@
             },
 
             onShowDialog: function (event) {
-                this.showError(event.detail.title, event.detail.text);
+                if (!this.propagateShowDialog) {
+                    event.cancelBubble = true;
+                    event.stopPropagation();
+                    this.showError(event.detail.title, event.detail.text);
+                }
             },
             showError: function (title, text) {
                 this.dlgTitle = title;
