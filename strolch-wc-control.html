@@ -18,6 +18,8 @@
         <!-- Style -->
         <style is="custom-style" include="strolch-wc-styles">
             :host {
+                --header-height: 0px;
+                @apply(--strolch-wc-control);
                 @apply(--layout-vertical);
             }
 
@@ -65,6 +67,11 @@
 
             .action-btns {
                 display: flex;
+            }
+
+            .tree-view {
+                overflow: auto;
+                height: calc(100vh - 115px - var(--header-height));
             }
 
         </style>
@@ -120,7 +127,7 @@
         <template is="dom-if" if="[[!empty(elements)]]">
             <div class="content">
 
-                <paper-card>
+                <paper-card class="tree-view">
                     <strolch-wc-tree title-html func-obj="{{funcObj}}" elements="[[elements]]" />
                 </paper-card>
 
