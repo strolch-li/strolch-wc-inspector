@@ -293,11 +293,11 @@
             },
             formatMsDuration: function (millis) {
                 if (millis >= 3600000) {
-                    return (millis / 3600000.0) + "h";
+                    return (Math.ceil((millis / 3600000.0) * 10) / 10) + "h";
                 } else if (millis >= 60000) {
-                    return (millis / 60000.0) + "m";
+                    return (Math.ceil((millis / 60000.0) * 10) / 10) + "m";
                 } else if (millis >= 1000) {
-                    return (millis / 1000.0) + "s";
+                    return (Math.ceil((millis / 1000.0) * 10) / 10) + "s";
                 } else if (millis == 0) {
                     return "0s";
                 } else {
@@ -494,23 +494,27 @@
                                     break;
                                 }
                             }
+
+                            if (elementToSelect != null) {
+                                break;
+                            }
                         }
                     }
                 }
 
-                if (this.selectedItem != null && elementToSelect == null) {
-                    this.elements = elements;
-                    this.selectedItem = null;
+                if (elementToSelect != null) {
+                    this.selectedItem = elementToSelect;
                 } else {
-                    this.elements = elements;
+                    this.selectedItem = null;
                 }
+                this.elements = elements;
 
-                var that = this;
-                if (this.$$('.toolbar').offsetParent != null) {
-                    this.reloadTimeout = setTimeout(function (e) {
-                        that.reloadControllers();
-                    }, 3000);
-                }
+                // var that = this;
+                // if (this.$$('.toolbar').offsetParent != null) {
+                //     this.reloadTimeout = setTimeout(function (e) {
+                //         that.reloadControllers();
+                //     }, 3000);
+                // }
             },
             onPutActivitiesResponse: function (e) {
                 this.newLocator = null;
