@@ -113,6 +113,12 @@
                 },
                 roleName: {
                     type: String
+                },
+                propagateShowDialog: {
+                    type: Boolean,
+                    value: function () {
+                        return false
+                    }
                 }
             },
 
@@ -120,7 +126,11 @@
                 "strolch-show-dialog": "onShowDialog"
             },
             onShowDialog: function (event) {
-                this.showError(event.detail.title, event.detail.text);
+                if (!this.propagateShowDialog) {
+                    event.cancelBubble = true;
+                    event.stopPropagation();
+                    this.showError(event.detail.title, event.detail.text);
+                }
             },
             showError: function (title, text) {
                 this.dlgTitle = title;

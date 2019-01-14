@@ -21,6 +21,7 @@
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-inspector-paging-behavior.html">
 
 <dom-module id="strolch-wc-operations-log">
 
@@ -139,7 +140,7 @@
                     <paper-icon-button class="g-pull-right"
                                        icon="refresh"
                                        title="Refresh"
-                                       on-tap="reloadOperationsLog"></paper-icon-button>
+                                       on-tap="queryPage"></paper-icon-button>
                 </div>
 
             </div>
@@ -166,7 +167,7 @@
                         <div class="g-1"></div>
                     </div>
 
-                    <template is="dom-repeat" items="[[operationsLog.data]]" as="log">
+                    <template is="dom-repeat" items="[[dataObj.data]]" as="log">
 
                         <hr />
 
@@ -192,14 +193,20 @@
                     </template>
 
                     <div class="g-row">
-                        <div class="g-12">
+                        <div class="g-3"></div>
+                        <div class="g-6">
                             <div class="g-m-2 g-center">
                                 <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
                                 <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
-                                <span>[[operationsLog.offset]] to [[_getEnd(operationsLog)]] of [[operationsLog.size]]</span>
+                                <span>[[dataObj.offset]] to [[_getEnd(dataObj)]] of [[dataObj.size]] ([[dataObj.dataSetSize]])</span>
                                 <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
                                 <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
                             </div>
+                        </div>
+                        <div class="g-3">
+                            <paper-button on-tap="_setLimit">10</paper-button>
+                            <paper-button on-tap="_setLimit">50</paper-button>
+                            <paper-button on-tap="_setLimit">100</paper-button>
                         </div>
                     </div>
 
@@ -242,7 +249,8 @@
             is: 'strolch-wc-operations-log',
 
             behaviors: [
-                StrolchInspectorBehavior
+                StrolchInspectorBehavior,
+                StrolchInspectorPagingBehavior
             ],
 
             properties: {
@@ -306,7 +314,7 @@
                         cancel: "Cancel",
 
                         formatDate: function (datetime) {
-                            if (typeof(datetime) == 'string') {
+                            if (typeof (datetime) == 'string') {
                                 datetime = new Date(datetime);
                             }
 
@@ -331,43 +339,7 @@
                             return monthName + " " + fullYear;
                         }
                     }
-                },
-
-                operationsLog: {
-                    type: Object
-                },
-                offset: {
-                    type: Number,
-                    value: 0
-                },
-                limit: {
-                    type: Number,
-                    value: 100
                 }
-            },
-
-            _hasNext: function (objects) {
-                return objects != null && objects.nextOffset > objects.offset;
-            },
-            _getEnd: function (objects) {
-                if (this._hasNext(objects)) return objects.nextOffset;
-                return objects == null ? 0 : objects.size;
-            },
-            _toFirstPage: function () {
-                this.offset = 0;
-                this.reloadOperationsLog();
-            },
-            _toPreviousPage: function () {
-                this.offset = this.operationsLog.previousOffset;
-                this.reloadOperationsLog();
-            },
-            _toNextPage: function () {
-                this.offset = this.operationsLog.nextOffset;
-                this.reloadOperationsLog();
-            },
-            _toLastPage: function () {
-                this.offset = this.operationsLog.lastOffset;
-                this.reloadOperationsLog();
             },
 
             toLocalDateTime: function (val) {
@@ -379,24 +351,24 @@
             },
             severityChanged: function (newValue, oldValue) {
                 if (newValue != null)
-                    this.reloadOperationsLog();
+                    this.queryPage();
             },
             searchTermChanged: function (newValue, oldValue) {
                 if (newValue != null)
-                    this.reloadOperationsLog();
+                    this.queryPage();
             },
             fromChanged: function (newValue, oldValue) {
                 if (newValue != null)
-                    this.reloadOperationsLog();
+                    this.queryPage();
             },
             toChanged: function (newValue, oldValue) {
                 if (newValue != null)
-                    this.reloadOperationsLog();
+                    this.queryPage();
             },
             realmChanged: function (newValue, oldValue) {
                 if (newValue != null) {
                     Strolch.setQueryParamValue('realm', newValue);
-                    this.reloadOperationsLog();
+                    this.queryPage();
                 }
             },
 
@@ -423,16 +395,14 @@
                 this.searchTerm = '';
             },
 
-            reloadOperationsLog: function () {
+            queryPage: function () {
                 if (this.realms == null) {
                     return;
                 }
 
                 this.dlgTitle = 'Fetching log failed';
                 this._handleAjaxResponse = function (data) {
-                    this.operationsLog = data.detail.response;
-                    this.offset = this.operationsLog.offset;
-                    this.limit = this.operationsLog.limit;
+                    this.dataObj = data.detail.response;
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/operations-log/' + this.selectedRealm;
@@ -443,8 +413,8 @@
                     from: this.from,
                     to: this.to,
                     query: this.searchTerm,
-                    offset: this.offset,
-                    limit: this.limit
+                    offset: this.dataObj.offset,
+                    limit: this.dataObj.limit
                 };
                 this.$.ajax.generateRequest();
             },

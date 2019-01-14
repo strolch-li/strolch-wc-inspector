@@ -16,8 +16,10 @@
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+<link rel="import" href="../strolch-wc-debounced-input/strolch-wc-debounced-input.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-inspector-paging-behavior.html">
 
 <dom-module id="strolch-wc-sessions">
 
@@ -39,11 +41,26 @@
                 padding: 0.3em;
             }
 
+            strolch-wc-debounced-input {
+                max-width: 200px;
+                display: inline-flex;
+
+                --regular-color: #919191;
+                --focus-color: #000000;
+            }
+
         </style>
 
         <div class="g-row g-pt-4">
-            <div class="g-12 g-right">
-                <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+            <div class="g-12">
+                <paper-icon-button class="g-pull-right"
+                                   icon="refresh"
+                                   title="Refresh"
+                                   on-tap="reload"></paper-icon-button>
+                <strolch-wc-debounced-input id="debouncedInput"
+                                            class="g-pull-right"
+                                            debounced-input="{{searchTerm}}"
+                                            disabled="[[arrayFilled(filters)]]"></strolch-wc-debounced-input>
             </div>
         </div>
 
@@ -62,7 +79,7 @@
                         <div class="g-1"></div>
                     </div>
 
-                    <template is="dom-repeat" items="[[sessions]]">
+                    <template is="dom-repeat" items="[[dataObj.data]]">
 
                         <hr />
 
@@ -83,6 +100,25 @@
 
                 </div>
 
+            </div>
+
+            <div class="g-row">
+                <div class="g-3">
+                </div>
+                <div class="g-6">
+                    <div class="g-m-2 g-center">
+                        <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
+                        <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
+                        <span>[[dataObj.offset]] to [[_getEnd(dataObj)]] of [[dataObj.size]] ([[dataObj.dataSetSize]])</span>
+                        <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
+                        <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
+                    </div>
+                </div>
+                <div class="g-3">
+                    <paper-button on-tap="_setLimit">10</paper-button>
+                    <paper-button on-tap="_setLimit">50</paper-button>
+                    <paper-button on-tap="_setLimit">100</paper-button>
+                </div>
             </div>
 
         </paper-material>
@@ -110,12 +146,23 @@
             is: 'strolch-wc-sessions',
 
             behaviors: [
-                StrolchInspectorBehavior
+                StrolchInspectorBehavior,
+                StrolchInspectorPagingBehavior
             ],
 
             properties: {
                 sessions: {
                     type: Array
+                },
+                searchTerm: {
+                    type: String,
+                    observer: 'searchTermChanged'
+                },
+                propagateShowDialog: {
+                    type: Boolean,
+                    value: function () {
+                        return false
+                    }
                 }
             },
 
@@ -140,7 +187,11 @@
                 "strolch-show-dialog": "onShowDialog"
             },
             onShowDialog: function (event) {
-                this.showError(event.detail.title, event.detail.text);
+                if (!this.propagateShowDialog) {
+                    event.cancelBubble = true;
+                    event.stopPropagation();
+                    this.showError(event.detail.title, event.detail.text);
+                }
             },
             showError: function (title, text) {
                 this.dlgTitle = title;
@@ -149,19 +200,35 @@
                 this.$.dlg.open();
             },
 
+            searchTermChanged: function (newValue, oldValue) {
+                if (newValue != null && oldValue != null) {
+                    this.queryPage();
+                }
+            },
+
             ready: function () {
                 //
             },
 
             reload: function () {
+                this.queryPage();
+            },
+
+            queryPage: function () {
 
                 this.dlgTitle = 'Sessions query failed';
                 this._handleAjaxResponse = function (data) {
-                    this.sessions = data.detail.response;
+                    this.dataObj = data.detail.response;
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/sessions';
                 this.$.ajax.method = 'GET';
+                this.$.ajax.params = {
+                    query: this.searchTerm,
+                    offset: this.dataObj.offset,
+                    limit: this.dataObj.limit,
+                    orderBy: 'username'
+                };
                 this.$.ajax.generateRequest();
             },
 

@@ -16,6 +16,7 @@
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-inspector-paging-behavior.html">
 <link rel="import" href="strolch-wc-inspector-object.html">
 
 <dom-module id="strolch-wc-inspector-objects">
@@ -163,8 +164,9 @@
 
                     <div class="g-row">
                         <div class="g-12">
-                            <template is="dom-repeat" items="[[objects.data]]">
-                                <strolch-wc-inspector-object base-path="[[basePath]]"
+                            <template is="dom-repeat" items="[[dataObj.data]]">
+                                <strolch-wc-inspector-object class="g-ml-3 g-mr-3 g-mt-4"
+                                                             base-path="[[basePath]]"
                                                              realm="[[realm]]"
                                                              is-root-element="true"
                                                              on-strolch-wc-obj-remove="onRemoveElement"
@@ -174,7 +176,7 @@
                         </div>
                     </div>
 
-                    <div class="g-row g-mb-1">
+                    <div class="g-row g-mt-3 g-mb-1">
                         <div class="g-3 g-pt-3 g-pl-4">
                             <paper-button on-tap="_toggleAllSelected" raised>
                                 <template is="dom-if" if="[[allSelected]]">Select None</template>
@@ -189,13 +191,15 @@
                             <div class="g-m-2 g-center">
                                 <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
                                 <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
-                                <span>[[objects.offset]] to [[_getEnd(objects)]] of [[objects.size]]</span>
+                                <span>[[dataObj.offset]] to [[_getEnd(dataObj)]] of [[dataObj.size]] ([[dataObj.dataSetSize]])</span>
                                 <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
                                 <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
                             </div>
                         </div>
                         <div class="g-3">
-
+                            <paper-button on-tap="_setLimit">10</paper-button>
+                            <paper-button on-tap="_setLimit">50</paper-button>
+                            <paper-button on-tap="_setLimit">100</paper-button>
                         </div>
                     </div>
 
@@ -227,7 +231,8 @@
             is: 'strolch-wc-inspector-objects',
 
             behaviors: [
-                StrolchInspectorBehavior
+                StrolchInspectorBehavior,
+                StrolchInspectorPagingBehavior
             ],
 
             properties: {
@@ -269,24 +274,6 @@
                         return null;
                     }
                 },
-                objects: {
-                    type: Object,
-                    value: function () {
-                        return null;
-                    }
-                },
-                offset: {
-                    type: Number,
-                    value: function () {
-                        return 0;
-                    }
-                },
-                limit: {
-                    type: Number,
-                    value: function () {
-                        return 20;
-                    }
-                },
 
                 allSelected: {
                     type: Boolean,
@@ -324,8 +311,8 @@
                 }
 
                 this.debounce("doSearch", function () {
-                    this.offset = 0;
-                    this.reloadTypeDetails();
+                    this.dataObj.offset = 0;
+                    this.queryPage();
                 }, 500);
             },
 
@@ -333,7 +320,7 @@
                 this.selectedType = null;
                 this.section = 'typesSummary';
                 this.selectedType = null;
-                this.objects = null;
+                this.dataObj.data = null;
             },
 
             _noElements: function (objectSummaries) {
@@ -341,7 +328,7 @@
             },
 
             _showTypeDetails: function (evt) {
-                this.offset = 0;
+                this.dataObj.offset = 0;
                 this.selectType(evt.model.item.type);
             },
 
@@ -349,23 +336,23 @@
                 var typeChanged = this.selectedType != type;
                 this.selectedType = type;
                 this.section = type == null ? 'typesSummary' : 'typeDetails';
-                this.objects = null;
+                this.dataObj.data = null;
                 console.log('Showing type ' + this.selectedType);
                 Strolch.setQueryParamValue('type', this.selectedType);
                 if (this.selectedType == null) {
-                    this.offset = 0;
+                    this.dataObj.offset = 0;
                 } else {
                     if (typeChanged) {
-                        this.offset = 0;
+                        this.dataObj.offset = 0;
                     }
-                    this.reloadTypeDetails();
+                    this.queryPage();
                 }
             },
 
             _closeTypeDetails: function () {
                 this.section = 'typesSummary';
                 this.selectedType = null;
-                this.objects = null;
+                this.dataObj.data = null;
                 Strolch.setQueryParamValue('type', null);
             },
 
@@ -379,35 +366,6 @@
                 } else {
                     throw 'Unhandled selected type ' + selectedType;
                 }
-            },
-
-            _hasNext: function (objects) {
-                return objects != null && objects.nextOffset > objects.offset;
-            },
-            _hasPrevious: function (objects) {
-                return objects != null && objects.previousOffset < objects.offset;
-            },
-
-            _getEnd: function (objects) {
-                if (this._hasNext(objects)) return objects.nextOffset;
-                return objects == null ? 0 : objects.size;
-            },
-
-            _toFirstPage: function () {
-                this.offset = 0;
-                this.reloadTypeDetails();
-            },
-            _toPreviousPage: function () {
-                this.offset = this.objects.previousOffset;
-                this.reloadTypeDetails();
-            },
-            _toNextPage: function () {
-                this.offset = this.objects.nextOffset;
-                this.reloadTypeDetails(this.objects.nextOffset);
-            },
-            _toLastPage: function () {
-                this.offset = this.objects.lastOffset;
-                this.reloadTypeDetails(this.objects.lastOffset);
             },
 
             onImportTapped: function (event) {
@@ -450,14 +408,14 @@
                 var select = !this.allSelected;
                 console.log(select ? 'Selecting ALL' : 'Selecting NONE');
                 this.set('selectedObjectIds', []);
-                for (var i = 0; i < this.objects.data.length; i++) {
-                    var path = 'objects.data.' + i + '._checked';
+                for (var i = 0; i < this.dataObj.data.length; i++) {
+                    var path = 'dataObj.data.' + i + '._checked';
                     this.set(path, !select);
                     this.set(path, select);
                     console.log('Set path ' + path + ' = ' + select);
 
                     if (select) {
-                        var object = this.objects.data[i];
+                        var object = this.dataObj.data[i];
                         this.push('selectedObjectIds', object.id);
                         console.log('Added ' + object.id + ' as selected');
                     }
@@ -482,7 +440,7 @@
                     }
                 }
 
-                this.set('allSelected', this.selectedObjectIds.length == this.objects.data.length);
+                this.set('allSelected', this.selectedObjectIds.length == this.dataObj.data.length);
                 console.log(this.allSelected ? 'All are selected' : 'None or some are selected');
             },
 
@@ -491,26 +449,26 @@
 
                 var id = event.detail.object.id;
                 var index = null;
-                for (var i = 0; i < this.objects.data.length; i++) {
-                    if (this.objects.data[i].id == id) {
+                for (var i = 0; i < this.dataObj.data.length; i++) {
+                    if (this.dataObj.data[i].id == id) {
                         index = i;
                         break;
                     }
                 }
 
                 if (index != null) {
-                    this.splice("objects.data", index, 1);
+                    this.splice("dataObj.data", index, 1);
                 }
             },
 
-            reloadTypeDetails: function () {
+            queryPage: function () {
                 this.dlgTitle = 'Reload failed';
                 this._handleAjaxResponse = function (data) {
-                    this.set('objects', data.detail.response);
+                    this.set('dataObj', data.detail.response);
                 };
 
                 var url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;
-                url += '?offset=' + this.offset + '&limit=' + this.limit + "&orderBy=id&query=" + encodeURIComponent(this.searchTerm) + '&overview=true';
+                url += '?offset=' + this.dataObj.offset + '&limit=' + this.dataObj.limit + "&orderBy=id&query=" + encodeURIComponent(this.searchTerm) + '&overview=true';
 
                 this.$.ajax.url = url;
                 this.$.ajax.method = 'GET';
@@ -541,10 +499,10 @@
 
                 this.dlgTitle = 'Remove elements failed';
                 this._handleAjaxResponse = function (data) {
-                    this.set('objects', null);
+                    this.set('this.dataObj.data = null;.data', null);
                     this.set('selectedObjectIds', []);
                     this.set('allSelected', false);
-                    this.reloadTypeDetails();
+                    this.queryPage();
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.realm + '/' + this._typeSubPath(this.objectType) + '/' + this.selectedType;

@@ -1,0 +1,71 @@
+<script>
+    StrolchInspectorPagingBehavior = {
+
+        properties: {
+            dataObj: {
+                type: Object,
+                value: {
+                    data: null,
+                    offset: 0,
+                    limit: 20,
+                    dataSetSize: 0,
+                    descending: true,
+                    sortBy: 'id',
+                    size: 0,
+                    nextOffset: 0,
+                    previousOffset: 0,
+                    lastOffset: 0
+                }
+            }
+        },
+
+        _getDefaultObj: function () {
+            return {
+                data: null,
+                offset: 0,
+                limit: 20,
+                dataSetSize: 0,
+                descending: true,
+                sortBy: 'id',
+                size: 0,
+                nextOffset: 0,
+                previousOffset: 0,
+                lastOffset: 0
+            }
+        },
+
+        _hasNext: function (dataObj) {
+            return dataObj != null && dataObj.nextOffset > dataObj.offset;
+        },
+        _hasPrevious: function (dataObj) {
+            return dataObj != null && dataObj.previousOffset < dataObj.offset;
+        },
+
+        _getEnd: function (dataObj) {
+            if (this._hasNext(dataObj)) return dataObj.nextOffset;
+            return dataObj == null ? 0 : dataObj.size;
+        },
+
+        _setLimit: function (e) {
+            this.dataObj.limit = parseInt(e.target.textContent.trim());
+            this.queryPage();
+        },
+
+        _toFirstPage: function () {
+            this.dataObj.offset = 0;
+            this.queryPage();
+        },
+        _toPreviousPage: function () {
+            this.dataObj.offset = this.dataObj.previousOffset;
+            this.queryPage();
+        },
+        _toNextPage: function () {
+            this.dataObj.offset = this.dataObj.nextOffset;
+            this.queryPage();
+        },
+        _toLastPage: function () {
+            this.dataObj.offset = this.dataObj.lastOffset;
+            this.queryPage();
+        }
+    };
+</script>
