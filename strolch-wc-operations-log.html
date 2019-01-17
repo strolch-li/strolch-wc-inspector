@@ -296,6 +296,12 @@
                     observer: 'toChanged',
                     value: null
                 },
+                propagateShowDialog: {
+                    type: Boolean,
+                    value: function () {
+                        return false
+                    }
+                },
 
                 i18n: {
                     type: Object,
@@ -378,7 +384,11 @@
             },
 
             onShowDialog: function (event) {
-                this.showError(event.detail.title, event.detail.text);
+                if (!this.propagateShowDialog) {
+                    event.cancelBubble = true;
+                    event.stopPropagation();
+                    this.showError(event.detail.title, event.detail.text);
+                }
             },
             showError: function (title, text) {
                 this.dlgTitle = title;
