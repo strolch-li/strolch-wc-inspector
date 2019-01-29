@@ -53,6 +53,10 @@
                 margin-left: 1em;
             }
 
+            .uploadTypeDropDown {
+                margin: 0;
+            }
+
             paper-dropdown-menu.custom {
                 --paper-dropdown-menu-label: {
                     background-color: var(--paper-blue-600);
@@ -89,14 +93,13 @@
                 background-color: #ffffff;
             }
 
-            .addDlg {
+            .uploadDlg {
                 width: 600px;
             }
 
             textarea {
                 padding: 10px;
-                margin: 10px;
-                width: calc(100% - 40px);
+                width: calc(100% - 20px);
                 height: 100%;
                 min-height: 300px;
             }
@@ -136,10 +139,10 @@
                         <paper-icon-button icon="refresh" title="Refresh" on-tap="reloadRealms"></paper-icon-button>
                         <paper-icon-button icon="cloud-download"
                                            title="Download entire Realm"
-                                           on-tap="exportRealm"></paper-icon-button>
+                                           on-tap="onExportRealm"></paper-icon-button>
                         <paper-icon-button icon="cloud-upload"
                                            title="Upload data to realm"
-                                           on-tap="onAddTapped"></paper-icon-button>
+                                           on-tap="onUploadTapped"></paper-icon-button>
                     </div>
                 </div>
             </div>
@@ -183,21 +186,54 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="addDlg" class="addDlg" modal>
+        <paper-dialog id="uploadDlg" class="uploadDlg" modal>
             <h3>Import elements</h3>
 
-            <textarea value="{{modelAsText::input}}"></textarea>
+            <paper-dropdown-menu class="uploadTypeDropDown" label-always-float label="Upload Type">
+                <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{uploadType}}">
+                    <paper-item value="text">Text</paper-item>
+                    <paper-item value="file">File</paper-item>
+                </paper-listbox>
+            </paper-dropdown-menu>
 
-            <div class="buttons">
-                <paper-button class="g-pull-right" on-tap="onSaveTap" raised>
-                    <iron-icon icon="add"></iron-icon>
-                    Add
-                </paper-button>
-                <paper-button class="g-pull-right" on-tap="onCancelTap" raised>
-                    <iron-icon icon="close"></iron-icon>
-                    Cancel
-                </paper-button>
-            </div>
+            <iron-pages attr-for-selected="name" selected="[[uploadType]]" class="g-m-0">
+
+                <div name="text">
+                    <textarea value="{{modelAsText::input}}"></textarea>
+                    <div class="buttons">
+                        <paper-button class="g-pull-right" on-tap="onCancelUploadTap" raised>
+                            <iron-icon icon="close"></iron-icon>
+                            Cancel
+                        </paper-button>
+                        <paper-button class="g-pull-right" on-tap="onUploadTextTap" raised>
+                            <iron-icon icon="add"></iron-icon>
+                            Add
+                        </paper-button>
+                    </div>
+                </div>
+
+                <div name="file">
+                    <paper-input label="Encoding" value="{{uploadEncoding}}" class="g-mt-1"></paper-input>
+                    <vaadin-upload class="g-mt-2"
+                                   id="uploadFile"
+                                   accept=".xml"
+                                   method="POST"
+                                   max-files="1"
+                                   max-file-size="100000000"
+                                   on-upload-error="onUploadFileError"
+                                   on-upload-before="onUploadFileBefore"
+                                   on-upload-success="onUploadFileSuccess"
+                                   on-upload-request="onUploadFileRequest"></vaadin-upload>
+
+                    <div class="buttons">
+                        <paper-button class="g-pull-right" on-tap="onCancelUploadTap" raised>
+                            <iron-icon icon="close"></iron-icon>
+                            Close
+                        </paper-button>
+                    </div>
+                </div>
+            </iron-pages>
+
         </paper-dialog>
 
         <iron-ajax id="ajax"
@@ -284,6 +320,14 @@
                     value: function () {
                         return null;
                     }
+                },
+                uploadType: {
+                    type: String,
+                    value: 'text'
+                },
+                uploadEncoding: {
+                    type: String,
+                    value: 'utf-8'
                 },
                 modelAsText: {
                     type: String,
@@ -384,7 +428,7 @@
                 this.$.ajax.generateRequest();
             },
 
-            exportRealm: function () {
+            onExportRealm: function () {
 
                 this._handleAjaxResponse = function (data) {
                     var response = data.detail.response;
@@ -398,15 +442,16 @@
                 this.$.ajaxXml.generateRequest();
             },
 
-            onAddTapped: function (event) {
+            onUploadTapped: function (event) {
                 this.modelAsText = '';
-                this.$.addDlg.open();
+                this.$.uploadFile.files = [];
+                this.$.uploadDlg.open();
             },
-            onCancelTap: function (event) {
+            onCancelUploadTap: function (event) {
                 this.modelAsText = '';
-                this.$.addDlg.close();
+                this.$.uploadDlg.close();
             },
-            onSaveTap: function (event) {
+            onUploadTextTap: function (event) {
                 if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
                     this.showError('Model empty', 'Model can not be empty!');
                     return;
@@ -415,7 +460,7 @@
                 this.dlgTitle = 'Import failed';
                 this._handleAjaxResponse = function (data) {
                     this.modelAsText = '';
-                    this.$.addDlg.close();
+                    this.$.uploadDlg.close();
 
                     this.dlgTitle = 'Import done';
                     this.dlgText = data.detail.response.msg;
@@ -432,6 +477,33 @@
                 this.$.ajax.method = 'POST';
                 this.$.ajax.body = this.modelAsText;
                 this.$.ajax.generateRequest();
+            },
+
+            onUploadFileBefore: function (evt) {
+                evt.detail.file.uploadTarget = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import';
+            },
+            onUploadFileSuccess: function (evt) {
+                this.$.uploadDlg.close();
+
+                this.dlgTitle = 'Import done';
+                this.dlgText = evt.detail.xhr.response;
+                if (this.dlgText.charAt(0) == '{')
+                    this.dlgText = JSON.parse(this.dlgText).msg;
+                this.$.dlg.open();
+
+                this.reloadRealms();
+            },
+            onUploadFileRequest: function (evt) {
+                evt.preventDefault();
+                evt.detail.xhr.setRequestHeader("Content-Type", "application/xml" + "; charset=" + this.uploadEncoding);
+                evt.detail.xhr.send(evt.detail.file);
+            },
+            onUploadFileError: function (evt) {
+                console.log(evt);
+                var error = evt.detail.xhr.response;
+                if (error.charAt(0) == '{')
+                    error = JSON.parse(error).msg;
+                this.showError('Upload failed', error);
             },
 
             reloadSelectedRealm: function () {

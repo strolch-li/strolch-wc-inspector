@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
@@ -49,7 +49,8 @@
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.4.2",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.2",
 
-    "vaadin-date-picker": "vaadin/vaadin-date-picker#^1.2.4"
+    "vaadin-date-picker": "vaadin/vaadin-date-picker#^1.2.4",
+    "vaadin-upload": "vaadin/vaadin-upload#v2.1.3"
 
   },
   "devDependencies": {
