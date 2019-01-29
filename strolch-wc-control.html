@@ -509,12 +509,12 @@
                 }
                 this.elements = elements;
 
-                // var that = this;
-                // if (this.$$('.toolbar').offsetParent != null) {
-                //     this.reloadTimeout = setTimeout(function (e) {
-                //         that.reloadControllers();
-                //     }, 3000);
-                // }
+                var that = this;
+                if (this.$$('.toolbar').offsetParent != null) {
+                    this.reloadTimeout = setTimeout(function (e) {
+                        that.reloadControllers();
+                    }, 3000);
+                }
             },
             onPutActivitiesResponse: function (e) {
                 this.newLocator = null;
