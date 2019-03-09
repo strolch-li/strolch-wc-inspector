@@ -73,22 +73,24 @@
                     <div class="g-row">
                         <div class="g-2"><b>Username</b></div>
                         <div class="g-2"><b>Name</b></div>
-                        <div class="g-3"><b>Roles</b></div>
+                        <div class="g-2"><b>Roles</b></div>
+                        <div class="g-1"><b>Source</b></div>
                         <div class="g-2"><b>Login time</b></div>
                         <div class="g-2"><b>Last Access</b></div>
                         <div class="g-1"></div>
                     </div>
 
-                    <template is="dom-repeat" items="[[dataObj.data]]">
+                    <template is="dom-repeat" items="[[dataObj.data]]" as="session">
 
                         <hr />
 
                         <div class="g-row">
-                            <div class="g-2 g-auto-middle">[[item.username]]</div>
-                            <div class="g-2 g-auto-middle">[[_getName(item)]]</div>
-                            <div class="g-3 g-auto-middle">[[arrayToString(item.roles)]]</div>
-                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.loginTime)]]</div>
-                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastAccess)]]</div>
+                            <div class="g-2 g-auto-middle">[[session.username]]</div>
+                            <div class="g-2 g-auto-middle">[[_getName(session)]]</div>
+                            <div class="g-2 g-auto-middle">[[arrayToString(session.roles)]]</div>
+                            <div class="g-1 g-auto-middle">[[session.source]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(session.loginTime)]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(session.lastAccess)]]</div>
                             <div class="g-1 g-auto-middle">
                                 <paper-icon-button icon="delete"
                                                    title="Remove"
@@ -233,7 +235,7 @@
             },
 
             removeSession: function (evt) {
-                var sessionId = evt.model.item.sessionId;
+                var sessionId = evt.model.session.sessionId;
 
                 this.dlgTitle = 'Remove session failed';
                 this._handleAjaxResponse = function (data) {
