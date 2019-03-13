@@ -263,9 +263,6 @@
                 users: {
                     type: Array
                 },
-                passwordEncoding: {
-                    type: String
-                },
                 user: {
                     type: Object
                 },
@@ -374,8 +371,7 @@
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
                 this.$.ajax.method = 'PUT';
                 this.$.ajax.body = {
-                    password: btoa(this.password0),
-                    encoding: this.passwordEncoding
+                    password: btoa(unescape(encodeURIComponent(this.password0)))
                 };
                 this.$.ajax.generateRequest();
             },
