@@ -114,8 +114,7 @@
             </div>
 
             <div class="g-row">
-                <div class="g-3">
-                </div>
+                <div class="g-3"></div>
                 <div class="g-6">
                     <div class="g-m-2 g-center">
                         <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
@@ -210,7 +209,7 @@
             </div>
 
             <div class="g-row g-m-0">
-                <div class="g-12 g-pr-4 g-pl-4"style="max-height: 150px; overflow:auto;">
+                <div class="g-12 g-pr-4 g-pl-4" style="max-height: 150px; overflow:auto;">
                     Properties:
                     <template is="dom-repeat" items="[[user.properties]]" as="property">
                         <div class="g-row">
@@ -263,6 +262,9 @@
                 },
                 users: {
                     type: Array
+                },
+                passwordEncoding: {
+                    type: String
                 },
                 user: {
                     type: Object
@@ -371,7 +373,10 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
                 this.$.ajax.method = 'PUT';
-                this.$.ajax.body = {password: btoa(this.password0)};
+                this.$.ajax.body = {
+                    password: btoa(this.password0),
+                    encoding: this.passwordEncoding
+                };
                 this.$.ajax.generateRequest();
             },
 
