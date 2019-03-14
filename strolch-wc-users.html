@@ -270,6 +270,9 @@
                     type: Array,
                     value: []
                 },
+                passwordEncoding: {
+                    type: String
+                },
                 searchTerm: {
                     type: String,
                     observer: 'searchTermChanged'
@@ -371,7 +374,8 @@
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
                 this.$.ajax.method = 'PUT';
                 this.$.ajax.body = {
-                    password: btoa(unescape(encodeURIComponent(this.password0)))
+                    password: btoa(unescape(encodeURIComponent(this.password0))),
+                    encoding: this.passwordEncoding
                 };
                 this.$.ajax.generateRequest();
             },
