@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.16.5",
+  "version": "0.17.0",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",

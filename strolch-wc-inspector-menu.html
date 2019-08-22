@@ -1,0 +1,133 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../paper-styles/color.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<dom-module id="strolch-wc-inspector-menu">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-styles">
+
+            :host {
+                display: block;
+                padding-left: 16px;
+            }
+
+            iron-icon {
+                margin-right: 8px;
+            }
+
+            paper-dropdown-menu.system {
+                --paper-input-container-underline: {
+                    display: none;
+                };
+            }
+
+            paper-item {
+                cursor: pointer;
+            }
+
+            paper-item:hover {
+                background-color: var(--paper-indigo-100);
+            }
+
+            paper-item:focus:before,
+            paper-item:focus:after {
+                background: unset;
+            }
+
+        </style>
+
+        <paper-dropdown-menu class="system" label="System" no-label-float>
+            <paper-listbox id="menu" class="dropdown-content" selected="[[page]]">
+                <paper-item id="operations-log" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="list"></iron-icon>
+                    Operations Log
+                </paper-item>
+                <paper-item id="jobs" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="assignment"></iron-icon>
+                    Jobs
+                </paper-item>
+                <paper-item id="sessions" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="record-voice-over"></iron-icon>
+                    Sessions
+                </paper-item>
+                <paper-item id="users" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="perm-identity"></iron-icon>
+                    Users
+                </paper-item>
+                <paper-item id="roles" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="folder-shared"></iron-icon>
+                    </i> Roles
+                </paper-item>
+                <paper-item id="control" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="settings"></iron-icon>
+                    </i> Control
+                </paper-item>
+                <paper-item id="inspector" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="explore"></iron-icon>
+                    </i> Inspector
+                </paper-item>
+            </paper-listbox>
+        </paper-dropdown-menu>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-inspector-menu',
+
+            behaviors: [],
+
+            properties: {
+                page: {
+                    type: String,
+                    value: ""
+                },
+                selectedPage: {
+                    type: String,
+                    observer: "observeSelectedPageChange"
+                }
+            },
+
+            observeSelectedPageChange: function (newValue) {
+                switch (newValue) {
+                    case "operations-log":
+                    case "jobs":
+                    case "sessions":
+                    case "users":
+                    case "roles":
+                    case "control":
+                    case "inspector":
+                        this.page = newValue;
+                        this.style.backgroundColor = "#e8eaf6";
+                        break;
+                    default:
+                        this.page = "";
+                        this.style.backgroundColor = "inherit";
+                        this.$.menu.select(null);
+                }
+            },
+
+            ready: function () {
+                //
+            },
+
+            onMenuTap: function (event) {
+                this.style.backgroundColor = "#e8eaf6";
+                this.fire('menu-tap', {target: event.detail.sourceEvent.target});
+            }
+        });
+
+    </script>
+
+</dom-module>
