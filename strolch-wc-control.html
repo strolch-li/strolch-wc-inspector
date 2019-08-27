@@ -38,6 +38,10 @@
                 padding: 16px;
             }
 
+            paper-button {
+                background-color: white;
+            }
+
             .label {
                 font-weight: bolder;
                 width: 100px;
@@ -111,12 +115,39 @@
 
             <div class="g-pull-right action-btns">
                 <paper-input no-label-float label="Activity/<Type>/<ID>" value="{{newLocator}}"></paper-input>
-                <paper-button raised on-tap="onAddActivity">Add</paper-button>
+                <paper-button raised on-tap="onAddActivity" title="Adds the given activitiy to the execution handler">
+                    Add
+                </paper-button>
 
-                <paper-button raised on-tap="onTrigger">Trigger</paper-button>
-                <paper-button raised on-tap="onRemoveAll">Remove All</paper-button>
-                <paper-button raised on-tap="onReload">Reload</paper-button>
-                <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+                <paper-button raised on-tap="onTrigger" title="Triggers the execution handler to execute actions">
+                    Trigger
+                </paper-button>
+                <paper-button raised on-tap="onRemoveAll" title="Removes all activities from the execution handler">
+                    Remove All
+                </paper-button>
+                <paper-button raised
+                              on-tap="onReload"
+                              title="Adds all activities in execution to the execution handler">Reload
+                </paper-button>
+
+
+                <template is="dom-if" if="[[isRunning(state)]]">
+                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New</paper-button>
+                    <paper-button raised on-tap="onPause" title="Pauses the execution handler so no actions are executed">Pause</paper-button>
+                </template>
+                <template is="dom-if" if="[[isHaltNew(state)]]">
+                    <paper-button raised on-tap="onPause" title="Pauses the execution handler so no actions are executed">Pause</paper-button>
+                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run</paper-button>
+                </template>
+                <template is="dom-if" if="[[isPaused(state)]]">
+                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New</paper-button>
+                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run</paper-button>
+                </template>
+
+                <paper-icon-button icon="refresh"
+                                   title="Refresh"
+                                   on-tap="reload"
+                                   title="Refresh the view"></paper-icon-button>
             </div>
 
         </div>
@@ -277,6 +308,10 @@
                 funcObj: {
                     type: Object,
                     value: null
+                },
+                state: {
+                    type: String,
+                    value: ""
                 }
             },
 
@@ -320,6 +355,16 @@
                 return item != null && (item.objectType == 'Action' || this.isRootElement(item));
             },
 
+            isRunning: function (state) {
+                return state === 'Running';
+            },
+            isHaltNew: function (state) {
+                return state === 'HaltNew';
+            },
+            isPaused: function (state) {
+                return state === 'Paused';
+            },
+
             /* Observers */
             observers: [],
 
@@ -334,6 +379,10 @@
                 this.modelAsText = JSON.stringify(this.selectedItem, null, 2);
                 this.$.modelDlg.open();
             },
+
+            /*
+             * Activity actions
+             */
 
             onToExecution: function (e) {
                 if (this.selectedItem != null)
@@ -356,7 +405,7 @@
                     this._setState('Executed');
             },
             _setState: function (state) {
-                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/activity/state';
                 this.$.ajaxSetState.method = 'PUT';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
@@ -366,7 +415,7 @@
                 this.$.ajaxSetState.generateRequest();
             },
             onRemove: function (e) {
-                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/activity/state';
                 this.$.ajaxSetState.method = 'DELETE';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
@@ -374,8 +423,12 @@
                 };
                 this.$.ajaxSetState.generateRequest();
             },
+
+            /**
+             * Execution Handler
+             */
             onTrigger: function (e) {
-                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/executionHandler/state';
                 this.$.ajaxSetState.method = 'PUT';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
@@ -383,8 +436,35 @@
                 };
                 this.$.ajaxSetState.generateRequest();
             },
+            onHaltNew: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/executionHandler/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    state: 'HaltNew'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+            onRun: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/executionHandler/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    state: 'Running'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
+            onPause: function (e) {
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/executionHandler/state';
+                this.$.ajaxSetState.method = 'PUT';
+                this.$.ajaxSetState.params = {
+                    realm: this.selectedRealm,
+                    state: 'Paused'
+                };
+                this.$.ajaxSetState.generateRequest();
+            },
             onReload: function (e) {
-                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/executionHandler/state';
                 this.$.ajaxSetState.method = 'PUT';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
@@ -463,6 +543,7 @@
             },
 
             onGetActivitiesResponse: function (e) {
+                this.state = e.detail.response.state;
                 var elements = e.detail.response.data;
                 var elementToSelect = null;
 
