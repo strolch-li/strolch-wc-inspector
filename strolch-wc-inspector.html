@@ -255,7 +255,7 @@
 
         Polymer({
 
-            is: 'strolch-wc-inspector',
+            is: "strolch-wc-inspector",
 
             behaviors: [
                 StrolchInspectorBehavior
@@ -273,25 +273,25 @@
                     value: function () {
                         return null;
                     },
-                    observer: 'selectedRealmChanged'
+                    observer: "selectedRealmChanged"
                 },
 
                 resourcesSummary: {
                     type: String,
                     value: function () {
-                        return 'Resources';
+                        return "Resources";
                     }
                 },
                 ordersSummary: {
                     type: String,
                     value: function () {
-                        return 'Orders';
+                        return "Orders";
                     }
                 },
                 activitiesSummary: {
                     type: String,
                     value: function () {
-                        return 'Activities';
+                        return "Activities";
                     }
                 },
 
@@ -300,7 +300,7 @@
                     value: function () {
                         return null;
                     },
-                    observer: 'selectedObjectTypeChanged'
+                    observer: "selectedObjectTypeChanged"
                 },
 
                 resources: {
@@ -323,15 +323,15 @@
                 },
                 uploadType: {
                     type: String,
-                    value: 'text'
+                    value: "text"
                 },
                 uploadEncoding: {
                     type: String,
-                    value: 'utf-8'
+                    value: "utf-8"
                 },
                 modelAsText: {
                     type: String,
-                    value: ''
+                    value: ""
                 },
                 propagateShowDialog: {
                     type: Boolean,
@@ -443,12 +443,12 @@
             },
 
             onUploadTapped: function (event) {
-                this.modelAsText = '';
+                this.modelAsText = "<StrolchModel>\n\n\n</StrolchModel>";
                 this.$.uploadFile.files = [];
                 this.$.uploadDlg.open();
             },
             onCancelUploadTap: function (event) {
-                this.modelAsText = '';
+                this.modelAsText = "<StrolchModel>\n\n\n</StrolchModel>";
                 this.$.uploadDlg.close();
             },
             onUploadTextTap: function (event) {
@@ -459,7 +459,7 @@
 
                 this.dlgTitle = 'Import failed';
                 this._handleAjaxResponse = function (data) {
-                    this.modelAsText = '';
+                    this.modelAsText = "<StrolchModel>\n\n\n</StrolchModel>";
                     this.$.uploadDlg.close();
 
                     this.dlgTitle = 'Import done';
