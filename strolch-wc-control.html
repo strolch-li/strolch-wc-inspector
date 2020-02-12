@@ -9,8 +9,8 @@
 <link rel="import" href="../paper-ripple/paper-ripple.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
-
 <link rel="import" href="../strolch-wc-tree/strolch-wc-tree.html">
+<link rel="import" href="../strolch-wc-ws-observer/strolch-wc-ws-observer.html">
 
 <dom-module id="strolch-wc-control">
     <template>
@@ -99,6 +99,8 @@
                    on-response="onPutActivitiesResponse"
                    on-error="onAjaxError"></iron-ajax>
 
+        <strolch-wc-ws-observer id="observerHandler" ws-path="[[baseWsPath]]/strolch/observer"></strolch-wc-ws-observer>
+
         <!-- Content -->
 
         <div class="toolbar">
@@ -114,7 +116,7 @@
             </paper-dropdown-menu>
 
             <div class="g-pull-right action-btns">
-                <paper-input no-label-float label="Activity/<Type>/<ID>" value="{{newLocator}}"></paper-input>
+                <paper-input no-label-float label="<Type>/<ID>" value="{{newLocator}}"></paper-input>
                 <paper-button raised on-tap="onAddActivity" title="Adds the given activitiy to the execution handler">
                     Add
                 </paper-button>
@@ -132,16 +134,26 @@
 
 
                 <template is="dom-if" if="[[isRunning(state)]]">
-                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New</paper-button>
-                    <paper-button raised on-tap="onPause" title="Pauses the execution handler so no actions are executed">Pause</paper-button>
+                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New
+                    </paper-button>
+                    <paper-button raised
+                                  on-tap="onPause"
+                                  title="Pauses the execution handler so no actions are executed">Pause
+                    </paper-button>
                 </template>
                 <template is="dom-if" if="[[isHaltNew(state)]]">
-                    <paper-button raised on-tap="onPause" title="Pauses the execution handler so no actions are executed">Pause</paper-button>
-                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run</paper-button>
+                    <paper-button raised
+                                  on-tap="onPause"
+                                  title="Pauses the execution handler so no actions are executed">Pause
+                    </paper-button>
+                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run
+                    </paper-button>
                 </template>
                 <template is="dom-if" if="[[isPaused(state)]]">
-                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New</paper-button>
-                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run</paper-button>
+                    <paper-button raised on-tap="onHaltNew" title="Halts the execution of new activities">Halt New
+                    </paper-button>
+                    <paper-button raised on-tap="onRun" title="Set the execution handler to normal execution">Run
+                    </paper-button>
                 </template>
 
                 <paper-icon-button icon="refresh"
@@ -312,7 +324,11 @@
                 state: {
                     type: String,
                     value: ""
-                }
+                },
+                registeredForUpdates: {
+                    type: Boolean,
+                    value: false
+                },
             },
 
             /* Computations */
@@ -419,7 +435,8 @@
                 this.$.ajaxSetState.method = 'DELETE';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
-                    locator: this.selectedItem.locator
+                    type: this.selectedItem.type,
+                    id: this.selectedItem.id
                 };
                 this.$.ajaxSetState.generateRequest();
             },
@@ -483,11 +500,22 @@
                     return;
                 }
 
-                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/state';
+                var locatorParts = this.newLocator.split("/");
+                if (locatorParts.length !== 2) {
+                    this.fire('strolch-show-dialog', {
+                        title: 'Error',
+                        text: 'Please enter a valid locator: <Activity>/<type>/<id>'
+                    });
+
+                    return;
+                }
+
+                this.$.ajaxSetState.url = this.basePath + 'rest/strolch/control/activity/state';
                 this.$.ajaxSetState.method = 'POST';
                 this.$.ajaxSetState.params = {
                     realm: this.selectedRealm,
-                    locator: this.newLocator,
+                    type: locatorParts[0],
+                    id: locatorParts[1],
                     state: 'Execution'
                 };
                 this.$.ajaxSetState.generateRequest();
@@ -545,41 +573,26 @@
             onGetActivitiesResponse: function (e) {
                 this.state = e.detail.response.state;
                 var elements = e.detail.response.data;
+                this._updateSelectedItem(elements);
+                this.elements = elements;
+
+                //var that = this;
+                // if (this.$$('.toolbar').offsetParent != null) {
+                //     this.reloadTimeout = setTimeout(function (e) {
+                //         that.reloadControllers();
+                //     }, 3000);
+                // }
+            },
+            _updateSelectedItem: function (elements) {
+                if (this.selectedItem == null)
+                    return;
+
                 var elementToSelect = null;
-
-                if (this.selectedItem != null) {
-                    for (var i = 0; i < elements.length; i++) {
-                        var rootElement = elements[i];
-                        if (this.selectedItem.locator.startsWith(rootElement.locator)) {
-
-                            var parts = this.selectedItem.locator.split('/');
-                            if (parts.length == 3) {
-                                elementToSelect = rootElement;
-                                break;
-                            }
-
-                            var depth = 3;
-                            var element = rootElement;
-                            while (depth < parts.length && element.elements != null && element.elements.length > 0) {
-
-                                for (var j = 0; j < element.elements.length; j++) {
-                                    if (element.elements[j].id == parts[depth]) {
-                                        element = element.elements[j];
-                                        depth++;
-                                        break;
-                                    }
-                                }
-
-                                if (element.locator == this.selectedItem.locator) {
-                                    elementToSelect = element;
-                                    break;
-                                }
-                            }
-
-                            if (elementToSelect != null) {
-                                break;
-                            }
-                        }
+                for (var i = 0; i < elements.length; i++) {
+                    var rootElement = elements[i];
+                    if (this.selectedItem.locator.startsWith(rootElement.locator)) {
+                        elementToSelect = this._getSubElementToSelect(rootElement);
+                        break;
                     }
                 }
 
@@ -588,18 +601,36 @@
                 } else {
                     this.selectedItem = null;
                 }
-                this.elements = elements;
-
-                var that = this;
-                if (this.$$('.toolbar').offsetParent != null) {
-                    this.reloadTimeout = setTimeout(function (e) {
-                        that.reloadControllers();
-                    }, 3000);
-                }
             },
+            _getSubElementToSelect: function (rootElement) {
+                var parts = this.selectedItem.locator.split('/');
+                if (parts.length === 3) {
+                    return rootElement;
+                }
+
+                var depth = 3;
+                var element = rootElement;
+                while (depth < parts.length && element.elements != null && element.elements.length > 0) {
+
+                    for (var j = 0; j < element.elements.length; j++) {
+                        if (element.elements[j].id === parts[depth]) {
+                            element = element.elements[j];
+                            depth++;
+                            break;
+                        }
+                    }
+
+                    if (element.locator === this.selectedItem.locator) {
+                        return element;
+                    }
+                }
+
+                return null;
+            },
+
             onPutActivitiesResponse: function (e) {
                 this.newLocator = null;
-                this.reloadControllers();
+                //this.reloadControllers();
             },
 
             /* Listeners */
@@ -640,6 +671,86 @@
             },
             reload: function () {
                 this.reloadRealms();
+
+                if (!this.registeredForUpdates) {
+                    this.$.observerHandler.register("Controller", "*", "strolch-wc-control", {
+                        flat: false,
+                        withLocator: true,
+                        withVersion: true
+                    }, this.handleUpdate.bind(this));
+                    this.registeredForUpdates = true;
+                }
+            },
+
+            handleUpdate: function (notifyType, objectType, type, elements) {
+                console.log("Received " + notifyType + " updates for " + elements.length + " " + objectType + " " + type + " elements.");
+                switch (notifyType) {
+
+                    case "ObserverAdd" : {
+                        if (this.elements == null || this.elements.length === 0) {
+                            this.elements = elements;
+                        } else {
+                            for (var i = 0; i < elements.length; i++) {
+                                this.push("elements", elements[i]);
+                            }
+                        }
+
+                        break;
+                    }
+
+                    case "ObserverUpdate" : {
+                        for (var i = 0; i < elements.length; i++) {
+                            var element = elements[i];
+
+                            for (var j = 0; j < this.elements.length; j++) {
+                                if (this.elements[j].id === element.id) {
+
+                                    console.log("Updating activity: " + element.locator);
+                                    this.set('elements.' + j, element);
+
+                                    if (this.selectedItem != null && this.selectedItem.locator.startsWith(element.locator)) {
+                                        console.log("SelectedItem update: " + this.selectedItem.locator);
+                                        this.selectedItem = this._getSubElementToSelect(element);
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
+                    }
+
+                    case "ObserverRemove" : {
+                        for (var i = 0; i < elements.length; i++) {
+                            var element = elements[i];
+
+                            for (var j = 0; j < this.elements.length; j++) {
+                                if (this.elements[j].id === element.id) {
+
+                                    console.log("Remove activity: " + element.locator);
+                                    this.splice('elements', j, 1);
+
+                                    if (this.selectedItem != null && this.selectedItem.locator.startsWith(element.locator)) {
+                                        console.log("SelectedItem remove: " + this.selectedItem.locator);
+                                        this.selectedItem = null;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (this.elements.length === 0) {
+                            this.elements = [];
+                        }
+
+                        break;
+                    }
+
+                    default:
+                        console.error("Received unhandled update for " + elements.length + " " + objectType + " " + type + " elements.");
+                }
             }
         });
     </script>
