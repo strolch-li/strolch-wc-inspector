@@ -226,6 +226,18 @@
                                     <td>[[selectedItem.timeOrdering]]</td>
                                 </tr>
                             </template>
+                            <template is="dom-if" if="[[isRootElement(selectedItem)]]">
+                                <tr>
+                                    <td class="label">Order:</td>
+                                    <td>
+                                        Order/[[selectedItem.parameterBags.relations.parameters.order.uom]]/[[selectedItem.parameterBags.relations.parameters.order.value]]
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Username:</td>
+                                    <td>[[getUsername(selectedItem)]]</td>
+                                </tr>
+                            </template>
 
                             <template is="dom-if" if="[[isAction(selectedItem)]]">
                                 <tr>
@@ -236,7 +248,7 @@
 
                             <tr>
                                 <td class="label">Locator:</td>
-                                <td>[[selectedItem.locator]]</td>
+                                <td style="overflow: auto;">[[selectedItem.locator]]</td>
                             </tr>
 
                         </table>
@@ -366,6 +378,19 @@
             },
             isRootElement: function (item) {
                 return item != null && this.elements.indexOf(item) >= 0;
+            },
+            getUsername: function (item) {
+                if (item == null || item.parameterBags == null || item.parameterBags.parameters == null || item.parameterBags.parameters.parameters == null)
+                    return "unknown";
+                var params = item.parameterBags.parameters.parameters;
+                if (params.username)
+                    return item.parameterBags.parameters.parameters.username.value;
+                else if (params.userName)
+                    return item.parameterBags.parameters.parameters.userName.value;
+                else if (item.version)
+                    return item.version.createdBy + " / " + item.version.updatedBy;
+                else
+                    return "unknown";
             },
             canExecute: function (item) {
                 return item != null && (item.objectType == 'Action' || this.isRootElement(item));
