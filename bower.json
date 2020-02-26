@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
@@ -20,8 +20,8 @@
     "strolchjs": "4treesCH/strolchjs#^0.3.0",
     "strolch-wc-styles": "4treesCH/strolch-wc-styles#^0.3.0",
     "strolch-wc-debounced-input": "4treesCH/strolch-wc-debounced-input#^0.1.0",
-    "strolch-wc-tree": "4treesCH/strolch-wc-tree#^0.1.5",
-    "strolch-wc-ws-observer": "4treesCH/strolch-wc-ws-observer#^0.2.0",
+    "strolch-wc-tree": "4treesCH/strolch-wc-tree#^0.1.6",
+    "strolch-wc-ws-observer": "4treesCH/strolch-wc-ws-observer#^0.2.1",
 
     "polymer": "Polymer/polymer#^1.11.3",
 
