@@ -377,7 +377,9 @@
                 return item != null && item.objectType == 'Action';
             },
             isRootElement: function (item) {
-                return item != null && this.elements.indexOf(item) >= 0;
+                return item != null && this.elements.find(function (e) {
+                    return e.id === item.id
+                }) != null;
             },
             getUsername: function (item) {
                 if (item == null || item.parameterBags == null || item.parameterBags.parameters == null || item.parameterBags.parameters.parameters == null)
@@ -600,13 +602,6 @@
                 var elements = e.detail.response.data;
                 this._updateSelectedItem(elements);
                 this.elements = elements;
-
-                //var that = this;
-                // if (this.$$('.toolbar').offsetParent != null) {
-                //     this.reloadTimeout = setTimeout(function (e) {
-                //         that.reloadControllers();
-                //     }, 3000);
-                // }
             },
             _updateSelectedItem: function (elements) {
                 if (this.selectedItem == null)
