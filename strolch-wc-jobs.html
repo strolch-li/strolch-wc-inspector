@@ -76,7 +76,7 @@
                         <div class="g-1"><b>Mode</b></div>
                         <div class="g-1"><b>Running</b></div>
                         <div class="g-1"><b>Executions</b></div>
-                        <div class="g-1"><b>Initial / Recurring Delay</b></div>
+                        <div class="g-1"><b>Delay / CRON</b></div>
                         <div class="g-1"><b>Last / Total Duration</b></div>
                         <div class="g-2"><b>Last / Next Execution</b></div>
                         <div class="g-2"></div>
@@ -92,8 +92,15 @@
                             <div class="g-1 g-auto-middle">[[item.mode]]</div>
                             <div class="g-1 g-auto-middle">[[item.running]]</div>
                             <div class="g-1 g-auto-middle">[[item.nrOfExecutions]]</div>
-                            <div class="g-1 g-auto-middle">[[item.initialDelay]] [[item.initialDelayTimeUnit]] <br />
-                                                           [[item.delay]] [[item.delayTimeUnit]]
+                            <div class="g-1 g-auto-middle">
+                                <template is="dom-if" if="[[isSet(item.initialDelayTimeUnit)]]">
+                                    [[item.initialDelay]] [[item.initialDelayTimeUnit]] <br /> [[item.delay]]
+                                    [[item.delayTimeUnit]]
+                                </template>
+                                <template is="dom-if" if="[[isSet(item.cron)]]">
+                                    [[item.cron]]
+                                </template>
+                                <template is="dom-if" if="[[!isSet(item.cron)]]">-</template>
                             </div>
                             <div class="g-1 g-auto-middle">[[item.lastDuration]] <br /> [[item.totalDuration]]</div>
                             <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastExecution)]] <br />
@@ -178,6 +185,9 @@
                 }
             },
 
+            isSet: function (str) {
+                return str !== "-";
+            },
             toLocalDateTime: function (val) {
                 return Strolch.toLocalDateTime(val);
             },
