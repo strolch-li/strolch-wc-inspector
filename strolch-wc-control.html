@@ -73,7 +73,7 @@
                 display: flex;
             }
 
-            .tree-view {
+            .tree-view, .tree-item {
                 overflow: auto;
                 height: calc(100vh - 115px - var(--header-height));
             }
@@ -174,7 +174,7 @@
                     <strolch-wc-tree title-html func-obj="{{funcObj}}" elements="[[elements]]" />
                 </paper-card>
 
-                <paper-card class="item">
+                <paper-card class="tree-item">
 
                     <template is="dom-if" if="[[!selectedItem]]">
                         <p class="g-center"><i>Select an item in the tree view</i></p>
