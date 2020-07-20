@@ -56,6 +56,9 @@
             });
         },
 
+        onRequestError: function (e) {
+            this.onAjaxError(e);
+        },
         onAjaxError: function (data) {
             var dlgText;
             if (data.detail.request.response) {

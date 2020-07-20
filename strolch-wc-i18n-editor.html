@@ -1,0 +1,185 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+<link rel="import" href="../strolch-wc-paging/strolch-wc-paging.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+<link rel="import" href="../strolch-wc-tree/strolch-wc-tree.html">
+<link rel="import" href="../strolch-wc-ws-observer/strolch-wc-ws-observer.html">
+
+<dom-module id="strolch-wc-i18n-editor">
+    <template>
+
+        <style is="custom-style" include="strolch-wc-styles">
+            :host {
+                display: block;
+                min-height: 100%;
+                padding: 10px 20px;
+            }
+
+            .actions {
+                padding: 10px;
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            .cell-key {
+                flex-basis: 250px;
+                flex-grow: 0;
+            }
+
+            .header {
+                font-weight: bold;
+            }
+
+            paper-input {
+                width: 100%;
+                display: block;
+            }
+
+            paper-button {
+                background: white;
+            }
+
+        </style>
+
+        <div class="actions">
+            <paper-button on-tap="showRaw" raised>Raw</paper-button>
+            <paper-button on-tap="save" raised>Save</paper-button>
+            <paper-icon-button icon="icons:refresh" on-tap="reload"></paper-icon-button>
+        </div>
+
+        <div class="g-flex-table-row header">
+            <div class="g-flex-table-cell cell-key">Key</div>
+            <template is="dom-repeat" items="[[languages]]" as="language">
+                <div class="g-flex-table-cell">[[language]]</div>
+            </template>
+        </div>
+
+        <template is="dom-repeat" items="[[i18nRows]]" as="i18nRow">
+            <div class="g-flex-table-row">
+                <div class="g-flex-table-cell cell-key">[[i18nRow.key]]</div>
+                <template is="dom-repeat" items="[[i18nRow.i18nValues]]" as="i18nValue">
+                    <div class="g-flex-table-cell">
+                        <paper-input value="{{i18nValue}}" no-label-float></paper-input>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <iron-ajax id="ajaxGetI18n"
+                   url="[[baseRestPath]]/i18n/data"
+                   content-type="application/json"
+                   handle-as="json"
+                   method="GET"
+                   on-response="onGetI18nDataResponse"
+                   on-error="onRequestError"></iron-ajax>
+
+        <iron-ajax id="ajax"
+                   url="[[baseRestPath]]/i18n/data"
+                   content-type="application/json"
+                   on-response="reload"
+                   on-error="onRequestError"></iron-ajax>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'strolch-wc-i18n-editor',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                languages: {
+                    type: Array
+                },
+                keys: {
+                    type: Array
+                },
+                i18nRows: {
+                    type: Array
+                }
+            },
+
+            observers: [],
+
+            reload: function () {
+                this.$.ajaxGetI18n.generateRequest();
+            },
+
+            onGetI18nDataResponse: function (e) {
+                var i18nData = e.detail.response.data;
+
+                var languages = Object.keys(i18nData);
+                var keys = Object.keys(i18nData[languages[0]]);
+                var i18nRows = [];
+                for (var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
+                    var row = {
+                        key: key,
+                        i18nValues: []
+                    };
+                    i18nRows.push(row);
+
+                    for (var j = 0; j < languages.length; j++) {
+                        var lang = languages[j];
+
+                        var langValues = i18nData[lang];
+                        if (langValues == null) {
+                            row.i18nValues.push("");
+                            continue;
+                        }
+
+                        var langValue = langValues[key];
+                        if (langValue == null) {
+                            row.i18nValues.push("");
+                        } else {
+                            row.i18nValues.push(langValue);
+                        }
+                    }
+                }
+
+                this.languages = languages;
+                this.keys = keys;
+                this.i18nRows = i18nRows;
+            },
+
+            save: function (e) {
+
+                var data = {};
+                for (var langIndex = 0; langIndex < this.languages.length; langIndex++) {
+                    var lang = this.languages[langIndex];
+
+                    data[lang] = {};
+                    var langObj = data[lang];
+
+                    for (var i = 0; i < this.i18nRows.length; i++) {
+                        var row = this.i18nRows[i];
+                        var key = row.key;
+                        var value = row.i18nValues[langIndex];
+                        if (value != null && value.length > 0)
+                            langObj[key] = value;
+                    }
+                }
+
+                if (!confirm('Should the I18n Data really be deleted?')) {
+                    return;
+                }
+
+                this.$.ajax.url = this.baseRestPath + "/i18n/data";
+                this.$.ajax.method = "PUT";
+                this.$.ajax.body = data;
+                this.$.ajax.generateRequest();
+            },
+
+            showRaw: function (e) {
+                window.open(this.baseRestPath + "/i18n/data", '_blank');
+            }
+        });
+    </script>
+</dom-module>
