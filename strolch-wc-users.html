@@ -198,6 +198,7 @@
             <paper-input label="Password" value="{{password0}}" type="password"></paper-input>
             <paper-input label="Repeat" value="{{password1}}" type="password"></paper-input>
             <div class="buttons">
+                <paper-button on-tap="_requireChange">Require Change</paper-button>
                 <paper-button on-tap="_clearPassword">Clear</paper-button>
                 <paper-button dialog-confirm autofocus>Close</paper-button>
                 <paper-button on-tap="_setPassword" autofocus>Save</paper-button>
@@ -442,6 +443,22 @@
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
                 this.$.ajax.method = 'DELETE';
                 this.$.ajax.body = {};
+                this.$.ajax.generateRequest();
+            },
+
+            _requireChange: function (e) {
+                this.dlgTitle = 'Require Password Change failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+
+                    this.password0 = '';
+                    this.password1 = '';
+                    this.$.pwDlg.close();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password/state';
+                this.$.ajax.method = 'PUT';
+                this.$.ajax.body = {state: "RequirePasswordChange"};
                 this.$.ajax.generateRequest();
             },
 
