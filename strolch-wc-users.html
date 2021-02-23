@@ -27,9 +27,7 @@
 <dom-module id="strolch-wc-users">
 
     <template>
-
         <style is="custom-style" include="strolch-wc-styles">
-
             :host {
                 display: block;
                 margin: 0;
@@ -56,6 +54,67 @@
                 --focus-color: #000000;
             }
 
+            .table {
+                min-width: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .table-row {
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: row;
+                margin-top: -1px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            .table-heading {
+                font-weight: bold;
+            }
+
+            .table-heading,
+            .table-cell {
+                display: flex;
+                padding: 0 12px;
+                overflow: hidden;
+                align-items: center;
+                flex-basis: 80px;
+                flex-grow: 1;
+                flex-shrink: 0;
+                justify-content: flex-start;
+                min-height: 48px;
+            }
+
+            .state,
+            .locale {
+                flex-grow: 0;
+            }
+
+            .username {
+                flex-grow: 0;
+                flex-basis: 250px;
+            }
+
+            .actions {
+                flex-grow: 0;
+                flex-basis: 120px;
+            }
+
+            .history {
+                flex-grow: 0;
+                flex-basis: 250px;
+            }
+
+            .data {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .data:nth-child(even) {
+                background: #f7f7f7;
+            }
+
         </style>
 
         <div class="g-row g-pt-4">
@@ -74,43 +133,36 @@
 
         <paper-material elevation="1" class="g-ml-3 g-mr-3">
 
-            <div class="g-row g-pt-4">
-
-                <div class="g-12">
-
-                    <div class="g-row">
-                        <div class="g-2">Username</div>
-                        <div class="g-3">Name</div>
-                        <div class="g-1">State</div>
-                        <div class="g-1">Locale</div>
-                        <div class="g-3">Roles</div>
-                        <div class="g-2"></div>
-                    </div>
-
-                    <template is="dom-repeat" items="[[dataObj.data]]">
-
-                        <hr />
-
-                        <div class="g-row">
-                            <div class="g-2">[[item.username]]</div>
-                            <div class="g-3">[[_getName(item)]]</div>
-                            <div class="g-1">[[item.userState]]</div>
-                            <div class="g-1">[[item.locale]]</div>
-                            <div class="g-3">[[arrayToString(item.roles)]]</div>
-                            <div class="g-2">
-                                <paper-icon-button icon="create" title="Edit" on-tap="_editUser"></paper-icon-button>
-                                <paper-icon-button icon="lock-outline"
-                                                   title="Set password"
-                                                   on-tap="_openPwDlg"></paper-icon-button>
-                                <paper-icon-button icon="delete"
-                                                   title="Remove"
-                                                   on-tap="_removeUser"></paper-icon-button>
-                            </div>
-                        </div>
-
-                    </template>
-
+            <div class="table">
+                <div class="table-row">
+                    <div class="table-heading username">Username / Name</div>
+                    <div class="table-heading state">State</div>
+                    <div class="table-heading locale">Locale</div>
+                    <div class="table-heading roles">Roles</div>
+                    <div class="table-heading history">History</div>
+                    <div class="table-heading actions"></div>
                 </div>
+
+                <template is="dom-repeat" items="[[dataObj.data]]">
+                    <div class="table-row data">
+                        <div class="table-cell username">[[item.username]]<br /><br />[[_getName(item)]]</div>
+                        <div class="table-cell state">[[item.userState]]</div>
+                        <div class="table-cell locale">[[item.locale]]</div>
+                        <div class="table-cell roles">[[arrayToString(item.roles)]]</div>
+                        <div class="table-cell history">
+                            FirstLogin: [[toLocalDateTime(item.history.firstLogin)]]<br /> LastLogin:
+                            [[toLocalDateTime(item.history.lastLogin)]]<br /> PasswordChange:
+                            [[toLocalDateTime(item.history.lastPasswordChange)]]
+                        </div>
+                        <div class="table-cell actions">
+                            <paper-icon-button icon="create" title="Edit" on-tap="_editUser"></paper-icon-button>
+                            <paper-icon-button icon="lock-outline"
+                                               title="Set password"
+                                               on-tap="_openPwDlg"></paper-icon-button>
+                            <paper-icon-button icon="delete" title="Remove" on-tap="_removeUser"></paper-icon-button>
+                        </div>
+                    </div>
+                </template>
             </div>
 
             <div class="g-row">
@@ -146,6 +198,7 @@
             <paper-input label="Password" value="{{password0}}" type="password"></paper-input>
             <paper-input label="Repeat" value="{{password1}}" type="password"></paper-input>
             <div class="buttons">
+                <paper-button on-tap="_clearPassword">Clear</paper-button>
                 <paper-button dialog-confirm autofocus>Close</paper-button>
                 <paper-button on-tap="_setPassword" autofocus>Save</paper-button>
             </div>
@@ -376,6 +429,22 @@
                 this.$.ajax.generateRequest();
             },
 
+            _clearPassword: function (e) {
+                this.dlgTitle = 'Clear password failed';
+                this._handleAjaxResponse = function (data) {
+                    this.reload();
+
+                    this.password0 = '';
+                    this.password1 = '';
+                    this.$.pwDlg.close();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
+                this.$.ajax.method = 'DELETE';
+                this.$.ajax.body = {};
+                this.$.ajax.generateRequest();
+            },
+
             _removeUser: function (e) {
                 var user = e.model.item;
                 if (!confirm('Do you really want to delete user ' + user.username + ': ' + user.firstname + ' ' + user.lastname)) {
@@ -442,7 +511,7 @@
                     return 'User state is not set!';
                 if (this.isEmptyString(user.locale))
                     return 'Locale is not set!';
-                if (this.selectedRoles.length == 0)
+                if (this.selectedRoles.length === 0)
                     return 'No role selected!';
 
                 return '';
@@ -460,7 +529,7 @@
 
                 var i = 0;
                 for (; i < this.user.properties.length; i++) {
-                    if (this.user.properties[i].key == property.key) {
+                    if (this.user.properties[i].key === property.key) {
                         this.user.properties.splice(i, 1);
                         this.notifySplices('user.properties', [
                             {
@@ -503,7 +572,7 @@
                     var role = this.roles[i];
                     for (var j = 0; j < this.user.roles.length; j++) {
                         var r = this.user.roles[j];
-                        if (role.name == r)
+                        if (role.name === r)
                             selectedRoles.push(i);
                     }
                 }

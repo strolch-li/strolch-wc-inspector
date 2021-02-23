@@ -49,6 +49,68 @@
                 --focus-color: #000000;
             }
 
+            .table {
+                min-width: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .table-row {
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: row;
+                margin-top: -1px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            .table-heading {
+                font-weight: bold;
+            }
+
+            .table-heading,
+            .table-cell {
+                display: flex;
+                padding: 0 12px;
+                overflow: hidden;
+                align-items: center;
+                flex-basis: 80px;
+                flex-grow: 1;
+                flex-shrink: 0;
+                justify-content: flex-start;
+                min-height: 48px;
+            }
+
+            .source {
+                flex-grow: 0;
+                flex-basis: 120px;
+            }
+
+            .login-time,
+            .last-access {
+                flex-grow: 0;
+                flex-basis: 160px;
+            }
+
+            .username {
+                flex-grow: 0;
+                flex-basis: 250px;
+            }
+
+            .actions {
+                flex-grow: 0;
+                flex-basis: 120px;
+            }
+
+            .data {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .data:nth-child(even) {
+                background: #f7f7f7;
+            }
+
         </style>
 
         <div class="g-row g-pt-4">
@@ -66,47 +128,33 @@
 
         <paper-material elevation="1" class="g-m-3">
 
-            <div class="g-row g-pt-4">
-
-                <div class="g-12">
-
-                    <div class="g-row">
-                        <div class="g-2"><b>Username</b></div>
-                        <div class="g-2"><b>Name</b></div>
-                        <div class="g-2"><b>Roles</b></div>
-                        <div class="g-1"><b>Source</b></div>
-                        <div class="g-2"><b>Login time</b></div>
-                        <div class="g-2"><b>Last Access</b></div>
-                        <div class="g-1"></div>
-                    </div>
-
-                    <template is="dom-repeat" items="[[dataObj.data]]" as="session">
-
-                        <hr />
-
-                        <div class="g-row">
-                            <div class="g-2 g-auto-middle">[[session.username]]</div>
-                            <div class="g-2 g-auto-middle">[[_getName(session)]]</div>
-                            <div class="g-2 g-auto-middle">[[arrayToString(session.roles)]]</div>
-                            <div class="g-1 g-auto-middle">[[session.source]]</div>
-                            <div class="g-2 g-auto-middle">[[toLocalDateTime(session.loginTime)]]</div>
-                            <div class="g-2 g-auto-middle">[[toLocalDateTime(session.lastAccess)]]</div>
-                            <div class="g-1 g-auto-middle">
-                                <paper-icon-button icon="delete"
-                                                   title="Remove"
-                                                   on-tap="removeSession"></paper-icon-button>
-                            </div>
-                        </div>
-
-                    </template>
-
+            <div class="table">
+                <div class="table-row">
+                    <div class="table-heading username"><b>Username</b></div>
+                    <div class="table-heading roles"><b>Roles</b></div>
+                    <div class="table-heading source"><b>Source</b></div>
+                    <div class="table-heading login-time"><b>Login time</b></div>
+                    <div class="table-heading last-access"><b>Last Access</b></div>
+                    <div class="table-heading actions"></div>
                 </div>
 
+                <template is="dom-repeat" items="[[dataObj.data]]" as="session">
+                    <div class="table-row data">
+                        <div class="table-cell username">[[session.username]] <br><br>[[_getName(session)]]</div>
+                        <div class="table-cell roles">[[arrayToString(session.roles)]]</div>
+                        <div class="table-cell source">[[session.source]]</div>
+                        <div class="table-cell login-time">[[toLocalDateTime(session.loginTime)]]</div>
+                        <div class="table-cell last-access">[[toLocalDateTime(session.lastAccess)]]</div>
+                        <div class="table-cell actions">
+                            <paper-icon-button icon="delete" title="Remove" on-tap="removeSession"></paper-icon-button>
+                        </div>
+                    </div>
+
+                </template>
             </div>
 
             <div class="g-row">
-                <div class="g-3">
-                </div>
+                <div class="g-3"></div>
                 <div class="g-6">
                     <div class="g-m-2 g-center">
                         <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
