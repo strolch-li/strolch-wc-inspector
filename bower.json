@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
@@ -11,17 +11,17 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git@github.com:4treesCH/strolch-wc-inspector.git"
+    "url": "git@github.com:strolch-li/strolch-wc-inspector.git"
   },
-  "license": "https://github.com/4treesCH/strolch-wc-inspector/blob/master/LICENSE",
-  "homepage": "https://github.com/4treesCH/strolch-wc-inspector",
+  "license": "https://github.com/strolch-li/strolch-wc-inspector/blob/master/LICENSE",
+  "homepage": "https://github.com/strolch-li/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
-    "strolchjs": "4treesCH/strolchjs#^0.4.2",
-    "strolch-wc-styles": "4treesCH/strolch-wc-styles#^0.3.0",
-    "strolch-wc-debounced-input": "4treesCH/strolch-wc-debounced-input#^0.1.0",
-    "strolch-wc-tree": "4treesCH/strolch-wc-tree#^0.1.9",
-    "strolch-wc-ws-observer": "4treesCH/strolch-wc-ws-observer#^0.2.5",
+    "strolchjs": "strolch-li/strolchjs#^0.4.3",
+    "strolch-wc-styles": "strolch-li/strolch-wc-styles#^0.3.1",
+    "strolch-wc-debounced-input": "strolch-li/strolch-wc-debounced-input#^0.1.1",
+    "strolch-wc-tree": "strolch-li/strolch-wc-tree#^0.1.10",
+    "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.7",
 
     "polymer": "Polymer/polymer#^1.11.3",
 
