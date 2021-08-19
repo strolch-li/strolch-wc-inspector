@@ -664,7 +664,7 @@
 
             /* Private */
             _getIcon: function (item) {
-                if (item == null || item.state == null || item.state == '') return '';
+                if (item == null || item.state == null || item.state === '') return '';
                 return this.resolveUrl('icons/' + item.state + '.png');
             },
 
@@ -672,21 +672,23 @@
 
             /* Lifecycle */
             ready: function () {
-                var that = this;
                 this.funcObj = {
                     getTitle: function (item) {
                         return item == null ? "" : "<b>" + item.type + "</b>:&#9;&#9;" + item.name;
+                    }.bind(this),
+                    useIcon: function (item) {
+                        return item != null && item.state != null && item.state !== '';
                     },
                     getIcon: function (item) {
-                        if (item == null || item.state == null || item.state == '') return '';
-                        return that.resolveUrl('icons/' + item.state + '.png');
-                    },
+                        if (item == null || item.state == null || item.state === '') return '';
+                        return this.resolveUrl('icons/' + item.state + '.png');
+                    }.bind(this),
                     hasElements: function (item) {
                         return item != null && item.elements && item.elements.length > 0;
-                    },
+                    }.bind(this),
                     getElements: function (item) {
                         return item == null ? [] : (item.elements ? item.elements : []);
-                    }
+                    }.bind(this)
                 };
             },
             reload: function () {
