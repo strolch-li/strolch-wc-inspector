@@ -104,6 +104,14 @@
                 min-height: 300px;
             }
 
+            .textarea {
+                width: auto;
+                overflow: auto;
+                min-height: auto;
+                line-height: 20px;
+                border: none;
+            }
+
         </style>
 
         <div class="g-row">
@@ -180,7 +188,7 @@
 
         <paper-dialog id="dlg" modal>
             <h2>[[dlgTitle]]</h2>
-            <p>[[dlgText]]</p>
+            <textarea class="textarea" readonly rows="7" cols="50">{{dlgText}}</textarea>
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
             </div>
@@ -200,6 +208,22 @@
 
                 <div name="text">
                     <textarea value="{{modelAsText::input}}"></textarea>
+
+                    <h4>Add:</h4>
+                    <div>
+                        <paper-checkbox checked="{{addResources}}">Resources</paper-checkbox>
+                        <paper-checkbox checked="{{addOrders}}">Orders</paper-checkbox>
+                        <paper-checkbox checked="{{addActivities}}">Activities</paper-checkbox>
+                    </div>
+
+                    <h4>Update:</h4>
+                    <div>
+                        <paper-checkbox checked="{{updateResources}}">Resources</paper-checkbox>
+                        <paper-checkbox checked="{{updateOrders}}">Orders</paper-checkbox>
+                        <paper-checkbox checked="{{updateActivities}}">Activities</paper-checkbox>
+                        <paper-checkbox checked="{{failOnUpdate}}">FailOnUpdate</paper-checkbox>
+                    </div>
+
                     <div class="buttons">
                         <paper-button class="g-pull-right" on-tap="onCancelUploadTap" raised>
                             <iron-icon icon="close"></iron-icon>
@@ -224,6 +248,21 @@
                                    on-upload-before="onUploadFileBefore"
                                    on-upload-success="onUploadFileSuccess"
                                    on-upload-request="onUploadFileRequest"></vaadin-upload>
+
+                    <h4>Add:</h4>
+                    <div>
+                        <paper-checkbox checked="{{addResources}}">Resources</paper-checkbox>
+                        <paper-checkbox checked="{{addOrders}}">Orders</paper-checkbox>
+                        <paper-checkbox checked="{{addActivities}}">Activities</paper-checkbox>
+                    </div>
+
+                    <h4>Update:</h4>
+                    <div>
+                        <paper-checkbox checked="{{updateResources}}">Resources</paper-checkbox>
+                        <paper-checkbox checked="{{updateOrders}}">Orders</paper-checkbox>
+                        <paper-checkbox checked="{{updateActivities}}">Activities</paper-checkbox>
+                        <paper-checkbox checked="{{failOnUpdate}}">FailOnUpdate</paper-checkbox>
+                    </div>
 
                     <div class="buttons">
                         <paper-button class="g-pull-right" on-tap="onCancelUploadTap" raised>
@@ -264,62 +303,44 @@
             properties: {
                 realms: {
                     type: Array,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 selectedRealm: {
                     type: Object,
-                    value: function () {
-                        return null;
-                    },
+                    value: null,
                     observer: "selectedRealmChanged"
                 },
 
                 resourcesSummary: {
                     type: String,
-                    value: function () {
-                        return "Resources";
-                    }
+                    value: "Resources"
                 },
                 ordersSummary: {
                     type: String,
-                    value: function () {
-                        return "Orders";
-                    }
+                    value: "Orders"
                 },
                 activitiesSummary: {
                     type: String,
-                    value: function () {
-                        return "Activities";
-                    }
+                    value: "Activities"
                 },
 
                 selectedObjectType: {
                     type: String,
-                    value: function () {
-                        return null;
-                    },
+                    value: null,
                     observer: "selectedObjectTypeChanged"
                 },
 
                 resources: {
                     type: Object,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 orders: {
                     type: Object,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 activities: {
                     type: Object,
-                    value: function () {
-                        return null;
-                    }
+                    value: null
                 },
                 uploadType: {
                     type: String,
@@ -335,9 +356,35 @@
                 },
                 propagateShowDialog: {
                     type: Boolean,
-                    value: function () {
-                        return false
-                    }
+                    value: false
+                },
+                failOnUpdate: {
+                    type: Boolean,
+                    value: false
+                },
+                addResources: {
+                    type: Boolean,
+                    value: true
+                },
+                addOrders: {
+                    type: Boolean,
+                    value: true
+                },
+                addActivities: {
+                    type: Boolean,
+                    value: true
+                },
+                updateResources: {
+                    type: Boolean,
+                    value: true
+                },
+                updateOrders: {
+                    type: Boolean,
+                    value: true
+                },
+                updateActivities: {
+                    type: Boolean,
+                    value: true
                 }
             },
 
@@ -406,7 +453,7 @@
 
                     if (Strolch.isNotEmptyString(realmToSelect)) {
                         for (var i = 0; i < this.realms.length; i++) {
-                            if (this.realms[i].name == realmToSelect) {
+                            if (this.realms[i].name === realmToSelect) {
                                 this.selectedRealm = realmToSelect;
                                 break;
                             }
@@ -452,7 +499,7 @@
                 this.$.uploadDlg.close();
             },
             onUploadTextTap: function (event) {
-                if (!this.modelAsText || this.modelAsText == null || this.modelAsText == '') {
+                if (!this.modelAsText || this.modelAsText.length === 0) {
                     this.showError('Model empty', 'Model can not be empty!');
                     return;
                 }
@@ -474,20 +521,44 @@
                     'Accept': 'application/xml',
                     'Content-Type': 'application/xml'
                 };
+                this.$.ajax.params = this._getImportParams();
                 this.$.ajax.method = 'POST';
                 this.$.ajax.body = this.modelAsText;
                 this.$.ajax.generateRequest();
             },
 
-            onUploadFileBefore: function (evt) {
-                evt.detail.file.uploadTarget = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import';
+            _getImportParams: function () {
+                return {
+                    failOnUpdate: this.failOnUpdate,
+                    addResources: this.addResources,
+                    addOrders: this.addOrders,
+                    addActivities: this.addActivities,
+                    updateResources: this.updateResources,
+                    updateOrders: this.updateOrders,
+                    updateActivities: this.updateActivities,
+                };
             },
+
+            onUploadFileBefore: function (evt) {
+                var pieces = [];
+                var params = this._getImportParams();
+                Object.keys(params).forEach(function (key) {
+                    pieces.push(
+                        this._wwwFormUrlEncodePiece(key) + '=' +
+                        this._wwwFormUrlEncodePiece(params[key]));
+                }, this);
+                evt.detail.file.uploadTarget = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import?' + pieces.join('&');
+            },
+            _wwwFormUrlEncodePiece: function (str) {
+                return str === null ? '' : encodeURIComponent(str.toString().replace(/\r?\n/g, '\r\n')).replace(/%20/g, '+');
+            },
+
             onUploadFileSuccess: function (evt) {
                 this.$.uploadDlg.close();
 
                 this.dlgTitle = 'Import done';
                 this.dlgText = evt.detail.xhr.response;
-                if (this.dlgText.charAt(0) == '{')
+                if (this.dlgText.charAt(0) === '{')
                     this.dlgText = JSON.parse(this.dlgText).msg;
                 this.$.dlg.open();
 
@@ -501,7 +572,7 @@
             onUploadFileError: function (evt) {
                 console.log(evt);
                 var error = evt.detail.xhr.response;
-                if (error.charAt(0) == '{')
+                if (error.charAt(0) === '{')
                     error = JSON.parse(error).msg;
                 this.showError('Upload failed', error);
             },
@@ -564,15 +635,15 @@
                     return;
                 }
 
-                if (this.selectedObjectType == 'Resource' && this.resources != null) {
+                if (this.selectedObjectType === 'Resource' && this.resources != null) {
                     this.$$('#resourcesInspector').show();
                     return;
                 }
-                if (this.selectedObjectType == 'Order' && this.orders != null) {
+                if (this.selectedObjectType === 'Order' && this.orders != null) {
                     this.$$('#ordersInspector').show();
                     return;
                 }
-                if (this.selectedObjectType == 'Activity' && this.activities != null) {
+                if (this.selectedObjectType === 'Activity' && this.activities != null) {
                     this.$$('#activitiesInspector').show();
                     return;
                 }
@@ -581,7 +652,7 @@
 
                 function hasType(type, list) {
                     for (var i = 0; i < list.length; i++) {
-                        if (list[i].type == type)
+                        if (list[i].type === type)
                             return true;
                     }
                     return false;
@@ -619,11 +690,11 @@
             },
 
             _typeSubPath: function (selectedType) {
-                if (selectedType == 'Resource') {
+                if (selectedType === 'Resource') {
                     return 'resources';
-                } else if (selectedType == 'Order') {
+                } else if (selectedType === 'Order') {
                     return 'orders';
-                } else if (selectedType == 'Activity') {
+                } else if (selectedType === 'Activity') {
                     return 'activities';
                 } else {
                     throw 'Unhandled selected type ' + selectedType;
