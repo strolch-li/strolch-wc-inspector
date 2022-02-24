@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.23.2",
+  "version": "0.23.3",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
@@ -17,11 +17,11 @@
   "homepage": "https://github.com/strolch-li/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
-    "strolchjs": "strolch-li/strolchjs#^0.5.0",
+    "strolchjs": "strolch-li/strolchjs#^0.5.1",
     "strolch-wc-styles": "strolch-li/strolch-wc-styles#^0.3.1",
     "strolch-wc-debounced-input": "strolch-li/strolch-wc-debounced-input#^0.1.1",
-    "strolch-wc-tree": "strolch-li/strolch-wc-tree#^0.2.1",
-    "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.8",
+    "strolch-wc-tree": "strolch-li/strolch-wc-tree#^0.2.2",
+    "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.9",
 
     "polymer": "Polymer/polymer#^1.11.3",
 
