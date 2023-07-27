@@ -1,0 +1,270 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icons/av-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-app-style.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-components">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-app-style">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            paper-material {
+                background: white;
+                margin-top: 0.3em;
+                margin-bottom: 0.3em;
+                padding: 0.3em;
+            }
+
+            .table-row {
+                min-height: 24px;
+                padding-top: 4px;
+                padding-bottom: 4px;
+            }
+
+            .table-heading, .table-cell {
+                flex-grow: 1;
+                flex-shrink: 1;
+            }
+
+            .table-cell {
+                min-height: inherit;
+            }
+
+            .label {
+                flex-basis: 10px;
+                flex-grow: 1;
+                font-style: italic;
+            }
+
+            .property-key {
+                flex-basis: 200px;
+                flex-grow: 3;
+                font-style: italic;
+            }
+
+            .property-value {
+                flex-basis: 300px;
+                flex-grow: 8;
+                justify-content: flex-start;
+                overflow: auto;
+            }
+
+            .name {
+                flex-basis: 200px;
+                flex-grow: 1;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .name p {
+                margin: 0 0 8px;
+            }
+
+            .properties {
+                flex-basis: 200px;
+                flex-grow: 1;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .btn {
+                flex-grow: 0;
+                flex-shrink: 0;
+                flex-basis: 100px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: center;
+            }
+
+            .btn paper-button {
+                margin-bottom: 8px;
+                width: 100%;
+            }
+
+        </style>
+
+        <div class="actions actions-right padding">
+            <paper-button on-tap="onReloadConfig" raised>Reload Config</paper-button>
+            <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+        </div>
+
+        <paper-material>
+
+            <div class="table">
+                <div class="table-row">
+                    <div class="table-heading name">Component</div>
+                    <div class="table-heading properties">Properties</div>
+                    <div class="table-heading btn"></div>
+                </div>
+
+                <template is="dom-repeat" items="[[components]]" as="comp">
+                    <div class="table-row data">
+                        <div class="table-cell name">
+                            <h3>[[comp.name]]</h3>
+                            <p>
+                                <i>API Class:</i><br>
+                                <b>[[comp.api]]</b>
+                            </p>
+                            <p>
+                                <i>Implementation:</i><br>
+                                <b>[[comp.impl]]</b>
+                            </p>
+                            <p>
+                                <i>State:</i><br>
+                                <b>[[comp.state]]</b>
+                            </p>
+                            <p>
+                                <i>Dependencies:</i><br>
+                                [[_getDependencies(comp)]]
+                            </p>
+                        </div>
+                        <div class="table-cell properties">
+                            <div class="table table-list">
+                                <template is="dom-repeat" items="[[comp.properties]]" as="property">
+                                    <div class="table-row">
+                                        <div class="table-cell property-key">[[property.key]]</div>
+                                        <div class="table-cell property-value">[[property.value]]</div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="table-cell btn">
+                            <paper-button on-tap="onInitialize" raised hidden$="[[_hideInitialize(comp)]]">Initialize
+                            </paper-button>
+                            <paper-button on-tap="onStart" raised hidden$="[[_hideStart(comp)]]">Start</paper-button>
+                            <paper-button on-tap="onStop" raised hidden$="[[_hideStop(comp)]]">Stop</paper-button>
+                            <paper-button on-tap="onDestroy" raised hidden$="[[_hideDestroy(comp)]]">Destroy
+                            </paper-button>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+        </paper-material>
+
+        <iron-ajax id="ajaxGetComponents"
+                   url="[[baseRestPath]]/strolch/agent/components"
+                   content-type="application/json"
+                   handle-as="json"
+                   method="GET"
+                   on-response="onGetComponentsResponse"
+                   on-error="onRequestError"></iron-ajax>
+
+        <iron-ajax id="ajaxPutState"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="onPutStateResponse"
+                   on-error="onRequestError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-components',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                components: {
+                    type: Array
+                }
+            },
+
+            _getDependencies: function (component) {
+                if (this.isEmptyArray(component.dependencies))
+                    return "-";
+                return this.arrayToString(component.dependencies);
+            },
+
+            _hideInitialize: function (component) {
+                return !(component.state === "SETUP" || component.state === "DESTROYED");
+            },
+            _hideStart: function (component) {
+                return !(component.state === "INITIALIZED" || component.state === "STOPPED");
+            },
+            _hideStop: function (component) {
+                return component.state !== "STARTED";
+            },
+            _hideDestroy: function (component) {
+                return !(component.state === "STOPPED" || component.state === "INITIALIZED");
+            },
+
+            onGetComponentsResponse: function (data) {
+                this.components = data.detail.response.data;
+            },
+            onPutStateResponse: function (data) {
+                this.reload();
+            },
+
+            ready: function () {
+                //
+            },
+
+            reload: function () {
+                this.$.ajaxGetComponents.generateRequest();
+            },
+
+            onReloadConfig: function (evt) {
+                this.$.ajaxPutState.url = this.basePath + 'rest/strolch/agent/configuration/reload';
+                this.$.ajaxPutState.params = {};
+                this.$.ajaxPutState.method = 'PUT';
+                this.$.ajaxPutState.generateRequest();
+            },
+
+            onInitialize: function (evt) {
+                this.setState(evt.model.comp.name, 'INITIALIZED');
+            },
+            onStart: function (evt) {
+                this.setState(evt.model.comp.name, 'STARTED');
+            },
+            onStop: function (evt) {
+                this.setState(evt.model.comp.name, 'STOPPED');
+            },
+            onDestroy: function (evt) {
+                this.setState(evt.model.comp.name, 'DESTROYED');
+            },
+
+            setState: function (componentName, state) {
+                this.$.ajaxPutState.url = this.basePath + 'rest/strolch/agent/components/' + componentName + '/state';
+                this.$.ajaxPutState.params = {state: state};
+                this.$.ajaxPutState.method = 'PUT';
+                this.$.ajaxPutState.generateRequest();
+            }
+        });
+
+    </script>
+
+</dom-module>

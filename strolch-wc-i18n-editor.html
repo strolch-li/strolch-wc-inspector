@@ -71,7 +71,7 @@
         </template>
 
         <iron-ajax id="ajaxGetI18n"
-                   url="[[baseRestPath]]/i18n/data"
+                   url="[[baseRestPath]]/strolch/i18n/data"
                    content-type="application/json"
                    handle-as="json"
                    method="GET"
@@ -79,7 +79,7 @@
                    on-error="onRequestError"></iron-ajax>
 
         <iron-ajax id="ajax"
-                   url="[[baseRestPath]]/i18n/data"
+                   url="[[baseRestPath]]/strolch/i18n/data"
                    content-type="application/json"
                    on-response="reload"
                    on-error="onRequestError"></iron-ajax>
@@ -171,14 +171,14 @@
                     return;
                 }
 
-                this.$.ajax.url = this.baseRestPath + "/i18n/data";
+                this.$.ajax.url = this.baseRestPath + "/strolch/i18n/data";
                 this.$.ajax.method = "PUT";
                 this.$.ajax.body = data;
                 this.$.ajax.generateRequest();
             },
 
             showRaw: function (e) {
-                window.open(this.baseRestPath + "/i18n/data", '_blank');
+                window.open(this.baseRestPath + "/strolch/i18n/data", '_blank');
             }
         });
     </script>
