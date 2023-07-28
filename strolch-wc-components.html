@@ -36,9 +36,13 @@
 
             paper-material {
                 background: white;
-                margin-top: 0.3em;
-                margin-bottom: 0.3em;
-                padding: 0.3em;
+                margin-top: 8px;
+                margin-bottom: 16px;
+                padding: 8px;
+            }
+
+            .component {
+                display: flex;
             }
 
             .table-row {
@@ -48,35 +52,35 @@
             }
 
             .table-heading, .table-cell {
-                flex-grow: 1;
-                flex-shrink: 1;
+                padding: 0;
             }
 
             .table-cell {
                 min-height: inherit;
             }
 
-            .label {
-                flex-basis: 10px;
-                flex-grow: 1;
-                font-style: italic;
-            }
-
             .property-key {
-                flex-basis: 200px;
                 flex-grow: 3;
                 font-style: italic;
+                overflow: auto;
             }
 
             .property-value {
-                flex-basis: 300px;
+                flex-basis: 100px;
                 flex-grow: 8;
                 justify-content: flex-start;
                 overflow: auto;
             }
 
-            .name {
-                flex-basis: 200px;
+            .property-default {
+                flex-basis: 100px;
+                flex-grow: 2;
+                justify-content: flex-start;
+                overflow: auto;
+            }
+
+            .info {
+                flex-basis: 300px;
                 flex-grow: 1;
                 flex-direction: column;
                 align-items: flex-start;
@@ -88,17 +92,17 @@
             }
 
             .properties {
-                flex-basis: 200px;
-                flex-grow: 1;
+                flex-basis: 300px;
+                flex-grow: 3;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
             }
 
+
             .btn {
                 flex-grow: 0;
                 flex-shrink: 0;
-                flex-basis: 100px;
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -107,7 +111,7 @@
 
             .btn paper-button {
                 margin-bottom: 8px;
-                width: 100%;
+                width: 150px;
             }
 
         </style>
@@ -117,47 +121,88 @@
             <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
         </div>
 
-        <paper-material>
-
-            <div class="table">
-                <div class="table-row">
-                    <div class="table-heading name">Component</div>
-                    <div class="table-heading properties">Properties</div>
-                    <div class="table-heading btn"></div>
+        <paper-material elevation="1">
+            <h3>Agent</h3>
+            <div class="component">
+                <div class="info">
+                    <p>
+                        <i>Application Name:</i><br>
+                        <b>[[agent.applicationName]]</b>
+                    </p>
+                    <p>
+                        <i>environment:</i><br>
+                        <b>[[agent.environment]]</b>
+                    </p>
+                    <p>
+                        <i>locale:</i><br>
+                        <b>[[agent.locale]]</b>
+                    </p>
+                    <p>
+                        <i>Config Path:</i><br>
+                        <b>[[agent.configPath]]</b>
+                    </p>
+                    <p>
+                        <i>Data Path:</i><br>
+                        <b>[[agent.dataPath]]</b>
+                    </p>
+                    <p>
+                        <i>Temp Path:</i><br>
+                        <b>[[agent.tempPath]]</b>
+                    </p>
+                    <p>
+                        <i>Supported languages:</i><br>
+                        [[_getSupportedLanguages(agent)]]
+                    </p>
                 </div>
-
-                <template is="dom-repeat" items="[[components]]" as="comp">
-                    <div class="table-row data">
-                        <div class="table-cell name">
-                            <h3>[[comp.name]]</h3>
-                            <p>
-                                <i>API Class:</i><br>
-                                <b>[[comp.api]]</b>
-                            </p>
-                            <p>
-                                <i>Implementation:</i><br>
-                                <b>[[comp.impl]]</b>
-                            </p>
-                            <p>
-                                <i>State:</i><br>
-                                <b>[[comp.state]]</b>
-                            </p>
-                            <p>
-                                <i>Dependencies:</i><br>
-                                [[_getDependencies(comp)]]
-                            </p>
-                        </div>
-                        <div class="table-cell properties">
-                            <div class="table table-list">
-                                <template is="dom-repeat" items="[[comp.properties]]" as="property">
-                                    <div class="table-row">
-                                        <div class="table-cell property-key">[[property.key]]</div>
-                                        <div class="table-cell property-value">[[property.value]]</div>
-                                    </div>
-                                </template>
+                <div class="properties">
+                    <h3>Properties</h3>
+                    <template is="dom-if" if="[[isEmptyArray(agent.properties)]]"><i>No Properties</i></template>
+                    <template is="dom-if" if="[[isNotEmptyArray(agent.properties)]]">
+                        <div class="table table-list">
+                            <div class="table-row">
+                                <div class="table-heading property-key">Key</div>
+                                <div class="table-heading property-value">Value</div>
+                                <div class="table-heading property-default">Default</div>
+                                <div class="table-heading property-type">Type</div>
                             </div>
+                            <template is="dom-repeat" items="[[agent.properties]]" as="property">
+                                <div class="table-row">
+                                    <div class="table-cell property-key">[[property.key]]</div>
+                                    <div class="table-cell property-value">[[property.value]]
+                                        <template is="dom-if" if="[[property.unused]]">&nbsp;<i>(Unused!)</i></template>
+                                    </div>
+                                    <div class="table-cell property-default">[[property.defaultValue]]</div>
+                                    <div class="table-cell property-type">[[property.type]]</div>
+                                </div>
+                            </template>
                         </div>
-                        <div class="table-cell btn">
+                    </template>
+                </div>
+            </div>
+        </paper-material>
+
+        <template is="dom-repeat" items="[[components]]" as="comp">
+            <paper-material elevation="1">
+                <h3>[[comp.name]]</h3>
+                <div class="component">
+                    <div class="info">
+                        <p>
+                            <i>API Class:</i><br>
+                            <b>[[comp.api]]</b>
+                        </p>
+                        <p>
+                            <i>Implementation:</i><br>
+                            <b>[[comp.impl]]</b>
+                        </p>
+                        <p>
+                            <i>State:</i><br>
+                            <b>[[comp.state]]</b>
+                        </p>
+                        <p>
+                            <i>Dependencies:</i><br>
+                            [[_getDependencies(comp)]]
+                        </p>
+                        <div class="btn">
                             <paper-button on-tap="onInitialize" raised hidden$="[[_hideInitialize(comp)]]">Initialize
                             </paper-button>
                             <paper-button on-tap="onStart" raised hidden$="[[_hideStart(comp)]]">Start</paper-button>
@@ -166,10 +211,31 @@
                             </paper-button>
                         </div>
                     </div>
-                </template>
-
-            </div>
-        </paper-material>
+                    <div class="properties">
+                        <h3>Properties</h3>
+                        <template is="dom-if" if="[[isEmptyArray(comp.properties)]]"><i>No Properties</i></template>
+                        <template is="dom-if" if="[[isNotEmptyArray(comp.properties)]]">
+                            <div class="table table-list">
+                                <div class="table-row">
+                                    <div class="table-heading property-key">Key</div>
+                                    <div class="table-heading property-value">Value</div>
+                                    <div class="table-heading property-default">Default</div>
+                                    <div class="table-heading property-type">Type</div>
+                                </div>
+                                <template is="dom-repeat" items="[[comp.properties]]" as="property">
+                                    <div class="table-row">
+                                        <div class="table-cell property-key">[[property.key]]</div>
+                                        <div class="table-cell property-value">[[property.value]]</div>
+                                        <div class="table-cell property-default">[[property.defaultValue]]</div>
+                                        <div class="table-cell property-type">[[property.type]]</div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </paper-material>
+        </template>
 
         <iron-ajax id="ajaxGetComponents"
                    url="[[baseRestPath]]/strolch/agent/components"
@@ -198,11 +264,18 @@
             ],
 
             properties: {
+                agent: {
+                    type: Object
+                },
                 components: {
                     type: Array
                 }
             },
-
+            _getSupportedLanguages: function (agent) {
+                if (this.isEmptyArray(agent.supportedLanguages))
+                    return "-";
+                return this.arrayToString(agent.supportedLanguages);
+            },
             _getDependencies: function (component) {
                 if (this.isEmptyArray(component.dependencies))
                     return "-";
@@ -223,7 +296,8 @@
             },
 
             onGetComponentsResponse: function (data) {
-                this.components = data.detail.response.data;
+                this.agent = data.detail.response.data.agent;
+                this.components = this.agent.components;
             },
             onPutStateResponse: function (data) {
                 this.reload();
