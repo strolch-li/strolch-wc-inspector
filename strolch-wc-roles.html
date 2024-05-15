@@ -114,6 +114,10 @@
                 roleName: {
                     type: String
                 },
+                searchTerm: {
+                    type: String,
+                    observer: 'searchTermChanged'
+                },
                 propagateShowDialog: {
                     type: Boolean,
                     value: function () {
@@ -139,6 +143,11 @@
                 this.$.dlg.open();
             },
 
+            searchTermChanged: function (newValue) {
+                if (newValue != null)
+                    this.reload();
+            },
+
             ready: function () {
                 //
             },
@@ -156,6 +165,7 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
                 this.$.ajax.method = 'GET';
+                this.$.ajax.params = {query: this.searchTerm};
                 this.$.ajax.generateRequest();
             },
 

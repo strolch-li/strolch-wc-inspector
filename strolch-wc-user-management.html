@@ -1,0 +1,178 @@
+<!-- Imports -->
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../paper-tabs/paper-tab.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-app-style.html">
+<link rel="import" href="../strolch-wc-util-behavior/strolch-wc-component-behavior.html">
+<link rel="import" href="./strolch-wc-users.html">
+<link rel="import" href="./strolch-wc-roles.html">
+<link rel="import" href="./strolch-wc-sessions.html">
+
+<dom-module id="strolch-wc-user-management">
+    <template>
+
+        <!-- Style -->
+        <style is="custom-style" include="strolch-wc-app-style">
+            :host {
+                display: block;
+            }
+
+            .content {
+                padding: var(--app-pages-content-padding);
+                padding-top: 0;
+                min-width: 1080px;
+            }
+
+            paper-tabs {
+                margin: 0;
+                padding: 0;
+                --paper-tabs-selection-bar-color: var(--app-regular-highlight-bg-color);
+            }
+
+        </style>
+
+        <!-- Content -->
+        <div class="content">
+            <paper-tabs id="paperTabs" selected="{{selectedTab}}" attr-for-selected="name" fit-container>
+                <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
+                    <paper-tab name="users">[[localize('users')]]</paper-tab>
+                </template>
+                <template is="dom-if" if="[[hasPrivilege('PrivilegeGetRole')]]">
+                    <paper-tab name="roles">[[localize('roles')]]</paper-tab>
+                </template>
+                <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
+                    <paper-tab name="sessions">[[localize('sessions')]]</paper-tab>
+                </template>
+            </paper-tabs>
+
+            <iron-pages selected="[[selectedTab]]" attr-for-selected="id">
+
+                <template is="dom-if" if="[[equal(selectedTab, 'users')]]" restamp>
+                    <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
+                        <strolch-wc-users id="users"
+                                          base-path="[[basePath]]"
+                                          search-term="{{searchTerm}}"
+                                          user-location="[[userLocation]]"
+                                          propagate-show-dialog></strolch-wc-users>
+                    </template>
+                </template>
+                <template is="dom-if" if="[[equal(selectedTab, 'roles')]]" restamp>
+                    <template is="dom-if" if="[[hasPrivilege('PrivilegeGetRole')]]">
+                        <strolch-wc-roles id="roles"
+                                          base-path="[[basePath]]"
+                                          search-term="{{searchTerm}}"
+                                          user-location="[[userLocation]]"
+                                          propagate-show-dialog></strolch-wc-roles>
+                    </template>
+                </template>
+
+                <template is="dom-if" if="[[equal(selectedTab, 'sessions')]]" restamp>
+                    <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
+                        <strolch-wc-sessions id="sessions"
+                                             base-path="[[basePath]]"
+                                             search-term="{{searchTerm}}"
+                                             user-location="[[userLocation]]"
+                                             propagate-show-dialog></strolch-wc-sessions>
+                    </template>
+                </template>
+            </iron-pages>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+
+            /* Component */
+            is: "strolch-wc-user-management",
+            behaviors: [
+                StrolchComponentBehavior
+            ],
+
+            /* Properties */
+            properties: {
+                basePath: {
+                    type: String,
+                    value: './'
+                },
+                baseRestPath: {
+                    type: String,
+                    value: './'
+                },
+                localesPath: {
+                    type: String,
+                    value: './locales.json'
+                },
+                toolbarConfig: {
+                    type: Object,
+                    value: {
+                        pageTitle: "userManagement",
+                        backButton: true,
+                        searchInput: true
+                    },
+                    notify: true,
+                    readOnly: true
+                },
+                userLocation: {
+                    type: String
+                },
+                selectedTab: {
+                    type: String,
+                    observer: 'selectedTabChanged'
+                },
+                searchTerm: {
+                    type: String,
+                    notify: true,
+                }
+            },
+
+            /* Computations */
+
+            /* Observers */
+            observers: [
+                "observeRoutePath(route.path)"
+            ],
+            observeRoutePath: function (routePath) {
+                console.log("New Route path: " + routePath);
+                var tab = this.getQueryParamValue("tab");
+                if (Strolch.isNotEmptyString(tab) && this.selectedTab !== tab)
+                    this.selectedTab = tab;
+            },
+            selectedTabChanged: function (newValue, oldValue) {
+                if (newValue != null && oldValue != null) {
+                    this.setQueryParamValue('tab', newValue);
+                    this.fire("strolch-clear-search-term");
+                }
+            },
+
+            listeners: {},
+
+            /* Public */
+
+
+            /* Private */
+            refresh: function () {
+                if (this.selectedTab != null) {
+                    this.debounce('refreshTab', function (e) {
+                        var view = this.$$('#' + this.selectedTab);
+                        if (view != null)
+                            view.reload();
+                    }, 0);
+                }
+            },
+
+            attached: function (e) {
+                var tab = this.getQueryParamValue("tab");
+                if (Strolch.isNotEmptyString(tab))
+                    this.selectedTab = tab;
+            },
+
+            /* Lifecycle */
+            reload: function () {
+                this.refresh();
+            }
+        });
+    </script>
+</dom-module>

@@ -16,7 +16,6 @@
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
-<link rel="import" href="../strolch-wc-debounced-input/strolch-wc-debounced-input.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-paging-behavior.html">
@@ -36,17 +35,8 @@
 
             paper-material {
                 background: white;
-                margin-top: 0.3em;
-                margin-bottom: 0.3em;
+                margin: 0.3em 0;
                 padding: 0.3em;
-            }
-
-            strolch-wc-debounced-input {
-                max-width: 200px;
-                display: inline-flex;
-
-                --regular-color: #919191;
-                --focus-color: #000000;
             }
 
             .table {
@@ -119,14 +109,10 @@
                                    icon="refresh"
                                    title="Refresh"
                                    on-tap="reload"></paper-icon-button>
-                <strolch-wc-debounced-input id="debouncedInput"
-                                            class="g-pull-right"
-                                            debounced-input="{{searchTerm}}"
-                                            disabled="[[arrayFilled(filters)]]"></strolch-wc-debounced-input>
             </div>
         </div>
 
-        <paper-material elevation="1" class="g-m-3">
+        <paper-material elevation="1">
 
             <div class="table">
                 <div class="table-row">
@@ -250,10 +236,9 @@
                 this.$.dlg.open();
             },
 
-            searchTermChanged: function (newValue, oldValue) {
-                if (newValue != null && oldValue != null) {
+            searchTermChanged: function (newValue) {
+                if (newValue != null)
                     this.queryPage();
-                }
             },
 
             ready: function () {

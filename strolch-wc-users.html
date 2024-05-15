@@ -19,7 +19,6 @@
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
-<link rel="import" href="../strolch-wc-debounced-input/strolch-wc-debounced-input.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-paging-behavior.html">
@@ -41,17 +40,8 @@
 
             paper-material {
                 background: white;
-                margin-top: 0.3em;
-                margin-bottom: 0.3em;
+                margin: 0.3em 0;
                 padding: 0.3em;
-            }
-
-            strolch-wc-debounced-input {
-                max-width: 200px;
-                display: inline-flex;
-
-                --regular-color: #919191;
-                --focus-color: #000000;
             }
 
             .table {
@@ -124,14 +114,10 @@
                                    title="Refresh"
                                    on-tap="reload"></paper-icon-button>
                 <paper-button class="g-pull-right" on-tap="_addUser" raised>Add</paper-button>
-                <strolch-wc-debounced-input id="debouncedInput"
-                                            class="g-pull-right"
-                                            debounced-input="{{searchTerm}}"
-                                            disabled="[[arrayFilled(filters)]]"></strolch-wc-debounced-input>
             </div>
         </div>
 
-        <paper-material elevation="1" class="g-ml-3 g-mr-3">
+        <paper-material elevation="1">
 
             <div class="table">
                 <div class="table-row">
@@ -145,13 +131,13 @@
 
                 <template is="dom-repeat" items="[[dataObj.data]]">
                     <div class="table-row data">
-                        <div class="table-cell username">[[item.username]]<br /><br />[[_getName(item)]]</div>
+                        <div class="table-cell username">[[item.username]]<br/><br/>[[_getName(item)]]</div>
                         <div class="table-cell state">[[item.userState]]</div>
                         <div class="table-cell locale">[[item.locale]]</div>
                         <div class="table-cell roles">[[arrayToString(item.roles)]]</div>
                         <div class="table-cell history">
-                            FirstLogin: [[toLocalDateTime(item.history.firstLogin)]]<br /> LastLogin:
-                            [[toLocalDateTime(item.history.lastLogin)]]<br /> PasswordChange:
+                            FirstLogin: [[toLocalDateTime(item.history.firstLogin)]]<br/> LastLogin:
+                            [[toLocalDateTime(item.history.lastLogin)]]<br/> PasswordChange:
                             [[toLocalDateTime(item.history.lastPasswordChange)]]
                         </div>
                         <div class="table-cell actions">
@@ -357,10 +343,9 @@
                 this.$.dlg.open();
             },
 
-            searchTermChanged: function (newValue, oldValue) {
-                if (newValue != null && oldValue != null) {
+            searchTermChanged: function (newValue) {
+                if (newValue != null)
                     this.queryPage();
-                }
             },
 
             ready: function () {

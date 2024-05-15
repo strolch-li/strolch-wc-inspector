@@ -1,7 +1,7 @@
 {
   "name": "strolch-wc-inspector",
   "description": "Strolch WebComponent Inspector",
-  "version": "0.24.1",
+  "version": "1.0.0",
   "authors": ["Robert von Burg"],
   "keywords": [
     "strolch",
@@ -22,6 +22,7 @@
     "strolch-wc-debounced-input": "strolch-li/strolch-wc-debounced-input#^0.1.6",
     "strolch-wc-tree": "strolch-li/strolch-wc-tree#^0.2.6",
     "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.11",
+    "strolch-wc-util-behavior": "strolch-li/strolch-wc-util-behavior#^0.3.13",
 
     "polymer": "Polymer/polymer#^1.12.0",
 
