@@ -26,22 +26,16 @@
 <dom-module id="strolch-wc-users">
 
     <template>
-        <style is="custom-style" include="strolch-wc-styles">
+        <style is="custom-style" include="strolch-wc-app-style">
             :host {
                 display: block;
                 margin: 0;
                 padding: 0;
-                height: 100%;
-            }
-
-            paper-button {
-                background-color: white;
             }
 
             paper-material {
-                background: white;
-                margin: 0.3em 0;
-                padding: 0.3em;
+                padding: 4px;
+                margin: 0 0 8px;
             }
 
             .table {
@@ -107,14 +101,9 @@
 
         </style>
 
-        <div class="g-row g-pt-4">
-            <div class="g-12">
-                <paper-icon-button class="g-pull-right"
-                                   icon="refresh"
-                                   title="Refresh"
-                                   on-tap="reload"></paper-icon-button>
-                <paper-button class="g-pull-right" on-tap="_addUser" raised>Add</paper-button>
-            </div>
+        <div class="actions actions-right">
+            <paper-button on-tap="_addUser" raised>Add</paper-button>
+            <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
         </div>
 
         <paper-material elevation="1">
@@ -539,7 +528,7 @@
                                 index: i,
                                 removed: [property],
                                 addedCount: 0,
-                                obect: this.user.properties,
+                                object: this.user.properties,
                                 type: 'splice'
                             }
                         ]);

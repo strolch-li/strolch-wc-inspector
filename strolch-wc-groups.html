@@ -18,12 +18,12 @@
 
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 
-<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+<link rel="import" href="../strolch-wc-styles/strolch-wc-app-style.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
-<link rel="import" href="strolch-wc-role.html">
+<link rel="import" href="strolch-wc-group.html">
 
-<dom-module id="strolch-wc-roles">
+<dom-module id="strolch-wc-groups">
 
     <template>
 
@@ -36,50 +36,28 @@
                 height: 100%;
             }
 
-            .g-table {
-                font-size: small;
-            }
-
-            .g-table thead {
-                font-weight: bold;
-            }
-
-            .g-table th, .g-table td {
-                vertical-align: inherit;
-            }
-
         </style>
 
         <div class="actions actions-right">
-            <paper-button on-tap="_openAddRoleDlg" raised>Add</paper-button>
+            <paper-button on-tap="_openAddGroupDlg" raised>Add</paper-button>
             <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
         </div>
 
-        <template is="dom-repeat" items="[[roles]]" as="role">
-            <strolch-wc-role class="g-ml-3 g-mr-3"
-                             base-path="[[basePath]]"
-                             role="[[role]]"
-                             on-strolch-remove-role="onRemoveRole"
-                             on-strolch-role-reload-needed="onReload"></strolch-wc-role>
+        <template is="dom-repeat" items="[[groups]]" as="group">
+            <strolch-wc-group base-path="[[basePath]]"
+                              group="[[group]]"
+                              on-strolch-remove-group="onRemoveGroup"
+                              on-strolch-page-reload="onReload"></strolch-wc-group>
         </template>
 
-
-        <paper-dialog id="dlg" modal>
-            <h2>[[dlgTitle]]</h2>
-            <p>[[dlgText]]</p>
-            <div class="buttons">
-                <paper-button dialog-confirm autofocus>Close</paper-button>
-            </div>
-        </paper-dialog>
-
-        <paper-dialog id="addRoleDlg" modal>
+        <paper-dialog id="addGroupDlg" modal>
             <h2>[[dlgTitle]]</h2>
 
-            <paper-input label="role name" value="{{roleName}}"></paper-input>
+            <paper-input label="group name" value="{{groupName}}"></paper-input>
 
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
-                <paper-button on-tap="_addRole">Add</paper-button>
+                <paper-button on-tap="_addGroup">Add</paper-button>
             </div>
         </paper-dialog>
 
@@ -95,17 +73,17 @@
 
         Polymer({
 
-            is: 'strolch-wc-roles',
+            is: 'strolch-wc-groups',
 
             behaviors: [
                 StrolchInspectorBehavior
             ],
 
             properties: {
-                roles: {
+                groups: {
                     type: Array
                 },
-                roleName: {
+                groupName: {
                     type: String
                 },
                 searchTerm: {
@@ -152,50 +130,56 @@
 
             reload: function () {
 
-                this.dlgTitle = 'Role query failed';
+                this.dlgTitle = 'Groups query failed';
                 this._handleAjaxResponse = function (data) {
-                    this.roles = data.detail.response;
+                    this.groups = data.detail.response;
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups';
                 this.$.ajax.method = 'GET';
                 this.$.ajax.params = {query: this.searchTerm};
                 this.$.ajax.generateRequest();
             },
 
-            _openAddRoleDlg: function (e) {
-                this.dlgTitle = 'Add Role';
-                this.$.addRoleDlg.open();
+            _openAddGroupDlg: function (e) {
+                this.dlgTitle = 'Add Group';
+                this.$.addGroupDlg.open();
             },
 
-            _addRole: function (e) {
-                if (this.isEmptyString(this.roleName)) {
+            _addGroup: function (e) {
+                if (this.isEmptyString(this.groupName)) {
                     return;
                 }
 
-                this.push('roles', {
+                this.push('groups', {
                     isNew: true,
-                    name: this.roleName,
-                    privileges: []
+                    name: this.groupName,
+                    roles: [],
+                    properties: []
                 });
 
-                this.roleName = '';
-                this.$.addRoleDlg.close();
+                this.groupName = '';
+                this.$.addGroupDlg.close();
             },
 
-            onRemoveRole: function (e) {
+            onRemoveGroup: function (e) {
 
-                var role = e.detail.role;
-                if (!confirm('Do you really want to delete role ' + role.name)) {
+                var _group = e.detail.group;
+                if (!confirm('Do you really want to delete group ' + _group.name)) {
                     return;
                 }
 
-                this.dlgTitle = 'Remove role failed';
+                if (_group.isNew) {
+                    this.reload();
+                    return;
+                }
+
+                this.dlgTitle = 'Remove group failed';
                 this._handleAjaxResponse = function (data) {
                     this.reload();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles/' + role.name;
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups/' + _group.name;
                 this.$.ajax.method = 'DELETE';
                 this.$.ajax.body = {};
                 this.$.ajax.generateRequest();

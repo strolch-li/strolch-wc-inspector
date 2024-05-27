@@ -36,21 +36,18 @@
             }
 
             paper-material {
-                background-color: white;
+                padding: 4px;
+                margin: 0 0 8px;
             }
 
             ul {
                 list-style: none;
             }
 
-            .content {
-                border-top: 1px black solid;
-            }
-
         </style>
 
-        <paper-material class="g-mt-0 g-mb-0 g-ml-4 g-mr-4" elevation="1">
-            <h3 class="g-pl-2 g-pt-1 g-pb-0" on-tap="_toggleOpened">
+        <paper-material elevation="2">
+            <h3 on-tap="_toggleOpened">
                 <template is="dom-if" if="[[!opened]]">
                     <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
                 </template>
@@ -63,7 +60,7 @@
 
             <template is="dom-if" if="[[opened]]">
 
-                <div class="content g-pt-0 g-pb-2 g-pl-4 g-pr-4">
+                <div class="content">
 
                     <paper-input class="g-mt-2"
                                  label="Policy"
@@ -247,7 +244,7 @@
                                 index: i,
                                 removed: [value],
                                 addedCount: 0,
-                                obect: list,
+                                object: list,
                                 type: 'splice'
                             }
                         ]);

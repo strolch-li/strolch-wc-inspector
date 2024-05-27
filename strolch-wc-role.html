@@ -27,7 +27,7 @@
 
     <template>
 
-        <style is="custom-style" include="strolch-wc-styles">
+        <style is="custom-style" include="strolch-wc-app-style">
 
             :host {
                 display: block;
@@ -36,18 +36,14 @@
             }
 
             paper-material {
-                background-color: white;
-            }
-
-            .content {
-                border-top: 1px black solid;
-                background: #eeeeee;
+                padding: 4px;
+                margin: 0 0 8px;
             }
 
         </style>
 
-        <paper-material elevation="2">
-            <h3 class="g-m-3 g-pt-2 g-pl-2 g-pr-2" on-tap="_toggleOpened">
+        <paper-material elevation="1">
+            <h3 on-tap="_toggleOpened">
                 <template is="dom-if" if="[[!opened]]">
                     <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
                 </template>
@@ -69,7 +65,7 @@
                     </template>
 
 
-                    <div class="g-pt-2 g-pb-2">
+                    <div class="actions actions-right">
                         <paper-button on-tap="reload" autofocus disabled="[[!changed]]">Cancel</paper-button>
                         <paper-button on-tap="_addOrUpdateRole" disabled="[[!changed]]">Save</paper-button>
                         <paper-button on-tap="_openAddPrivilegeDlg">Add Privilege</paper-button>
@@ -134,10 +130,9 @@
             roleChanged: function (newValue, oldValue) {
                 if (newValue != null && newValue.isNew) {
                     this.changed = true;
-                }
-
-                if ((newValue != null && oldValue == null)
-                    || (newValue != null && newValue.name != oldValue.name)) {
+                    this.opened = true;
+                } else if ((newValue != null && oldValue == null)
+                    || (newValue != null && newValue.name !== oldValue.name)) {
                     this.opened = false;
                 }
             },
@@ -223,7 +218,7 @@
                             index: index,
                             removed: [privilege],
                             addedCount: 0,
-                            obect: this.role.privileges,
+                            object: this.role.privileges,
                             type: 'splice'
                         }
                     ]);

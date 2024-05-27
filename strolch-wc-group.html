@@ -1,0 +1,341 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-app-style.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-group">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-app-style">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+            }
+
+            paper-material {
+                padding: 4px;
+                margin: 0 0 8px;
+            }
+
+            .table {
+                padding: 0;
+                margin: 0;
+            }
+
+            .table-col {
+                flex-basis: 100px;
+                flex-grow: 1;
+                flex-shrink: 1;
+            }
+
+            .table-col.props {
+                margin-left: 8px;
+            }
+
+            .action {
+                flex-basis: 48px;
+                flex-grow: 0;
+                flex-shrink: 0;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            ul {
+                list-style: none;
+            }
+
+            p {
+                margin-bottom: 0;
+            }
+
+            .dialog-content {
+                --paper-dialog-scrollable: {
+                    max-height: 500px;
+                }
+            }
+
+        </style>
+
+        <paper-material elevation="1">
+            <h3 on-tap="_toggleOpened">
+                <template is="dom-if" if="[[!opened]]">
+                    <paper-icon-button icon="arrow-drop-down"></paper-icon-button>
+                </template>
+                <template is="dom-if" if="[[opened]]">
+                    <paper-icon-button icon="arrow-drop-up"></paper-icon-button>
+                </template>
+                [[group.name]]
+                <paper-icon-button on-tap="_removeGroup" class="g-pull-right" icon="delete"></paper-icon-button>
+            </h3>
+
+            <template is="dom-if" if="[[opened]]">
+                <div class="table">
+
+                    <div class="table-row">
+                        <div class="table-col">
+                            <p>Roles</p>
+                            <ul>
+                                <template is="dom-repeat" items="[[group.roles]]" as="role">
+                                    <li>
+                                        <paper-icon-button icon="remove-circle-outline"
+                                                           title="Remove"
+                                                           on-tap="onRemoveRole"></paper-icon-button>
+                                        [[role]]
+                                    </li>
+                                </template>
+                            </ul>
+                            <paper-button on-tap="_openAddRoleDlg">Add Role</paper-button>
+                        </div>
+                        <div class="table-col">
+                            <p>Properties</p>
+                            <template is="dom-repeat" items="[[group.properties]]" as="property">
+                                <div class="table-row">
+                                    <div class="table-col props">
+                                        <paper-input value="{{property.key}}"></paper-input>
+                                    </div>
+                                    <div class="table-col props">
+                                        <paper-input value="{{property.value}}"></paper-input>
+                                    </div>
+                                    <div class="table-col action">
+                                        <paper-icon-button icon="clear"
+                                                           title="Remove"
+                                                           on-tap="_removeProperty"></paper-icon-button>
+                                    </div>
+                                </div>
+                            </template>
+                            <paper-button on-tap="_addEmptyProperty">Add Property</paper-button>
+                        </div>
+                    </div>
+
+                    <div class="actions actions-right">
+                        <paper-button on-tap="reload" autofocus disabled="[[!changed]]">Cancel</paper-button>
+                        <paper-button on-tap="_addOrUpdateGroup" disabled="[[!changed]]">Save</paper-button>
+                    </div>
+                </div>
+
+            </template>
+
+        </paper-material>
+
+        <paper-dialog id="addRoleDlg" modal>
+            <h2>Select role</h2>
+
+            <paper-dialog-scrollable class="dialog-content">
+                <paper-listbox always-float-label
+                               label="Roles"
+                               class="dropdown-content"
+                               attr-for-selected="value"
+                               selected="{{selectedRole}}">
+                    <template is="dom-repeat" items="[[selectableRoles]]" as="role">
+                        <paper-item value="[[role.name]]">[[role.name]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dialog-scrollable>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_addRole">Add</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-group',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                opened: {
+                    type: Boolean,
+                    value: false
+                },
+                group: {
+                    type: Object,
+                    observer: 'groupChanged'
+                },
+                selectableRoles: {
+                    type: Array,
+                    value: []
+                },
+                selectedRole: {
+                    type: Object,
+                    value: null
+                },
+                changed: {
+                    type: Boolean,
+                    value: false
+                }
+            },
+
+            groupChanged: function (newValue, oldValue) {
+                if (newValue != null && newValue.isNew) {
+                    this.changed = true;
+                    this.opened = true;
+                } else if ((newValue != null && oldValue == null)
+                    || (newValue != null && newValue.name !== oldValue.name)) {
+                    this.opened = false;
+                }
+            },
+
+            reload: function () {
+
+                this.dlgTitle = 'Group query failed';
+                this._handleAjaxResponse = function (data) {
+                    this.group = data.detail.response;
+                    this.changed = false;
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups/' + this.group.name;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = {};
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            _toggleOpened: function (e) {
+                this.opened = !this.opened;
+            },
+
+            _openAddRoleDlg: function (e) {
+                this.selectedRole = null;
+                var groupRoles = this.group.roles;
+                this._handleAjaxResponse = function (data) {
+                    this.selectableRoles = data.detail.response.filter(function (r) {
+                        return !groupRoles.includes(r.name);
+                    });
+                    this.$.addRoleDlg.open();
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = {};
+                this.$.ajax.generateRequest();
+            },
+            _addRole: function (e) {
+                if (this.selectedRole == null) {
+                    return;
+                }
+
+                this.push('group.roles', this.selectedRole);
+                this.changed = true;
+
+                this.selectedRole = null;
+                this.$.addRoleDlg.close();
+            },
+
+            _addOrUpdateGroup: function (e) {
+
+                this.dlgTitle = 'Save group failed';
+                this._handleAjaxResponse = function (data) {
+                    this.changed = false;
+                    this.fire('strolch-page-reload');
+                };
+
+                if (this.group.isNew) {
+                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups';
+                    this.$.ajax.method = 'POST';
+                } else {
+                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups/' + this.group.name;
+                    this.$.ajax.method = 'PUT';
+                }
+                this.$.ajax.body = this.group;
+                this.$.ajax.generateRequest();
+            },
+
+            _removeGroup: function (e) {
+                e.stopPropagation();
+                this.fire('strolch-remove-group', {group: this.group})
+            },
+
+            _addEmptyProperty: function () {
+                this.push('group.properties', {
+                    key: '',
+                    value: ''
+                });
+                this.changed = true;
+            },
+            _removeProperty: function (e) {
+                var property = e.model.property;
+
+                var i = 0;
+                for (; i < this.group.properties.length; i++) {
+                    if (this.group.properties[i].key !== property.key) {
+                        continue;
+                    }
+                    this.group.properties.splice(i, 1);
+                    this.notifySplices('group.properties', [
+                        {
+                            index: i,
+                            removed: [property],
+                            addedCount: 0,
+                            object: this.group.properties,
+                            type: 'splice'
+                        }
+                    ]);
+                    this.changed = true;
+                }
+            },
+
+            onRemoveRole: function (e) {
+                var role = e.model.role;
+                var index = this.group.roles.indexOf(role);
+                if (index < 0) {
+                    return;
+                }
+                this.group.roles.splice(index, 1);
+                this.notifySplices('group.roles', [
+                    {
+                        index: index,
+                        removed: [role],
+                        addedCount: 0,
+                        object: this.group.roles,
+                        type: 'splice'
+                    }
+                ]);
+                this.changed = true;
+            }
+        });
+
+    </script>
+
+</dom-module>
