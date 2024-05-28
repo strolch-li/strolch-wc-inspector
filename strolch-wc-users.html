@@ -33,9 +33,20 @@
                 padding: 0;
             }
 
+            .dialog-content {
+                --paper-dialog-scrollable: {
+                    max-height: 600px;
+                }
+            }
+
             paper-material {
                 padding: 4px;
                 margin: 0 0 8px;
+            }
+
+            .list {
+                max-height: 250px;
+                overflow: auto;
             }
 
             .table {
@@ -99,6 +110,11 @@
                 background: #f7f7f7;
             }
 
+            .top > .table-col {
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+
         </style>
 
         <div class="actions actions-right">
@@ -113,6 +129,7 @@
                     <div class="table-heading username">Username / Name</div>
                     <div class="table-heading state">State</div>
                     <div class="table-heading locale">Locale</div>
+                    <div class="table-heading roles">Groups</div>
                     <div class="table-heading roles">Roles</div>
                     <div class="table-heading history">History</div>
                     <div class="table-heading actions"></div>
@@ -123,6 +140,7 @@
                         <div class="table-cell username">[[item.username]]<br/><br/>[[_getName(item)]]</div>
                         <div class="table-cell state">[[item.userState]]</div>
                         <div class="table-cell locale">[[item.locale]]</div>
+                        <div class="table-cell groups">[[arrayToString(item.groups)]]</div>
                         <div class="table-cell roles">[[arrayToString(item.roles)]]</div>
                         <div class="table-cell history">
                             FirstLogin: [[toLocalDateTime(item.history.firstLogin)]]<br/> LastLogin:
@@ -186,83 +204,124 @@
                 <template is="dom-if" if="[[isNotEmptyString(user.userId)]]">Edit User</template>
             </h2>
 
-            <div class="g-row">
-                <div class="g-6 g-p-4">
+            <paper-dialog-scrollable class="dialog-content">
 
-                    <paper-input label="UserId" value="{{user.userId}}" readonly></paper-input>
-                    <paper-input label="Username"
-                                 value="{{user.username}}"
-                                 readonly="[[isNotEmptyString(user.userId)]]"></paper-input>
+                <div class="table">
+                    <div class="table-row top">
+                        <div class="table-col">
+                            <paper-input label="UserId" value="{{user.userId}}" readonly></paper-input>
+                            <paper-input label="Username"
+                                         value="{{user.username}}"
+                                         readonly="[[isNotEmptyString(user.userId)]]"></paper-input>
 
-                    <paper-input label="Firstname" value="{{user.firstname}}"></paper-input>
-                    <paper-input label="Lastname" value="{{user.lastname}}"></paper-input>
+                            <paper-input label="Firstname" value="{{user.firstname}}"></paper-input>
+                            <paper-input label="Lastname" value="{{user.lastname}}"></paper-input>
 
-                    <paper-dropdown-menu always-float-label label="Locale" class="custom">
-                        <paper-listbox label="Locale"
-                                       attr-for-selected="value"
-                                       class="dropdown-content"
-                                       selected="{{user.locale}}">
-                            <paper-item value="en">English</paper-item>
-                            <paper-item value="de">German</paper-item>
-                            <paper-item value="fr">French</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
+                            <paper-dropdown-menu always-float-label label="Locale" class="custom">
+                                <paper-listbox label="Locale"
+                                               attr-for-selected="value"
+                                               class="dropdown-content"
+                                               selected="{{user.locale}}">
+                                    <paper-item value="en">English</paper-item>
+                                    <paper-item value="de">German</paper-item>
+                                    <paper-item value="fr">French</paper-item>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
 
-                    <paper-dropdown-menu always-float-label label="State" class="custom">
-                        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{user.userState}}">
+                            <paper-dropdown-menu always-float-label label="State" class="custom">
+                                <paper-listbox attr-for-selected="value" class="dropdown-content"
+                                               selected="{{user.userState}}">
 
-                            <paper-item value="NEW">NEW</paper-item>
-                            <paper-item value="EXPIRED">EXPIRED</paper-item>
-                            <paper-item value="ENABLED">ENABLED</paper-item>
-                            <paper-item value="DISABLED">DISABLED</paper-item>
-                            <paper-item value="SYSTEM">SYSTEM</paper-item>
+                                    <paper-item value="NEW">NEW</paper-item>
+                                    <paper-item value="EXPIRED">EXPIRED</paper-item>
+                                    <paper-item value="ENABLED">ENABLED</paper-item>
+                                    <paper-item value="DISABLED">DISABLED</paper-item>
+                                    <paper-item value="SYSTEM">SYSTEM</paper-item>
 
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-
-                </div>
-
-                <div class="g-6 g-p-4" style="max-height: 360px; overflow:auto;">
-                    Roles:
-                    <paper-listbox always-float-label
-                                   label="Roles"
-                                   class="dropdown-content"
-                                   multi
-                                   attr-for-selected="value"
-                                   selected-values="{{selectedRoles}}">
-                        <template is="dom-repeat" items="[[roles]]">
-                            <paper-item value="[[item.position]]">[[item.name]]</paper-item>
-                        </template>
-                    </paper-listbox>
-                </div>
-            </div>
-
-            <div class="g-row g-m-0">
-                <div class="g-12 g-pr-4 g-pl-4" style="max-height: 150px; overflow:auto;">
-                    Properties:
-                    <template is="dom-repeat" items="[[user.properties]]" as="property">
-                        <div class="g-row">
-                            <div class="g-5">
-                                <paper-input value="{{property.key}}"></paper-input>
-                            </div>
-                            <div class="g-5 g-pl-4">
-                                <paper-input value="{{property.value}}"></paper-input>
-                            </div>
-                            <div class="g-2" style="line-height: 62px">
-                                <paper-icon-button icon="clear"
-                                                   title="Remove"
-                                                   on-tap="_removeProperty"></paper-icon-button>
-                            </div>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
                         </div>
-                    </template>
 
-                    <paper-button class="g-pull-right" on-tap="_addEmptyProperty">Add</paper-button>
+                        <div class="table-col">
+                            <p>Groups:</p>
+                            <div class="list">
+                                <template is="dom-repeat" items="[[user.groups]]">
+                                    <paper-item value="[[item]]">
+                                        <paper-icon-button icon="remove-circle-outline"
+                                                           title="Remove"
+                                                           on-tap="_removeGroup"></paper-icon-button>
+                                        [[item]]
+                                    </paper-item>
+                                </template>
+                            </div>
+                            <paper-button on-tap="_openAddGroupDlg">Add Group</paper-button>
+
+                            <p>Roles:</p>
+                            <div class="list">
+                                <template is="dom-repeat" items="[[user.roles]]">
+                                    <paper-item value="[[item]]">
+                                        <paper-icon-button icon="remove-circle-outline"
+                                                           title="Remove"
+                                                           on-tap="_removeRole"></paper-icon-button>
+                                        [[item]]
+                                    </paper-item>
+                                </template>
+                            </div>
+                            <paper-button on-tap="_openAddRoleDlg">Add Role</paper-button>
+                        </div>
+
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-col">
+                            <p>Properties:</p>
+                            <template is="dom-repeat" items="[[user.properties]]" as="property">
+                                <div class="g-row">
+                                    <div class="g-5">
+                                        <paper-input value="{{property.key}}"></paper-input>
+                                    </div>
+                                    <div class="g-5 g-pl-4">
+                                        <paper-input value="{{property.value}}"></paper-input>
+                                    </div>
+                                    <div class="g-2" style="line-height: 62px">
+                                        <paper-icon-button icon="clear"
+                                                           title="Remove"
+                                                           on-tap="_removeProperty"></paper-icon-button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <paper-button class="g-pull-right" on-tap="_addEmptyProperty">Add</paper-button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+            </paper-dialog-scrollable>
 
             <div class="buttons">
                 <paper-button dialog-confirm autofocus>Close</paper-button>
                 <paper-button on-tap="_addOrUpdateUser" autofocus>Save</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="addItemDlg" modal>
+            <h2>[[addItemTitle]]</h2>
+
+            <paper-dialog-scrollable class="dialog-content">
+                <paper-listbox always-float-label
+                               label="[[itemsType]]"
+                               class="dropdown-content"
+                               attr-for-selected="value"
+                               selected="{{selectedItem}}">
+                    <template is="dom-repeat" items="[[selectableItems]]">
+                        <paper-item value="[[item.name]]">[[item.name]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dialog-scrollable>
+
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+                <paper-button on-tap="_addItem">Add</paper-button>
             </div>
         </paper-dialog>
 
@@ -295,9 +354,20 @@
                 user: {
                     type: Object
                 },
-                selectedRoles: {
+                selectedItem: {
+                    type: Object
+                },
+                selectableItems: {
                     type: Array,
                     value: []
+                },
+                addItemTitle: {
+                    type: String,
+                    value: ""
+                },
+                itemsType: {
+                    type: String,
+                    value: ""
                 },
                 searchTerm: {
                     type: String,
@@ -331,12 +401,14 @@
                 console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
                 this.$.dlg.open();
             },
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
 
             searchTermChanged: function (newValue) {
                 if (newValue != null)
                     this.queryPage();
             },
-
             ready: function () {
                 //
             },
@@ -350,20 +422,6 @@
                 this.dlgTitle = 'User query failed';
                 this._handleAjaxResponse = function (data) {
                     this.dataObj = data.detail.response;
-
-                    this.dlgTitle = 'Role query failed';
-                    this._handleAjaxResponse = function (data) {
-                        var response = data.detail.response;
-                        for (var i = 0; i < response.length; i++) {
-                            response[i].position = i;
-                        }
-                        this.roles = response;
-                    };
-
-                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/roles';
-                    this.$.ajax.method = 'GET';
-                    this.$.ajax.params = {};
-                    this.$.ajax.generateRequest();
                 };
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
@@ -462,15 +520,6 @@
                     return;
                 }
 
-                var roles = [];
-                for (var i = 0; i < this.selectedRoles.length; i++) {
-                    var selectedRoleIndex = this.selectedRoles[i];
-                    var selectedRole = this.roles[Number(selectedRoleIndex)];
-                    var selectedRoleName = selectedRole.name;
-                    roles.push(selectedRoleName);
-                }
-                this.user.roles = roles;
-
                 this.dlgTitle = 'Save user failed';
                 this._handleAjaxResponse = function (data) {
                     this.$.userDlg.close();
@@ -488,10 +537,6 @@
                 this.$.ajax.generateRequest();
             },
 
-            _handleAjaxResponse: function (evt) {
-                console.log('NOT YET DEFINED!');
-            },
-
             _validateUser: function (user) {
                 if (this.isEmptyString(user.username))
                     return 'Username is not set!';
@@ -503,11 +548,95 @@
                     return 'User state is not set!';
                 if (this.isEmptyString(user.locale))
                     return 'Locale is not set!';
-                if (this.selectedRoles.length === 0)
-                    return 'No role selected!';
+                if (user.groups.length === 0 && user.roles.length === 0)
+                    return 'No role or group selected!';
 
                 return '';
             },
+
+            _openAddGroupDlg: function (e) {
+                this._openAddItemDlg("groups", this.user.groups, "Group");
+            },
+            _openAddRoleDlg: function (e) {
+                this._openAddItemDlg("roles", this.user.roles, "Role");
+            },
+
+            _removeGroup: function (e) {
+                var value = e.model.item;
+                var list = this.user.groups;
+                var path = 'user.groups';
+                this._removeValue(value, list, path);
+            },
+            _removeRole: function (e) {
+                var value = e.model.item;
+                var list = this.user.roles;
+                var path = 'user.roles';
+                this._removeValue(value, list, path);
+            },
+            _removeValue: function (value, list, path) {
+                console.log('Removing value ' + value + ' for path ' + path);
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i] !== value) {
+                        continue;
+                    }
+
+                    list.splice(i, 1);
+                    this.notifySplices(path, [
+                        {
+                            index: i,
+                            removed: [value],
+                            addedCount: 0,
+                            object: list,
+                            type: 'splice'
+                        }
+                    ]);
+                    this.notifyPath(path);
+                }
+            },
+
+            _openAddItemDlg: function (urlSuffix, currentItems, itemsType) {
+                this.itemsType = itemsType;
+                this.addItemTitle = "Select " + itemsType;
+                this.selectedItem = null;
+                this._handleAjaxResponse = function (data) {
+                    this.selectableItems = data.detail.response.filter(function (r) {
+                        return !currentItems.includes(r.name);
+                    });
+                    this.$.addItemDlg.open();
+                };
+
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/" + urlSuffix;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = {};
+                this.$.ajax.generateRequest();
+            },
+            _addItem: function (e) {
+                if (this.selectedItem == null) {
+                    return;
+                }
+
+                var arr;
+                switch (this.itemsType) {
+                    case "Group":
+                        arr = this.user.groups.slice();
+                        arr.push(this.selectedItem);
+                        arr.sort();
+                        this.set('user.groups', arr);
+                        break;
+                    case "Role":
+                        arr = this.user.roles.slice();
+                        arr.push(this.selectedItem);
+                        arr.sort();
+                        this.set('user.roles', arr);
+                        break;
+                    default:
+                        this.showError("Error", "Unhandled type " + this.itemsType);
+                }
+
+                this.selectedItem = null;
+                this.$.addItemDlg.close();
+            },
+
 
             _addEmptyProperty: function () {
                 this.push('user.properties', {
@@ -544,11 +673,11 @@
                     lastname: '',
                     userState: 'NEW',
                     locale: 'en',
+                    groups: [],
                     roles: [],
                     properties: []
                 };
 
-                this.selectedRoles = [];
                 this.$.userDlg.open();
             },
 
@@ -558,18 +687,7 @@
             },
 
             _editUser: function (e) {
-                this.user = e.model.item;
-                var selectedRoles = [];
-                for (var i = 0; i < this.roles.length; i++) {
-                    var role = this.roles[i];
-                    for (var j = 0; j < this.user.roles.length; j++) {
-                        var r = this.user.roles[j];
-                        if (role.name === r)
-                            selectedRoles.push(i);
-                    }
-                }
-
-                this.selectedRoles = selectedRoles;
+                this.user = JSON.parse(JSON.stringify(e.model.item));
                 this.$.userDlg.open();
             }
         });

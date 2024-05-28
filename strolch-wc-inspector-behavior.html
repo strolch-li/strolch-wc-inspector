@@ -20,6 +20,8 @@
             return Strolch.toLocalDateTime(val);
         },
         arrayToString: function (arr) {
+            if (arr == null)
+                return "";
             var s = '';
             for (var i = 0; i < arr.length; i++) {
                 s += arr[i];
@@ -33,13 +35,13 @@
             return o1 == o2;
         },
         isEmptyArray: function (arr) {
-            return arr == null || arr.length == 0;
+            return arr == null || arr.length === 0;
         },
         isNotEmptyArray: function (list) {
             return !this.isEmptyArray(list);
         },
         isEmptyString: function (v) {
-            return v != null && v.length == 0
+            return v != null && v.length === 0
         },
         isNotEmptyString: function (v) {
             return v != null && v.length > 0
@@ -66,7 +68,7 @@
             if (data.detail.request.response) {
                 if (data.detail.request.response.msg) {
                     dlgText = data.detail.request.response.msg;
-                } else if (data.detail.request.response.charAt(0) == '{') {
+                } else if (data.detail.request.response.charAt(0) === '{') {
                     var json = JSON.parse(data.detail.request.response);
                     if (json.msg) {
                         dlgText = json.msg;
