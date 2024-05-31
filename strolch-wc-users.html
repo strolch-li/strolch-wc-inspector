@@ -93,7 +93,8 @@
 
             .actions {
                 flex-grow: 0;
-                flex-basis: 120px;
+                flex-basis: 80px;
+                flex-wrap: wrap;
             }
 
             .history {
@@ -153,6 +154,8 @@
                                                title="Set password"
                                                on-tap="_openPwDlg"></paper-icon-button>
                             <paper-icon-button icon="delete" title="Remove" on-tap="_removeUser"></paper-icon-button>
+                            <paper-icon-button icon="icons:assignment" title="Privileges" on-tap="_showPrivileges"></paper-icon-button>
+
                         </div>
                     </div>
                 </template>
@@ -179,6 +182,14 @@
         </paper-material>
 
         <paper-dialog id="dlg" modal>
+            <h2>[[dlgTitle]]</h2>
+            <p>[[dlgText]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus>Close</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="privilegesDlg" modal>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
             <div class="buttons">
@@ -684,6 +695,20 @@
             _openPwDlg: function (e) {
                 this.user = e.model.item;
                 this.$.pwDlg.open();
+            },
+
+            _showPrivileges: function (e) {
+                this.user = e.model.item;
+
+                this._handleAjaxResponse = function (data) {
+                    this.privileges = data.detail.response.privileges;
+                    this.$.privilegesDlg.open();
+                };
+
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/" + this.user.username + "/privileges";
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = {};
+                this.$.ajax.generateRequest();
             },
 
             _editUser: function (e) {
