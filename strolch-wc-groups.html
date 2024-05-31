@@ -22,7 +22,6 @@
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-group.html">
-<link rel="import" href="strolch-wc-privilege-dialog.html">
 
 <dom-module id="strolch-wc-groups">
 
@@ -67,8 +66,6 @@
                    handle-as="json"
                    on-response="_handleAjaxResponse"
                    on-error="onAjaxError"></iron-ajax>
-
-        <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
     </template>
 
@@ -185,18 +182,6 @@
                 this.$.ajax.url = this.basePath + 'rest/strolch/privilege/groups/' + _group.name;
                 this.$.ajax.method = 'DELETE';
                 this.$.ajax.body = {};
-                this.$.ajax.generateRequest();
-            },
-
-            _showPrivileges: function (e) {
-                var group = e.model.item;
-                this._handleAjaxResponse = function (data) {
-                    this.$.privilegesDlg.open(data.detail.response);
-                };
-
-                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + group.name + "/privileges";
-                this.$.ajax.method = 'GET';
-                this.$.ajax.params = {};
                 this.$.ajax.generateRequest();
             },
 
