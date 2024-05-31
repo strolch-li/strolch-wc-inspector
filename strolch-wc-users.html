@@ -22,6 +22,7 @@
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-paging-behavior.html">
+<link rel="import" href="strolch-wc-privilege-dialog.html">
 
 <dom-module id="strolch-wc-users">
 
@@ -154,7 +155,8 @@
                                                title="Set password"
                                                on-tap="_openPwDlg"></paper-icon-button>
                             <paper-icon-button icon="delete" title="Remove" on-tap="_removeUser"></paper-icon-button>
-                            <paper-icon-button icon="icons:assignment" title="Privileges" on-tap="_showPrivileges"></paper-icon-button>
+                            <paper-icon-button icon="icons:assignment" title="Privileges"
+                                               on-tap="_showPrivileges"></paper-icon-button>
 
                         </div>
                     </div>
@@ -189,13 +191,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="privilegesDlg" modal>
-            <h2>[[dlgTitle]]</h2>
-            <p>[[dlgText]]</p>
-            <div class="buttons">
-                <paper-button dialog-confirm autofocus>Close</paper-button>
-            </div>
-        </paper-dialog>
+        <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
         <paper-dialog id="pwDlg" modal>
             <h2>Set Password for [[user.username]]</h2>
@@ -647,15 +643,12 @@
                 this.selectedItem = null;
                 this.$.addItemDlg.close();
             },
-
-
             _addEmptyProperty: function () {
                 this.push('user.properties', {
                     key: '',
                     value: ''
                 });
             },
-
             _removeProperty: function (e) {
                 var property = e.model.property;
 
@@ -698,17 +691,18 @@
             },
 
             _showPrivileges: function (e) {
-                this.user = e.model.item;
-
+                var user = e.model.item;
                 this._handleAjaxResponse = function (data) {
-                    this.privileges = data.detail.response.privileges;
-                    this.$.privilegesDlg.open();
+                    this.$.privilegesDlg.open(data.detail.response);
                 };
 
-                this.$.ajax.url = this.basePath + "rest/strolch/privilege/" + this.user.username + "/privileges";
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + user.username + "/privileges";
                 this.$.ajax.method = 'GET';
                 this.$.ajax.params = {};
                 this.$.ajax.generateRequest();
+            },
+            _closePrivilegesDlg: function () {
+                this.$.privilegesDlg.close();
             },
 
             _editUser: function (e) {

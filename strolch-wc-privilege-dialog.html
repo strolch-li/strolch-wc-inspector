@@ -1,0 +1,162 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-privilege-dialog">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-styles">
+
+            :host {
+                display: block;
+                margin: 0;
+                padding: 0;
+            }
+
+            .privilege {
+                margin-top: 8px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .privilege p {
+                margin: 0;
+            }
+
+        </style>
+
+        <paper-dialog id="dlg" modal>
+            <h2>Privileges for [[element.username]]</h2>
+            <template is="dom-if" if="[[isUser]]">
+                <p>The following are all the resolved privileges which the user has according to the assigned groups and
+                    roles.</p></template>
+            <template is="dom-if" if="[[!isUser]]">
+                <p>The following are all the resolved privileges which the group has according to the assigned
+                    roles.</p>
+            </template>
+
+            <paper-dialog-scrollable class="dialog-content">
+                <div class="table">
+                    <template is="dom-repeat" items="[[privileges]]" as="privilege">
+                        <div class="table-row privilege">
+                            <p><b>[[privilege.name]]</b></p>
+                            <p>Policy: [[privilege.policy]]</p>
+                            <p>All allowed: [[privilege.allAllowed]]</p>
+
+                            <template is="dom-if" if="[[!privilege.allAllowed]]">
+                                <template is="dom-if" if="[[!computeHasAllows(privilege)]]">
+                                    <p>Allow List: <i>none</i></p>
+                                </template>
+                                <template is="dom-if" if="[[computeHasAllows(privilege)]]">
+                                    <p>Allow List:</p>
+                                    <ul>
+                                        <template is="dom-repeat" items="[[privilege.allowList]]">
+                                            <li>[[item]]</li>
+                                        </template>
+                                    </ul>
+                                </template>
+
+                                <template is="dom-if" if="[[!computeHasDenies(privilege)]]">
+                                    <p>Deny List: <i>none</i></p>
+                                </template>
+                                <template is="dom-if" if="[[computeHasDenies(privilege)]]">
+                                    <p>Deny List:</p>
+                                    <ul>
+                                        <template is="dom-repeat" items="[[privilege.denyList]]">
+                                            <li>[[item]]</li>
+                                        </template>
+                                    </ul>
+                                </template>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </paper-dialog-scrollable>
+
+            <div class="buttons">
+                <paper-button autofocus on-tap="close">Close</paper-button>
+            </div>
+        </paper-dialog>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-privilege-dialog',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                element: {
+                    type: Object,
+                    value: null
+                },
+                name: {
+                    type: String,
+                    computed: "computeName(element)"
+                },
+                isUser: {
+                    type: Boolean,
+                    computed: "computeIsUser(element)"
+                },
+                privileges: {
+                    type: Array,
+                    value: []
+                },
+            },
+            computeName: function (element) {
+                if (element == null) return "";
+                if (element.username)
+                    return element.username;
+                return element.name;
+            },
+            computeIsUser: function (element) {
+                return element != null && element.username != null
+            },
+            computeHasAllows: function (privilege) {
+                return this.isNotEmptyArray(privilege.allowList);
+            },
+            computeHasDenies: function (privilege) {
+                return this.isNotEmptyArray(privilege.denyList);
+            },
+
+            open: function (element) {
+                this.element = element;
+                this.privileges = element.privileges;
+                this.$.dlg.open();
+            },
+            close: function () {
+                this.privileges = [];
+                this.$.dlg.close();
+            },
+        });
+
+    </script>
+
+</dom-module>
