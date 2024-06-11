@@ -148,7 +148,7 @@
                         <div class="table-cell state">[[item.userState]]</div>
                         <div class="table-cell locale">[[item.locale]]</div>
                         <div class="table-cell groups-and-roles">
-                            <template is="dom-if" if="[[isEmptyString(item.groups]]">
+                            <template is="dom-if" if="[[isEmptyString(item.groups)]]">
                                 <p><b>Groups:</b> <i>(none)</i></p>
                             </template>
                             <template is="dom-if" if="[[isNotEmptyString(item.groups)]]">
