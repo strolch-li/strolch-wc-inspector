@@ -148,17 +148,17 @@
                         <div class="table-cell state">[[item.userState]]</div>
                         <div class="table-cell locale">[[item.locale]]</div>
                         <div class="table-cell groups-and-roles">
-                            <template is="dom-if" if="[[isEmptyArray(item.groups]]">
+                            <template is="dom-if" if="[[isEmptyString(item.groups]]">
                                 <p><b>Groups:</b> <i>(none)</i></p>
                             </template>
-                            <template is="dom-if" if="[[isNotEmptyArray(item.groups)]]">
+                            <template is="dom-if" if="[[isNotEmptyString(item.groups)]]">
                                 <p><b>Groups:</b> [[arrayToString(item.groups)]]</p>
                             </template>
 
-                            <template is="dom-if" if="[[isEmptyArray(item.roles)]]">
+                            <template is="dom-if" if="[[isEmptyString(item.roles)]]">
                                 <p><b>Roles:</b> <i>(none)</i></p>
                             </template>
-                            <template is="dom-if" if="[[isNotEmptyArray(item.roles)]]">
+                            <template is="dom-if" if="[[isNotEmptyString(item.roles)]]">
                                 <p><b>Roles:</b> [[arrayToString(item.roles)]]</p>
                             </template>
                         </div>
