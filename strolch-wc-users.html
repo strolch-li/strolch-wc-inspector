@@ -117,6 +117,12 @@
                 padding-right: 4px;
             }
 
+            .groups-and-roles {
+                display: block;
+                flex-direction: column;
+                flex-basis: 250px;
+            }
+
         </style>
 
         <div class="actions actions-right">
@@ -131,8 +137,7 @@
                     <div class="table-heading username">Username / Name</div>
                     <div class="table-heading state">State</div>
                     <div class="table-heading locale">Locale</div>
-                    <div class="table-heading roles">Groups</div>
-                    <div class="table-heading roles">Roles</div>
+                    <div class="table-heading roles">Groups and Roles</div>
                     <div class="table-heading history">History</div>
                     <div class="table-heading actions"></div>
                 </div>
@@ -142,8 +147,21 @@
                         <div class="table-cell username">[[item.username]]<br/><br/>[[_getName(item)]]</div>
                         <div class="table-cell state">[[item.userState]]</div>
                         <div class="table-cell locale">[[item.locale]]</div>
-                        <div class="table-cell groups">[[arrayToString(item.groups)]]</div>
-                        <div class="table-cell roles">[[arrayToString(item.roles)]]</div>
+                        <div class="table-cell groups-and-roles">
+                            <template is="dom-if" if="[[isEmptyArray(item.groups]]">
+                                <p><b>Groups:</b> <i>(none)</i></p>
+                            </template>
+                            <template is="dom-if" if="[[isNotEmptyArray(item.groups)]]">
+                                <p><b>Groups:</b> [[arrayToString(item.groups)]]</p>
+                            </template>
+
+                            <template is="dom-if" if="[[isEmptyArray(item.roles)]]">
+                                <p><b>Roles:</b> <i>(none)</i></p>
+                            </template>
+                            <template is="dom-if" if="[[isNotEmptyArray(item.roles)]]">
+                                <p><b>Roles:</b> [[arrayToString(item.roles)]]</p>
+                            </template>
+                        </div>
                         <div class="table-cell history">
                             FirstLogin: [[toLocalDateTime(item.history.firstLogin)]]<br/> LastLogin:
                             [[toLocalDateTime(item.history.lastLogin)]]<br/> PasswordChange:
