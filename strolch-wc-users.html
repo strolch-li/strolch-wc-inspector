@@ -724,7 +724,12 @@
             },
 
             _editUser: function (e) {
-                this.user = JSON.parse(JSON.stringify(e.model.item));
+                var user = JSON.parse(JSON.stringify(e.model.item));
+                if (user.groups == null)
+                    user.groups = [];
+                if (user.roles == null)
+                    user.roles = [];
+                this.user = user;
                 this.$.userDlg.open();
             }
         });
