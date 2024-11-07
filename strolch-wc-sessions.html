@@ -70,24 +70,34 @@
             }
 
             .source {
-                flex-grow: 0;
-                flex-basis: 120px;
+               flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 100px;
             }
 
             .login-time,
             .last-access {
-                flex-grow: 0;
-                flex-basis: 160px;
+               flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 100px;
             }
 
             .username {
-                flex-grow: 0;
-                flex-basis: 250px;
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 100px;
+            }
+
+            .groups, .roles {
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 100px;
             }
 
             .actions {
-                flex-grow: 0;
-                flex-basis: 120px;
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 100px;
             }
 
             .data {
@@ -110,6 +120,7 @@
             <div class="table">
                 <div class="table-row">
                     <div class="table-heading username"><b>Username</b></div>
+                    <div class="table-heading groups"><b>Groups</b></div>
                     <div class="table-heading roles"><b>Roles</b></div>
                     <div class="table-heading source"><b>Source</b></div>
                     <div class="table-heading login-time"><b>Login time</b></div>
@@ -120,6 +131,7 @@
                 <template is="dom-repeat" items="[[dataObj.data]]" as="session">
                     <div class="table-row data">
                         <div class="table-cell username">[[session.username]] <br><br>[[_getName(session)]]</div>
+                        <div class="table-cell groups">[[arrayToString(session.groups)]]</div>
                         <div class="table-cell roles">[[arrayToString(session.roles)]]</div>
                         <div class="table-cell source">[[session.source]]</div>
                         <div class="table-cell login-time">[[toLocalDateTime(session.loginTime)]]</div>

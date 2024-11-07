@@ -82,25 +82,35 @@
                 min-height: 48px;
             }
 
-            .state,
             .locale {
-                flex-grow: 0;
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 30px;
+            }
+
+            .state {
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 50px;
             }
 
             .username {
-                flex-grow: 0;
+                flex-grow: 2;
+                flex-shrink: 2;
                 flex-basis: 250px;
             }
 
             .actions {
-                flex-grow: 0;
+                flex-grow: 1;
+                flex-shrink: 1;
                 flex-basis: 80px;
                 flex-wrap: wrap;
             }
 
             .history {
-                flex-grow: 0;
-                flex-basis: 250px;
+                flex-grow: 1;
+                flex-shrink: 1;
+                flex-basis: 200px;
             }
 
             .data {
@@ -118,9 +128,11 @@
             }
 
             .groups-and-roles {
+                flex-grow: 1;
+                flex-shrink: 1;
                 display: block;
                 flex-direction: column;
-                flex-basis: 250px;
+                flex-basis: 100px;
             }
 
         </style>
