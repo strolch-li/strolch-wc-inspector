@@ -518,7 +518,8 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/inspector/' + this.selectedRealm + '/import';
                 this.$.ajax.headers = {
-                    'Accept': 'application/xml'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/xml'
                 };
                 this.$.ajax.params = this._getImportParams();
                 this.$.ajax.method = 'POST';
