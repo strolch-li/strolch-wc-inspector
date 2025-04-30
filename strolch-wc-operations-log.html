@@ -34,9 +34,7 @@
 
             :host {
                 display: block;
-                margin: 0;
-                padding: 0;
-                height: 100%;
+                padding: 8px;
             }
 
             .g-table {
@@ -74,9 +72,8 @@
 
             paper-material {
                 background: white;
-                margin-top: 0.3em;
-                margin-bottom: 0.3em;
-                padding: 0.3em;
+                padding: 8px;
+                margin: 0;
             }
 
             .dlg {
@@ -94,9 +91,16 @@
                 min-height: 300px;
             }
 
+            .g-row {
+                padding: 8px;
+            }
+
+            .data:hover {
+                background-color: var(--selected-bg-color);
+            }
         </style>
 
-        <paper-material elevation="1" class="g-m-3">
+        <paper-material elevation="1">
 
             <div class="g-row g-pt-4">
 
@@ -171,10 +175,9 @@
                     </div>
 
                     <template is="dom-repeat" items="[[dataObj.data]]" as="log">
+                        <hr/>
 
-                        <hr />
-
-                        <div class="g-row ">
+                        <div class="g-row data">
                             <div class="g-2">[[log.id]]</div>
                             <div class="g-2">[[toLocalDateTime(log.date)]]</div>
                             <div class="g-2">[[log.severity]]</div>
@@ -186,12 +189,11 @@
                                                    hidden="[[!log.exception]]"></paper-icon-button>
                             </div>
                         </div>
-                        <div class="g-row">
+                        <div class="g-row data">
                             <div class="g-12">
                                 <p>[[log.message]]</p>
                             </div>
                         </div>
-
 
                     </template>
 
@@ -337,7 +339,7 @@
                         },
                         parseDate: function (datetimeString) {
                             var splitString = datetimeString.split("-");
-                            if (splitString.length != 3) return null;
+                            if (splitString.length !== 3) return null;
 
                             var year = Number(splitString[0]);
                             var month = Number(splitString[1]) - 1;
@@ -362,19 +364,19 @@
                 if (newValue != null)
                     this.queryPage();
             },
-            searchTermChanged: function (newValue, oldValue) {
+            searchTermChanged: function (newValue) {
                 if (newValue != null)
                     this.queryPage();
             },
-            fromChanged: function (newValue, oldValue) {
+            fromChanged: function (newValue) {
                 if (newValue != null)
                     this.queryPage();
             },
-            toChanged: function (newValue, oldValue) {
+            toChanged: function (newValue) {
                 if (newValue != null)
                     this.queryPage();
             },
-            realmChanged: function (newValue, oldValue) {
+            realmChanged: function (newValue) {
                 if (newValue != null) {
                     Strolch.setQueryParamValue('realm', newValue);
                     this.queryPage();
@@ -446,7 +448,7 @@
 
                     if (Strolch.isNotEmptyString(realmToSelect)) {
                         for (var i = 0; i < this.realms.length; i++) {
-                            if (this.realms[i].name == realmToSelect) {
+                            if (this.realms[i].name === realmToSelect) {
                                 this.selectedRealm = realmToSelect;
                                 break;
                             }
