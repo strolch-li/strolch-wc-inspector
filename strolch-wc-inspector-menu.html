@@ -75,9 +75,9 @@
                     <iron-icon icon="explore"></iron-icon>
                     </i> Notifications
                 </paper-item>
-                <paper-item id="i18n-editor" class="menu-item" on-tap="onMenuTap">
+                <paper-item id="audits" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
-                    </i> I18n Editor
+                    </i> Audits
                 </paper-item>
             </paper-listbox>
         </paper-dropdown-menu>
@@ -114,6 +114,7 @@
                     case "control":
                     case "notifications":
                     case "inspector":
+                    case "audits":
                         this.page = newValue;
                         this.style.backgroundColor = "#e8eaf6";
                         break;

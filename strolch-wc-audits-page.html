@@ -1,0 +1,512 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icons/av-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../vaadin-date-picker/vaadin-date-picker.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-app-style.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-inspector-paging-behavior.html">
+
+<dom-module id="strolch-wc-audits-page">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-app-style">
+
+            :host {
+                display: block;
+                padding: 8px;
+            }
+
+            vaadin-date-picker {
+                margin-right: 8px;
+                display: inline-block;
+
+                --vaadin-date-picker-yearscroller: {
+                    color: var(--app-dark-highlight-fg-color);
+                    background-color: var(--app-dark-highlight-bg-color);
+                    overflow: initial;
+                };
+                --vaadin-date-picker-calendar-cell-selected: {
+                    color: var(--app-regular-highlight-fg-color);
+                    background-color: var(--app-regular-highlight-bg-color);
+                    border-radius: 2px;
+                };
+                --vaadin-date-picker-calendar-cell-focused: {
+                    color: var(--app-dark-highlight-fg-color);
+                    background-color: var(--app-dark-highlight-bg-color);
+                };
+                --vaadin-date-picker-calendar-cell-today: {
+                    color: unset;
+                    background-color: unset;
+                    font-weight: bold;
+                };
+                --vaadin-date-picker-footer: {
+                    color: #616161;
+                };
+            }
+
+            table.table {
+                width: 100%;
+                display: table;
+                border-collapse: collapse;
+                margin-bottom: 1em;
+            }
+
+            table.table th,
+            table.table td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            table.table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+
+            table.table tr:hover {
+                background-color: #f5f5f5;
+            }
+
+            .additional-data {
+                padding: 10px;
+                margin-top: 5px;
+                background-color: #f9f9f9;
+                border-radius: 4px;
+            }
+
+            details summary {
+                cursor: pointer;
+                color: #0066cc;
+            }
+
+            paper-material {
+                background: white;
+                padding: 8px;
+                margin: 0;
+            }
+
+            .query {
+                justify-content: flex-start;
+            }
+
+            .query paper-input {
+                margin-right: 8px;
+            }
+
+        </style>
+
+        <paper-material elevation="1">
+
+            <div class="actions">
+                <div>
+                    <paper-dropdown-menu label="Realm" class="custom">
+                        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedRealm}}">
+                            <template is="dom-repeat" items="[[realms]]">
+                                <paper-item value="[[item.name]]">[[item.name]]</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                </div>
+
+                <div>
+                    <vaadin-date-picker label="From" value="{{from}}" i18n="{{i18n}}"></vaadin-date-picker>
+                    <vaadin-date-picker label="To" value="{{to}}" i18n="{{i18n}}"></vaadin-date-picker>
+                </div>
+
+                <div>
+                    <paper-icon-button class="g-pull-right"
+                                       icon="refresh"
+                                       title="Refresh"
+                                       on-tap="queryPage"></paper-icon-button>
+                </div>
+            </div>
+
+            <div class="actions query">
+                <paper-input label="Username" value="{{username}}"></paper-input>
+                <paper-input label="Element type" value="{{elementType}}"></paper-input>
+                <paper-input label="Element sub type" value="{{elementSubType}}"></paper-input>
+                <paper-input label="Action" value="{{action}}"></paper-input>
+                <paper-input label="Access type" value="{{accessType}}"></paper-input>
+            </div>
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Element Type</th>
+                    <th>Element Sub Type</th>
+                    <th>Action</th>
+                    <th>Access Type</th>
+                    <th>Date</th>
+                    <th>Additional Data</th>
+                </tr>
+                </thead>
+                <tbody>
+                <template is="dom-repeat" items="{{dataObj.data}}" as="audit">
+                    <tr>
+                        <td>[[audit.id]]</td>
+                        <td>[[audit.username]]</td>
+                        <td>[[audit.elementType]]</td>
+                        <td>[[audit.elementSubType]]</td>
+                        <td>[[audit.action]]</td>
+                        <td>[[audit.accessType]]</td>
+                        <td>[[toLocalDateTime(audit.date)]]</td>
+                        <td>
+                            <template is="dom-if" if="[[audit.additionalData]]">
+                                <details>
+                                    <summary>View Details</summary>
+                                    <div class="additional-data">
+                                        <template is="dom-if" if="[[audit.additionalData.method]]">
+                                            <div><strong>Method:</strong> [[audit.additionalData.method]]</div>
+                                        </template>
+                                        <template is="dom-if" if="[[audit.additionalData.url]]">
+                                            <div><strong>URL:</strong> [[audit.additionalData.url]]</div>
+                                        </template>
+                                        <template is="dom-if" if="[[audit.additionalData.remote_ip]]">
+                                            <div><strong>Remote IP:</strong> [[audit.additionalData.remote_ip]]</div>
+                                        </template>
+                                        <template is="dom-if" if="[[audit.additionalData.headers]]">
+                                            <div>
+                                                <strong>Headers:</strong>
+                                                <ul>
+                                                    <template is="dom-repeat"
+                                                              items="[[_objectToArray(audit.additionalData.headers)]]"
+                                                              as="header">
+                                                        <li>[[header.key]]: [[header.value]]</li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                        <template is="dom-if" if="[[audit.additionalData.params]]">
+                                            <div>
+                                                <strong>Params:</strong>
+                                                <ul>
+                                                    <template is="dom-repeat"
+                                                              items="[[_objectToArray(audit.additionalData.params)]]"
+                                                              as="param">
+                                                        <li>[[param.key]]: [[param.value]]</li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </details>
+                            </template>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+
+            <div class="actions padding">
+                <div>
+                    &nbsp;
+                </div>
+                <div>
+                    <paper-icon-button icon="first-page" on-tap="_toFirstPage"></paper-icon-button>
+                    <paper-icon-button icon="chevron-left" on-tap="_toPreviousPage"></paper-icon-button>
+                    <p>[[dataObj.offset]] to [[_getEnd(dataObj)]] of [[dataObj.size]] ([[dataObj.dataSetSize]])</p>
+                    <paper-icon-button icon="chevron-right" on-tap="_toNextPage"></paper-icon-button>
+                    <paper-icon-button icon="last-page" on-tap="_toLastPage"></paper-icon-button>
+                </div>
+                <div>
+                    <paper-button on-tap="_setLimit">10</paper-button>
+                    <paper-button on-tap="_setLimit">50</paper-button>
+                    <paper-button on-tap="_setLimit">100</paper-button>
+                </div>
+            </div>
+
+        </paper-material>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: "strolch-wc-audits-page",
+
+            behaviors: [
+                StrolchInspectorBehavior,
+                StrolchInspectorPagingBehavior
+            ],
+
+            properties: {
+                realms: {
+                    type: Array,
+                    value: null
+                },
+                selectedRealm: {
+                    type: Object,
+                    value: null,
+                    observer: "realmChanged"
+                },
+
+                searchTerm: {
+                    type: String,
+                    observer: "queryParamChanged"
+                },
+                from: {
+                    type: String,
+                    observer: "queryParamChanged",
+                    value: function () {
+                        var date = new Date();
+                        date.setDate(date.getDate());
+                        return date.toISOString().substring(0, 10);
+                    }
+                },
+                to: {
+                    type: String,
+                    observer: "queryParamChanged",
+                    value: function () {
+                        var date = new Date();
+                        date.setDate(date.getDate() + 1);
+                        return date.toISOString().substring(0, 10);
+                    }
+                },
+
+                username: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+                elementType: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+                elementSubType: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+                elementAccessed: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+                action: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+                accessType: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
+
+
+                propagateShowDialog: {
+                    type: Boolean,
+                    value: function () {
+                        return false
+                    }
+                },
+
+                i18n: {
+                    type: Object,
+                    value: {
+                        monthNames: [
+                            "January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December"
+                        ],
+                        weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                        weekdaysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                        firstDayOfWeek: 0,
+                        week: "Week",
+                        calendar: "Calendar",
+                        clear: "Clear",
+                        today: "Today",
+                        cancel: "Cancel",
+
+                        formatDate: function (datetime) {
+                            if (typeof (datetime) == 'string') {
+                                datetime = new Date(datetime);
+                            }
+
+                            var day = (datetime.getDate()).toString();
+                            var month = (datetime.getMonth() + 1).toString();
+                            var year = (datetime.getFullYear()).toString();
+
+                            day = day.length < 2 ? "0" + day : day;
+                            month = month.length < 2 ? "0" + month : month;
+                            return year + "-" + month + "-" + day;
+                        },
+                        parseDate: function (datetimeString) {
+                            var splitString = datetimeString.split("-");
+                            if (splitString.length !== 3) return null;
+
+                            var year = Number(splitString[0]);
+                            var month = Number(splitString[1]) - 1;
+                            var day = Number(splitString[2]);
+                            return new Date(year, month, day);
+                        },
+                        formatTitle: function (monthName, fullYear) {
+                            return monthName + " " + fullYear;
+                        }
+                    }
+                }
+            },
+
+            toLocalDateTime: function (val) {
+                return Strolch.toDateTime(val);
+            },
+
+            listeners: {
+                "strolch-show-dialog": "onShowDialog"
+            },
+            queryParamChanged: function (newValue) {
+                if (newValue != null)
+                    this.queryPage();
+            },
+            realmChanged: function (newValue) {
+                if (newValue != null) {
+                    Strolch.setQueryParamValue('realm', newValue);
+                    this.queryPage();
+                }
+            },
+
+            showException: function (e) {
+                this.exception = e.model.log.exception;
+                this.$.exDlg.open();
+            },
+
+            onShowDialog: function (event) {
+                if (!this.propagateShowDialog) {
+                    event.cancelBubble = true;
+                    event.stopPropagation();
+                    this.showError(event.detail.title, event.detail.text);
+                }
+            },
+            showError: function (title, text) {
+                this.dlgTitle = title;
+                this.dlgText = text;
+                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                this.$.dlg.open();
+            },
+
+            reload: function () {
+                this.reloadRealms();
+            },
+
+            onClearTapped: function () {
+                this.searchTerm = '';
+            },
+
+            queryPage: function () {
+                if (this.realms == null) {
+                    return;
+                }
+
+                this.dlgTitle = 'Fetching log failed';
+                this._handleAjaxResponse = function (data) {
+                    if (data.detail.response && data.detail.response.data)
+                        this.dataObj = data.detail.response;
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/audits/' + this.selectedRealm;
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = {
+                    from: this.from,
+                    to: this.to,
+                    username: this.username,
+                    elementType: this.elementType,
+                    elementSubType: this.elementSubType,
+                    elementAccessed: this.elementAccessed,
+                    action: this.action,
+                    accessType: this.accessType,
+                    query: this.searchTerm,
+                    offset: this.dataObj.offset,
+                    limit: this.dataObj.limit
+                };
+                this.$.ajax.generateRequest();
+            },
+
+            reloadRealms: function () {
+
+                var realmToSelect = Strolch.getQueryParamValue('realm');
+
+                this._handleAjaxResponse = function (data) {
+                    if (data.detail.response.realms == null) {
+                        return;
+                    }
+
+                    this.selectedRealm = null;
+                    this.realms = data.detail.response.realms;
+
+                    if (Strolch.isNotEmptyString(realmToSelect)) {
+                        for (var i = 0; i < this.realms.length; i++) {
+                            if (this.realms[i].name === realmToSelect) {
+                                this.selectedRealm = realmToSelect;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (this.selectedRealm == null && this.realms.length > 0) {
+                        this.selectedRealm = this.realms[0].name;
+                    }
+                };
+
+                this.$.ajax.url = this.basePath + 'rest/strolch/inspector';
+                this.$.ajax.method = 'GET';
+                this.$.ajax.params = null;
+                this.$.ajax.generateRequest();
+            },
+
+            _handleAjaxResponse: function (evt) {
+                console.log('NOT YET DEFINED!');
+            },
+
+            /**
+             * Converts an object to an array of key-value pairs
+             * @param {Object} obj - The object to convert
+             * @return {Array} An array of objects with key and value properties
+             */
+            _objectToArray: function (obj) {
+                if (!obj) return [];
+
+                var result = [];
+                Object.keys(obj).forEach(function (key) {
+                    result.push({
+                        key: key,
+                        value: obj[key]
+                    });
+                });
+
+                return result;
+            }
+        });
+
+    </script>
+
+</dom-module>
