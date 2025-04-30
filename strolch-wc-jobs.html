@@ -56,6 +56,18 @@
                 min-height: 300px;
             }
 
+            .g-row {
+                padding: 8px;
+            }
+
+            .data:nth-child(even) {
+                background-color: var(--row-even-bg-color);
+            }
+
+            .data:hover {
+                background-color: var(--selected-bg-color);
+            }
+
         </style>
 
         <div class="g-row g-pt-4">
@@ -83,10 +95,7 @@
                     </div>
 
                     <template is="dom-repeat" items="[[jobs]]">
-
-                        <hr />
-
-                        <div class="g-row">
+                        <div class="g-row data">
                             <div class="g-2 g-auto-middle">[[item.name]]</div>
                             <div class="g-1 g-auto-middle">[[item.realm]]</div>
                             <div class="g-1 g-auto-middle">[[item.mode]]</div>
@@ -94,7 +103,7 @@
                             <div class="g-1 g-auto-middle">[[item.nrOfExecutions]]</div>
                             <div class="g-1 g-auto-middle">
                                 <template is="dom-if" if="[[isSet(item.initialDelayTimeUnit)]]">
-                                    [[item.initialDelay]] [[item.initialDelayTimeUnit]] <br /> [[item.delay]]
+                                    [[item.initialDelay]] [[item.initialDelayTimeUnit]] <br/> [[item.delay]]
                                     [[item.delayTimeUnit]]
                                 </template>
                                 <template is="dom-if" if="[[isSet(item.cron)]]">
@@ -102,9 +111,9 @@
                                 </template>
                                 <template is="dom-if" if="[[!isSet(item.cron)]]">-</template>
                             </div>
-                            <div class="g-1 g-auto-middle">[[item.lastDuration]] <br /> [[item.totalDuration]]</div>
-                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastExecution)]] <br />
-                                                           [[toLocalDateTime(item.nextExecution)]]
+                            <div class="g-1 g-auto-middle">[[item.lastDuration]] <br/> [[item.totalDuration]]</div>
+                            <div class="g-2 g-auto-middle">[[toLocalDateTime(item.lastExecution)]] <br/>
+                                [[toLocalDateTime(item.nextExecution)]]
                             </div>
 
                             <div class="g-2 g-auto-middle">
