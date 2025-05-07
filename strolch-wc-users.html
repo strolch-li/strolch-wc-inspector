@@ -374,7 +374,7 @@
 
         Polymer({
 
-            is: 'strolch-wc-users',
+            is: "strolch-wc-users",
 
             behaviors: [
                 StrolchInspectorBehavior,
@@ -408,7 +408,7 @@
                 },
                 searchTerm: {
                     type: String,
-                    observer: 'searchTermChanged'
+                    observer: "searchTermChanged"
                 },
                 propagateShowDialog: {
                     type: Boolean,
@@ -419,7 +419,7 @@
             },
 
             _getName: function (user) {
-                return user.firstname + ' ' + user.lastname;
+                return user.firstname + " " + user.lastname;
             },
 
             listeners: {
@@ -435,11 +435,11 @@
             showError: function (title, text) {
                 this.dlgTitle = title;
                 this.dlgText = text;
-                console.log('ERROR: ' + this.dlgTitle + ': ' + this.dlgText);
+                console.log("ERROR: " + this.dlgTitle + ": " + this.dlgText);
                 this.$.dlg.open();
             },
             _handleAjaxResponse: function (evt) {
-                console.log('NOT YET DEFINED!');
+                console.log("NOT YET DEFINED!");
             },
 
             searchTermChanged: function (newValue) {
@@ -456,18 +456,18 @@
 
             queryPage: function () {
 
-                this.dlgTitle = 'User query failed';
+                this.dlgTitle = "User query failed";
                 this._handleAjaxResponse = function (data) {
                     this.dataObj = data.detail.response;
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
-                this.$.ajax.method = 'GET';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users";
+                this.$.ajax.method = "GET";
                 this.$.ajax.params = {
                     query: this.searchTerm,
                     offset: this.dataObj.offset,
                     limit: this.dataObj.limit,
-                    orderBy: 'username'
+                    orderBy: "username"
                 };
                 this.$.ajax.generateRequest();
             },
@@ -475,25 +475,25 @@
             _setPassword: function (e) {
 
                 if (this.isEmptyString(this.password0)) {
-                    this.showError('Password invalid', 'Password can not be empty!');
+                    this.showError("Password invalid", "Password can not be empty!");
                     return;
                 }
                 if (this.password0 !== this.password1) {
-                    this.showError('Password invalid', 'Password are not the same!');
+                    this.showError("Password invalid", "Password are not the same!");
                     return;
                 }
 
-                this.dlgTitle = 'Set password failed';
+                this.dlgTitle = "Set password failed";
                 this._handleAjaxResponse = function (data) {
                     this.reload();
 
-                    this.password0 = '';
-                    this.password1 = '';
+                    this.password0 = "";
+                    this.password1 = "";
                     this.$.pwDlg.close();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
-                this.$.ajax.method = 'PUT';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + this.user.userId + "/password";
+                this.$.ajax.method = "PUT";
                 this.$.ajax.body = {
                     password: btoa(unescape(encodeURIComponent(this.password0)))
                 };
@@ -501,50 +501,50 @@
             },
 
             _clearPassword: function (e) {
-                this.dlgTitle = 'Clear password failed';
+                this.dlgTitle = "Clear password failed";
                 this._handleAjaxResponse = function (data) {
                     this.reload();
 
-                    this.password0 = '';
-                    this.password1 = '';
+                    this.password0 = "";
+                    this.password1 = "";
                     this.$.pwDlg.close();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password';
-                this.$.ajax.method = 'DELETE';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + this.user.userId + "/password";
+                this.$.ajax.method = "DELETE";
                 this.$.ajax.body = {};
                 this.$.ajax.generateRequest();
             },
 
             _requireChange: function (e) {
-                this.dlgTitle = 'Require Password Change failed';
+                this.dlgTitle = "Require Password Change failed";
                 this._handleAjaxResponse = function (data) {
                     this.reload();
 
-                    this.password0 = '';
-                    this.password1 = '';
+                    this.password0 = "";
+                    this.password1 = "";
                     this.$.pwDlg.close();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username + '/password/state';
-                this.$.ajax.method = 'PUT';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + this.user.userId + "/password/state";
+                this.$.ajax.method = "PUT";
                 this.$.ajax.body = {state: "RequirePasswordChange"};
                 this.$.ajax.generateRequest();
             },
 
             _removeUser: function (e) {
                 var user = e.model.item;
-                if (!confirm('Do you really want to delete user ' + user.username + ': ' + user.firstname + ' ' + user.lastname)) {
+                if (!confirm("Do you really want to delete user " + user.username + ": " + user.firstname + " " + user.lastname)) {
                     return;
                 }
 
-                this.dlgTitle = 'Remove user failed';
+                this.dlgTitle = "Remove user failed";
                 this._handleAjaxResponse = function (data) {
                     this.reload();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + user.username;
-                this.$.ajax.method = 'DELETE';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + user.userId;
+                this.$.ajax.method = "DELETE";
                 this.$.ajax.body = {};
                 this.$.ajax.generateRequest();
             },
@@ -553,22 +553,22 @@
 
                 var msg = this._validateUser(this.user);
                 if (this.isNotEmptyString(msg)) {
-                    this.showError('Empty field', msg);
+                    this.showError("Empty field", msg);
                     return;
                 }
 
-                this.dlgTitle = 'Save user failed';
+                this.dlgTitle = "Save user failed";
                 this._handleAjaxResponse = function (data) {
                     this.$.userDlg.close();
                     this.reload();
                 };
 
                 if (this.isEmptyString(this.user.userId)) {
-                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users';
-                    this.$.ajax.method = 'POST';
+                    this.$.ajax.url = this.basePath + "rest/strolch/privilege/users";
+                    this.$.ajax.method = "POST";
                 } else {
-                    this.$.ajax.url = this.basePath + 'rest/strolch/privilege/users/' + this.user.username;
-                    this.$.ajax.method = 'PUT';
+                    this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + this.user.userId;
+                    this.$.ajax.method = "PUT";
                 }
                 this.$.ajax.body = this.user;
                 this.$.ajax.generateRequest();
@@ -576,19 +576,19 @@
 
             _validateUser: function (user) {
                 if (this.isEmptyString(user.username))
-                    return 'Username is not set!';
+                    return "Username is not set!";
                 if (this.isEmptyString(user.firstname))
-                    return 'Firstname is not set!';
+                    return "Firstname is not set!";
                 if (this.isEmptyString(user.lastname))
-                    return 'Lastname is not set!';
+                    return "Lastname is not set!";
                 if (this.isEmptyString(user.userState))
-                    return 'User state is not set!';
+                    return "User state is not set!";
                 if (this.isEmptyString(user.locale))
-                    return 'Locale is not set!';
+                    return "Locale is not set!";
                 if (user.groups.length === 0 && user.roles.length === 0)
-                    return 'No role or group selected!';
+                    return "No role or group selected!";
 
-                return '';
+                return "";
             },
 
             _openAddGroupDlg: function (e) {
@@ -601,17 +601,17 @@
             _removeGroup: function (e) {
                 var value = e.model.item;
                 var list = this.user.groups;
-                var path = 'user.groups';
+                var path = "user.groups";
                 this._removeValue(value, list, path);
             },
             _removeRole: function (e) {
                 var value = e.model.item;
                 var list = this.user.roles;
-                var path = 'user.roles';
+                var path = "user.roles";
                 this._removeValue(value, list, path);
             },
             _removeValue: function (value, list, path) {
-                console.log('Removing value ' + value + ' for path ' + path);
+                console.log("Removing value " + value + " for path " + path);
                 for (var i = 0; i < list.length; i++) {
                     if (list[i] !== value) {
                         continue;
@@ -624,7 +624,7 @@
                             removed: [value],
                             addedCount: 0,
                             object: list,
-                            type: 'splice'
+                            type: "splice"
                         }
                     ]);
                     this.notifyPath(path);
@@ -643,7 +643,7 @@
                 };
 
                 this.$.ajax.url = this.basePath + "rest/strolch/privilege/" + urlSuffix;
-                this.$.ajax.method = 'GET';
+                this.$.ajax.method = "GET";
                 this.$.ajax.params = {};
                 this.$.ajax.generateRequest();
             },
@@ -658,13 +658,13 @@
                         arr = this.user.groups.slice();
                         arr.push(this.selectedItem);
                         arr.sort();
-                        this.set('user.groups', arr);
+                        this.set("user.groups", arr);
                         break;
                     case "Role":
                         arr = this.user.roles.slice();
                         arr.push(this.selectedItem);
                         arr.sort();
-                        this.set('user.roles', arr);
+                        this.set("user.roles", arr);
                         break;
                     default:
                         this.showError("Error", "Unhandled type " + this.itemsType);
@@ -674,9 +674,9 @@
                 this.$.addItemDlg.close();
             },
             _addEmptyProperty: function () {
-                this.push('user.properties', {
-                    key: '',
-                    value: ''
+                this.push("user.properties", {
+                    key: "",
+                    value: ""
                 });
             },
             _removeProperty: function (e) {
@@ -686,13 +686,13 @@
                 for (; i < this.user.properties.length; i++) {
                     if (this.user.properties[i].key === property.key) {
                         this.user.properties.splice(i, 1);
-                        this.notifySplices('user.properties', [
+                        this.notifySplices("user.properties", [
                             {
                                 index: i,
                                 removed: [property],
                                 addedCount: 0,
                                 object: this.user.properties,
-                                type: 'splice'
+                                type: "splice"
                             }
                         ]);
                     }
@@ -701,12 +701,12 @@
 
             _addUser: function () {
                 this.user = {
-                    userId: '',
-                    username: '',
-                    firstname: '',
-                    lastname: '',
-                    userState: 'NEW',
-                    locale: 'en',
+                    userId: "",
+                    username: "",
+                    firstname: "",
+                    lastname: "",
+                    userState: "NEW",
+                    locale: "en",
                     groups: [],
                     roles: [],
                     properties: []
@@ -717,6 +717,8 @@
 
             _openPwDlg: function (e) {
                 this.user = e.model.item;
+                this.password0 = "";
+                this.password1 = "";
                 this.$.pwDlg.open();
             },
 
@@ -726,8 +728,8 @@
                     this.$.privilegesDlg.open(data.detail.response);
                 };
 
-                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + user.username + "/privileges";
-                this.$.ajax.method = 'GET';
+                this.$.ajax.url = this.basePath + "rest/strolch/privilege/users/" + user.userId + "/privileges";
+                this.$.ajax.method = "GET";
                 this.$.ajax.params = {};
                 this.$.ajax.generateRequest();
             },
