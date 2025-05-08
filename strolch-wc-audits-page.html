@@ -178,38 +178,45 @@
                                 <details>
                                     <summary>View Details</summary>
                                     <div class="additional-data">
-                                        <template is="dom-if" if="[[audit.additionalData.method]]">
-                                            <div><strong>Method:</strong> [[audit.additionalData.method]]</div>
+
+                                        <template is="dom-if" if="[[isEqual(audit.elementType, 'REST_API')]]">
+                                            <template is="dom-if" if="[[audit.additionalData.method]]">
+                                                <div><strong>Method:</strong> [[audit.additionalData.method]]</div>
+                                            </template>
+                                            <template is="dom-if" if="[[audit.additionalData.url]]">
+                                                <div><strong>URL:</strong> [[audit.additionalData.url]]</div>
+                                            </template>
+                                            <template is="dom-if" if="[[audit.additionalData.remote_ip]]">
+                                                <div><strong>Remote IP:</strong> [[audit.additionalData.remote_ip]]
+                                                </div>
+                                            </template>
+                                            <template is="dom-if" if="[[audit.additionalData.headers]]">
+                                                <div>
+                                                    <strong>Headers:</strong>
+                                                    <ul>
+                                                        <template is="dom-repeat"
+                                                                  items="[[_objectToArray(audit.additionalData.headers)]]"
+                                                                  as="header">
+                                                            <li>[[header.key]]: [[header.value]]</li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </template>
+                                            <template is="dom-if" if="[[audit.additionalData.params]]">
+                                                <div>
+                                                    <strong>Params:</strong>
+                                                    <ul>
+                                                        <template is="dom-repeat"
+                                                                  items="[[_objectToArray(audit.additionalData.params)]]"
+                                                                  as="param">
+                                                            <li>[[param.key]]: [[param.value]]</li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </template>
                                         </template>
-                                        <template is="dom-if" if="[[audit.additionalData.url]]">
-                                            <div><strong>URL:</strong> [[audit.additionalData.url]]</div>
-                                        </template>
-                                        <template is="dom-if" if="[[audit.additionalData.remote_ip]]">
-                                            <div><strong>Remote IP:</strong> [[audit.additionalData.remote_ip]]</div>
-                                        </template>
-                                        <template is="dom-if" if="[[audit.additionalData.headers]]">
-                                            <div>
-                                                <strong>Headers:</strong>
-                                                <ul>
-                                                    <template is="dom-repeat"
-                                                              items="[[_objectToArray(audit.additionalData.headers)]]"
-                                                              as="header">
-                                                        <li>[[header.key]]: [[header.value]]</li>
-                                                    </template>
-                                                </ul>
-                                            </div>
-                                        </template>
-                                        <template is="dom-if" if="[[audit.additionalData.params]]">
-                                            <div>
-                                                <strong>Params:</strong>
-                                                <ul>
-                                                    <template is="dom-repeat"
-                                                              items="[[_objectToArray(audit.additionalData.params)]]"
-                                                              as="param">
-                                                        <li>[[param.key]]: [[param.value]]</li>
-                                                    </template>
-                                                </ul>
-                                            </div>
+                                        <template is="dom-if" if="[[!isEqual(audit.elementType, 'REST_API')]]">
+                                            <div><pre>[[_formatJson(audit.additionalData)]]</pre></div>
                                         </template>
                                     </div>
                                 </details>
@@ -504,6 +511,16 @@
                 });
 
                 return result;
+            },
+
+            /**
+             * Formats a JSON object as a readable string
+             * @param {Object} json - The JSON object to format
+             * @return {String} A formatted string representation of the JSON object
+             */
+            _formatJson: function (json) {
+                if (!json) return '';
+                return JSON.stringify(json, null, 2);
             }
         });
 
