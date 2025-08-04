@@ -70,14 +70,14 @@
             }
 
             .source {
-               flex-grow: 1;
+                flex-grow: 1;
                 flex-shrink: 1;
                 flex-basis: 100px;
             }
 
             .login-time,
             .last-access {
-               flex-grow: 1;
+                flex-grow: 1;
                 flex-shrink: 1;
                 flex-basis: 100px;
             }
@@ -211,6 +211,8 @@
                 return Strolch.toLocalDateTime(val);
             },
             arrayToString: function (arr) {
+                if (arr == null)
+                    return '';
                 var s = '';
                 for (var i = 0; i < arr.length; i++) {
                     s += arr[i];
