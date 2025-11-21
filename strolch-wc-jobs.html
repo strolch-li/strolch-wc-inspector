@@ -9,6 +9,7 @@
 <link rel="import" href="../paper-styles/color.html">
 
 <link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
@@ -68,6 +69,10 @@
                 background-color: var(--selected-bg-color);
             }
 
+            paper-spinner {
+                margin-bottom: -8px;
+            }
+
         </style>
 
         <div class="g-row g-pt-4">
@@ -77,6 +82,9 @@
                 <paper-icon-button icon="update" title="Reload configuration"
                                    on-tap="reloadConfiguration"></paper-icon-button>
                 <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+                <template is="dom-if" if="[[ajaxRunning]]">
+                    <paper-spinner active></paper-spinner>
+                </template>
             </div>
         </div>
 
@@ -171,6 +179,7 @@
         <iron-ajax id="ajax"
                    content-type="application/json"
                    handle-as="json"
+                   loading="{{ajaxRunning}}"
                    on-response="_handleAjaxResponse"
                    on-error="onAjaxError"></iron-ajax>
 
@@ -195,6 +204,10 @@
                     value: function () {
                         return false
                     }
+                },
+                ajaxRunning: {
+                    type: Boolean,
+                    value: false
                 }
             },
 
@@ -231,7 +244,7 @@
 
             reload: function () {
 
-                this.dlgTitle = 'Sessions query failed';
+                this.dlgTitle = 'Reload failed';
                 this._handleAjaxResponse = function (data) {
                     this.jobs = data.detail.response.data;
                 };
@@ -246,7 +259,7 @@
                 this.doAction('StrolchJobsHandler', 'reloadJobs');
             },
             reloadPolicies: function (evt) {
-                this.doAction('ReloadPoliciesJob', 'runNow');
+                this.doAction('ReloadPoliciesJob', 'runNsow');
             },
 
             cancel: function (evt) {
@@ -263,19 +276,35 @@
             },
 
             doAction: function (jobName, action) {
-                if (!confirm("Do you want to execute " + jobName + " with action " + action + "?")) {
+
+                if (this.ajaxRunning) {
+                    this.showError('Action failed', 'Another action is already running! Please wait until it is finished before executing another action.');
                     return;
                 }
 
-                this.dlgTitle = 'Action failed';
+                this.dlgTitle = 'Run action failed';
                 this._handleAjaxResponse = function (data) {
+                    this.fire('strolch-show-dialog', {
+                        title: "Job action",
+                        text: "Action " + action + " for Job " + jobName + " has been executed successfully."
+                    });
                     this.reload();
                 };
 
-                this.$.ajax.url = this.basePath + 'rest/strolch/jobs/' + jobName + '/action';
-                this.$.ajax.params = {action: action};
-                this.$.ajax.method = 'PUT';
-                this.$.ajax.generateRequest();
+                this.fire("strolch-show-info", {
+                    title: "Confirm",
+                    line1: "Do you want to execute " + jobName + " with action " + action + "?",
+                    callback: function (confirmed) {
+                        if (!confirmed)
+                            return;
+
+                        this.$.ajax.url = this.basePath + 'rest/strolch/jobs/' + jobName + '/action';
+                        this.$.ajax.params = {action: action};
+                        this.$.ajax.method = 'PUT';
+                        this.$.ajax.generateRequest();
+
+                    }.bind(this)
+                });
             },
 
             _handleAjaxResponse: function (evt) {
