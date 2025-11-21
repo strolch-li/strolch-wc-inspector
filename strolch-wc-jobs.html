@@ -72,6 +72,10 @@
 
         <div class="g-row g-pt-4">
             <div class="g-12 g-right">
+                <paper-icon-button icon="image:rotate-90-degrees-ccw" title="Reload policies"
+                                   on-tap="reloadPolicies"></paper-icon-button>
+                <paper-icon-button icon="update" title="Reload configuration"
+                                   on-tap="reloadConfiguration"></paper-icon-button>
                 <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
             </div>
         </div>
@@ -238,6 +242,13 @@
                 this.$.ajax.generateRequest();
             },
 
+            reloadConfiguration: function (evt) {
+                this.doAction('StrolchJobsHandler', 'reloadJobs');
+            },
+            reloadPolicies: function (evt) {
+                this.doAction('ReloadPoliciesJob', 'runNow');
+            },
+
             cancel: function (evt) {
                 var jobName = evt.model.item.name;
                 this.doAction(jobName, 'cancel');
@@ -252,6 +263,9 @@
             },
 
             doAction: function (jobName, action) {
+                if (!confirm("Do you want to execute " + jobName + " with action " + action + "?")) {
+                    return;
+                }
 
                 this.dlgTitle = 'Action failed';
                 this._handleAjaxResponse = function (data) {
