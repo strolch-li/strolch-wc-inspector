@@ -33,24 +33,38 @@
                 --paper-tabs-selection-bar-color: var(--app-regular-highlight-bg-color);
             }
 
+            .actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #paperTabs {
+                flex-basis: calc(100% - 40px);
+            }
+
         </style>
 
         <!-- Content -->
         <div class="content">
-            <paper-tabs id="paperTabs" selected="{{selectedTab}}" attr-for-selected="name" fit-container>
-                <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
-                    <paper-tab name="users">[[localize('users')]]</paper-tab>
-                </template>
-                <template is="dom-if" if="[[hasPrivilege('PrivilegeGetGroup')]]">
-                    <paper-tab name="groups">[[localize('groups')]]</paper-tab>
-                </template>
-                <template is="dom-if" if="[[hasPrivilege('PrivilegeGetRole')]]">
-                    <paper-tab name="roles">[[localize('roles')]]</paper-tab>
-                </template>
-                <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
-                    <paper-tab name="sessions">[[localize('sessions')]]</paper-tab>
-                </template>
-            </paper-tabs>
+            <div class="actions">
+                <paper-tabs id="paperTabs" selected="{{selectedTab}}" attr-for-selected="name" fit-container>
+                    <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
+                        <paper-tab name="users">[[localize('users')]]</paper-tab>
+                    </template>
+                    <template is="dom-if" if="[[hasPrivilege('PrivilegeGetGroup')]]">
+                        <paper-tab name="groups">[[localize('groups')]]</paper-tab>
+                    </template>
+                    <template is="dom-if" if="[[hasPrivilege('PrivilegeGetRole')]]">
+                        <paper-tab name="roles">[[localize('roles')]]</paper-tab>
+                    </template>
+                    <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
+                        <paper-tab name="sessions">[[localize('sessions')]]</paper-tab>
+                    </template>
+                </paper-tabs>
+                <paper-icon-button icon="icons:update" title="Reload privileges"
+                                   on-tap="reloadPrivileges"></paper-icon-button>
+            </div>
 
             <iron-pages selected="[[selectedTab]]" attr-for-selected="id">
 
@@ -66,10 +80,10 @@
                 <template is="dom-if" if="[[equal(selectedTab, 'groups')]]" restamp>
                     <template is="dom-if" if="[[hasPrivilege('PrivilegeGetGroup')]]">
                         <strolch-wc-groups id="groups"
-                                          base-path="[[basePath]]"
-                                          search-term="{{searchTerm}}"
-                                          user-location="[[userLocation]]"
-                                          propagate-show-dialog></strolch-wc-groups>
+                                           base-path="[[basePath]]"
+                                           search-term="{{searchTerm}}"
+                                           user-location="[[userLocation]]"
+                                           propagate-show-dialog></strolch-wc-groups>
                     </template>
                 </template>
                 <template is="dom-if" if="[[equal(selectedTab, 'roles')]]" restamp>
@@ -93,6 +107,13 @@
                 </template>
             </iron-pages>
         </div>
+
+        <iron-ajax id="ajax"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_handleAjaxResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
     </template>
 
     <script>
@@ -175,6 +196,32 @@
                             view.reload();
                     }, 0);
                 }
+            },
+
+            reloadPrivileges: function () {
+                this.dlgTitle = 'Reload privileges failed';
+                this._handleAjaxResponse = function (data) {
+                    this.fire('strolch-show-dialog', {
+                        title: "Reload privileges",
+                        text: "Privileges have been reloaded successfully. Users might need to refresh their browser to see the changes."
+                    });
+                    this.reload();
+                };
+
+                this.fire("strolch-show-info", {
+                    title: "Confirm",
+                    line1: "Do you want to reload the privilege handler?",
+                    callback: function (confirmed) {
+                        if (!confirmed)
+                            return;
+
+                        this.$.ajax.url = this.basePath + 'rest/strolch/jobs/ReloadPrivilegeHandlerJob/action';
+                        this.$.ajax.params = {action: 'runNow'};
+                        this.$.ajax.method = 'PUT';
+                        this.$.ajax.generateRequest();
+
+                    }.bind(this)
+                });
             },
 
             attached: function (e) {
