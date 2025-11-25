@@ -148,6 +148,7 @@
                 <paper-input label="Element sub type" value="{{elementSubType}}"></paper-input>
                 <paper-input label="Action" value="{{action}}"></paper-input>
                 <paper-input label="Access type" value="{{accessType}}"></paper-input>
+                <paper-input label="Source" value="{{source}}"></paper-input>
             </div>
 
             <table class="table">
@@ -160,6 +161,7 @@
                     <th>Action</th>
                     <th>Access Type</th>
                     <th>Date</th>
+                    <th>Source</th>
                     <th>Additional Data</th>
                 </tr>
                 </thead>
@@ -173,6 +175,7 @@
                         <td>[[audit.action]]</td>
                         <td>[[audit.accessType]]</td>
                         <td>[[toLocalDateTime(audit.date)]]</td>
+                        <td>[[audit.source]]</td>
                         <td>
                             <template is="dom-if" if="[[audit.additionalData]]">
                                 <details>
@@ -216,7 +219,9 @@
                                             </template>
                                         </template>
                                         <template is="dom-if" if="[[!isEqual(audit.elementType, 'REST_API')]]">
-                                            <div><pre>[[_formatJson(audit.additionalData)]]</pre></div>
+                                            <div>
+                                                <pre>[[_formatJson(audit.additionalData)]]</pre>
+                                            </div>
                                         </template>
                                     </div>
                                 </details>
@@ -330,7 +335,11 @@
                     value: "",
                     observer: "queryParamChanged"
                 },
-
+                source: {
+                    type: String,
+                    value: "",
+                    observer: "queryParamChanged"
+                },
 
                 propagateShowDialog: {
                     type: Boolean,
@@ -434,7 +443,7 @@
                     return;
                 }
 
-                this.dlgTitle = 'Fetching log failed';
+                this.dlgTitle = 'Fetching audits failed';
                 this._handleAjaxResponse = function (data) {
                     if (data.detail.response && data.detail.response.data)
                         this.dataObj = data.detail.response;
@@ -442,19 +451,37 @@
 
                 this.$.ajax.url = this.basePath + 'rest/strolch/audits/' + this.selectedRealm;
                 this.$.ajax.method = 'GET';
-                this.$.ajax.params = {
-                    from: this.from,
-                    to: this.to,
-                    username: this.username,
-                    elementType: this.elementType,
-                    elementSubType: this.elementSubType,
-                    elementAccessed: this.elementAccessed,
-                    action: this.action,
-                    accessType: this.accessType,
-                    query: this.searchTerm,
-                    offset: this.dataObj.offset,
-                    limit: this.dataObj.limit
-                };
+
+                var params = {};
+                if (this.from != null && this.to != null) {
+                    params.from = this.from;
+                    params.to = this.to;
+                }
+                if (Strolch.isNotEmptyString(this.username))
+                    params.username = this.username;
+                if (Strolch.isNotEmptyString(this.elementType))
+                    params.elementType = this.elementType;
+                if (Strolch.isNotEmptyString(this.elementSubType))
+                    params.elementSubType = this.elementSubType;
+                if (Strolch.isNotEmptyString(this.elementAccessed))
+                    params.elementAccessed = this.elementAccessed;
+                if (Strolch.isNotEmptyString(this.action))
+                    params.action = this.action;
+                if (Strolch.isNotEmptyString(this.accessType))
+                    params.accessType = this.accessType;
+                if (Strolch.isNotEmptyString(this.source))
+                    params.source = this.source;
+                if (Strolch.isNotEmptyString(this.searchTerm))
+                    params.query = this.searchTerm;
+
+                if (this.dataObj != null) {
+                    if (this.dataObj.offset != null)
+                        params.offset = this.dataObj.offset;
+                    if (this.dataObj.limit != null)
+                        params.limit = this.dataObj.limit;
+                }
+
+                this.$.ajax.params = params;
                 this.$.ajax.generateRequest();
             },
 
