@@ -1,0 +1,225 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<link rel="import" href="../paper-styles/color.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-statistics">
+
+    <template>
+
+        <style is="custom-style" include="strolch-wc-styles">
+
+            :host {
+                display: block;
+                padding: 10px;
+            }
+
+            paper-material {
+                background: white;
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            h3 {
+                margin-top: 0;
+                color: var(--paper-blue-800);
+                border-bottom: 1px solid var(--paper-grey-300);
+                padding-bottom: 5px;
+            }
+
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                text-align: right;
+                padding: 8px 12px;
+                border-bottom: 1px solid var(--paper-grey-200);
+            }
+
+            th {
+                background-color: var(--paper-grey-50);
+                font-weight: bold;
+            }
+
+            tr:hover {
+                background-color: var(--paper-grey-50);
+            }
+
+            .label-cell {
+                text-align: left;
+                font-weight: bold;
+                width: 200px;
+            }
+
+            .actions {
+                display: flex;
+                justify-content: flex-end;
+                margin-bottom: 10px;
+            }
+
+            .card-grid {
+                display: flex;
+                flex-wrap: wrap;
+                margin: -10px;
+            }
+
+            .card {
+                flex: 1 1 45%;
+                min-width: 300px;
+                margin: 10px;
+            }
+
+            @media (max-width: 800px) {
+                .card {
+                    flex: 1 1 100%;
+                }
+            }
+
+        </style>
+
+        <div class="actions">
+            <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+        </div>
+
+        <div class="card-grid">
+
+            <template is="dom-repeat" items="[[_getStatKeys(statistics)]]" as="key">
+                <paper-material elevation="1" class="card">
+                    <h3>[[_formatKey(key)]]</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="label-cell">Metric</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template is="dom-repeat" items="[[_getStatDetails(statistics, key)]]" as="detail">
+                                    <tr>
+                                        <td class="label-cell">[[detail.label]]</td>
+                                        <td>[[detail.value]]</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </paper-material>
+            </template>
+
+        </div>
+
+        <iron-ajax id="ajax"
+                   url="[[basePath]]rest/strolch/agent/statistics"
+                   content-type="application/json"
+                   handle-as="json"
+                   method="GET"
+                   on-response="_handleResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'strolch-wc-statistics',
+
+            behaviors: [
+                StrolchInspectorBehavior
+            ],
+
+            properties: {
+                statistics: {
+                    type: Object,
+                    value: function () {
+                        return {};
+                    }
+                }
+            },
+
+            ready: function () {
+                this.reload();
+            },
+
+            reload: function () {
+                this.$.ajax.generateRequest();
+            },
+
+            _handleResponse: function (evt) {
+                this.statistics = evt.detail.response.data;
+            },
+
+            _getStatKeys: function (statistics) {
+                if (!statistics) return [];
+                return Object.keys(statistics);
+            },
+
+            _getStatDetails: function (statistics, key) {
+                if (!statistics || !statistics[key]) return [];
+                var details = statistics[key];
+                var durationUnit = details['durationUnit'];
+                return Object.keys(details).filter(function (detailKey) {
+                    return detailKey !== 'durationUnit';
+                }).map(function (detailKey) {
+                    var value = details[detailKey];
+                    if (durationUnit && detailKey.toLowerCase().indexOf('duration') !== -1) {
+                        value = this._formatDuration(value, durationUnit);
+                    }
+                    return {
+                        label: this._formatKey(detailKey),
+                        value: value
+                    };
+                }.bind(this));
+            },
+
+            _formatDuration: function (value, unit) {
+                if (typeof value !== 'number') return value + ' ' + unit;
+                var millis = value;
+                if (unit === 's') {
+                    millis = value * 1000;
+                } else if (unit === 'm') {
+                    millis = value * 60000;
+                } else if (unit === 'h') {
+                    millis = value * 3600000;
+                }
+
+                if (millis >= 3600000) {
+                    return (Math.ceil((millis / 3600000.0) * 10) / 10) + "h";
+                } else if (millis >= 60000) {
+                    return (Math.ceil((millis / 60000.0) * 10) / 10) + "m";
+                } else if (millis >= 1000) {
+                    return (Math.ceil((millis / 1000.0) * 10) / 10) + "s";
+                } else if (millis == 0) {
+                    return "0s";
+                } else {
+                    return millis + "ms";
+                }
+            },
+
+            _formatKey: function (key) {
+                if (!key) return "";
+                var result = key.replace(/([A-Z])/g, " $1");
+                return result.charAt(0).toUpperCase() + result.slice(1);
+            }
+        });
+
+    </script>
+
+</dom-module>

@@ -61,23 +61,27 @@
                 </paper-item>
                 <paper-item id="control" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="settings"></iron-icon>
-                    </i> Control
+                    Control
                 </paper-item>
                 <paper-item id="inspector" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
-                    </i> Inspector
+                    Inspector
                 </paper-item>
                 <paper-item id="agent-components" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
-                    </i> Components
+                    Components
                 </paper-item>
                 <paper-item id="notifications" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
-                    </i> Notifications
+                    Notifications
                 </paper-item>
                 <paper-item id="audits" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
-                    </i> Audits
+                    Audits
+                </paper-item>
+                <paper-item id="statistics" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="trending-up"></iron-icon>
+                    Statistics
                 </paper-item>
             </paper-listbox>
         </paper-dropdown-menu>
@@ -115,6 +119,7 @@
                     case "notifications":
                     case "inspector":
                     case "audits":
+                    case "statistics":
                         this.page = newValue;
                         this.style.backgroundColor = "#e8eaf6";
                         break;
