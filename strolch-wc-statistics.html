@@ -105,18 +105,18 @@
                     <div class="table-container">
                         <table>
                             <thead>
-                                <tr>
-                                    <th class="label-cell">Metric</th>
-                                    <th>Value</th>
-                                </tr>
+                            <tr>
+                                <th class="label-cell">Metric</th>
+                                <th>Value</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <template is="dom-repeat" items="[[_getStatDetails(statistics, key)]]" as="detail">
-                                    <tr>
-                                        <td class="label-cell">[[detail.label]]</td>
-                                        <td>[[detail.value]]</td>
-                                    </tr>
-                                </template>
+                            <template is="dom-repeat" items="[[_getStatDetails(statistics, key)]]" as="detail">
+                                <tr>
+                                    <td class="label-cell">[[detail.label]]</td>
+                                    <td>[[detail.value]]</td>
+                                </tr>
+                            </template>
                             </tbody>
                         </table>
                     </div>
@@ -148,9 +148,7 @@
             properties: {
                 statistics: {
                     type: Object,
-                    value: function () {
-                        return {};
-                    }
+                    value: {}
                 }
             },
 
