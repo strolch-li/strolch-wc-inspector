@@ -47,7 +47,7 @@
 
         </style>
 
-        <paper-dialog id="dlg" modal>
+        <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
             <h2>Privileges for [[element.username]]</h2>
             <template is="dom-if" if="[[isUser]]">
                 <p>The following are all the resolved privileges which the user has according to the assigned groups and

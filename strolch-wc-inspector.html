@@ -186,7 +186,7 @@
 
         </div>
 
-        <paper-dialog id="dlg" modal>
+        <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
             <textarea class="textarea" readonly rows="7" cols="50">{{dlgText}}</textarea>
             <div class="buttons">
@@ -194,7 +194,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="uploadDlg" class="uploadDlg" modal>
+        <paper-dialog id="uploadDlg" class="uploadDlg" with-backdrop no-cancel-on-outside-click>
             <h3>Import elements</h3>
 
             <paper-dropdown-menu class="uploadTypeDropDown" label-always-float label="Upload Type">

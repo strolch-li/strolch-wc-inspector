@@ -156,7 +156,7 @@
 
         </paper-material>
 
-        <paper-dialog id="dlg" modal>
+        <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
             <div class="buttons">
@@ -164,7 +164,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="exDlg" class="dlg" modal>
+        <paper-dialog id="exDlg" class="dlg" with-backdrop no-cancel-on-outside-click>
             <h3>Exception</h3>
 
             <textarea value="{{exception::input}}"></textarea>

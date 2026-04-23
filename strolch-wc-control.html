@@ -281,7 +281,7 @@
             </div>
         </template>
 
-        <paper-dialog id="modelDlg" modal>
+        <paper-dialog id="modelDlg" with-backdrop no-cancel-on-outside-click>
             <h3>[[selectedItem.objectType]]</h3>
             <h4>[[selectedItem.name]]</h4>
             <textarea value="{{modelAsText::input}}"></textarea>

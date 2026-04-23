@@ -64,7 +64,7 @@
         </template>
 
 
-        <paper-dialog id="dlg" modal>
+        <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
             <div class="buttons">
@@ -72,7 +72,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="addRoleDlg" modal>
+        <paper-dialog id="addRoleDlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
 
             <paper-input label="role name" value="{{roleName}}"></paper-input>

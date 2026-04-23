@@ -50,7 +50,7 @@
                               on-strolch-page-reload="onReload"></strolch-wc-group>
         </template>
 
-        <paper-dialog id="addGroupDlg" modal>
+        <paper-dialog id="addGroupDlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
 
             <paper-input label="group name" value="{{groupName}}"></paper-input>

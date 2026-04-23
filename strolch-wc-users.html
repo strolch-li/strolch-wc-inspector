@@ -213,7 +213,7 @@
 
         </paper-material>
 
-        <paper-dialog id="dlg" modal>
+        <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[dlgTitle]]</h2>
             <p>[[dlgText]]</p>
             <div class="buttons">
@@ -223,7 +223,7 @@
 
         <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
-        <paper-dialog id="pwDlg" modal>
+        <paper-dialog id="pwDlg" with-backdrop no-cancel-on-outside-click>
             <h2>Set Password for [[user.username]]</h2>
             <paper-input label="Password" value="{{password0}}" type="password"></paper-input>
             <paper-input label="Repeat" value="{{password1}}" type="password"></paper-input>
@@ -235,7 +235,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="userDlg" modal>
+        <paper-dialog id="userDlg" with-backdrop no-cancel-on-outside-click>
             <h2>
                 <template is="dom-if" if="[[isEmptyString(user.userId)]]">New User</template>
                 <template is="dom-if" if="[[isNotEmptyString(user.userId)]]">Edit User</template>
@@ -342,7 +342,7 @@
             </div>
         </paper-dialog>
 
-        <paper-dialog id="addItemDlg" modal>
+        <paper-dialog id="addItemDlg" with-backdrop no-cancel-on-outside-click>
             <h2>[[addItemTitle]]</h2>
 
             <paper-dialog-scrollable class="dialog-content">
