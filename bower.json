@@ -17,12 +17,12 @@
   "homepage": "https://github.com/strolch-li/strolch-wc-inspector",
   "ignore": [],
   "dependencies": {
-    "strolchjs": "strolch-li/strolchjs#^0.5.3",
-    "strolch-wc-styles": "strolch-li/strolch-wc-styles#^0.4.7",
+    "strolchjs": "strolch-li/strolchjs#^0.5.5",
+    "strolch-wc-styles": "strolch-li/strolch-wc-styles#^0.4.9",
     "strolch-wc-debounced-input": "strolch-li/strolch-wc-debounced-input#^0.1.6",
     "strolch-wc-tree": "strolch-li/strolch-wc-tree#^0.2.6",
-    "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.11",
-    "strolch-wc-util-behavior": "strolch-li/strolch-wc-util-behavior#^0.3.13",
+    "strolch-wc-ws-observer": "strolch-li/strolch-wc-ws-observer#^0.2.12",
+    "strolch-wc-util-behavior": "strolch-li/strolch-wc-util-behavior#^0.3.14",
 
     "polymer": "Polymer/polymer#^1.12.0",
 
