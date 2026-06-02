@@ -60,37 +60,45 @@
             <paper-dialog-scrollable class="dialog-content">
                 <div class="table">
                     <template is="dom-repeat" items="[[privileges]]" as="privilege">
-                        <div class="table-row privilege">
-                            <p><b>[[privilege.name]]</b></p>
-                            <p>Policy: [[privilege.policy]]</p>
-                            <p>All allowed: [[privilege.allAllowed]]</p>
+                        <template is="dom-if" if="[[!privilege.name]]">
+                            <div class="table-row privilege">
+                                <p><b>[[privilege]]</b></p>
+                            </div>
+                        </template>
+                        <template is="dom-if" if="[[privilege.name]]">
 
-                            <template is="dom-if" if="[[!privilege.allAllowed]]">
-                                <template is="dom-if" if="[[!computeHasAllows(privilege)]]">
-                                    <p>Allow List: <i>none</i></p>
-                                </template>
-                                <template is="dom-if" if="[[computeHasAllows(privilege)]]">
-                                    <p>Allow List:</p>
-                                    <ul>
-                                        <template is="dom-repeat" items="[[privilege.allowList]]">
-                                            <li>[[item]]</li>
-                                        </template>
-                                    </ul>
-                                </template>
+                            <div class="table-row privilege">
+                                <p><b>[[privilege.name]]</b></p>
+                                <p>Policy: [[privilege.policy]]</p>
+                                <p>All allowed: [[privilege.allAllowed]]</p>
 
-                                <template is="dom-if" if="[[!computeHasDenies(privilege)]]">
-                                    <p>Deny List: <i>none</i></p>
+                                <template is="dom-if" if="[[!privilege.allAllowed]]">
+                                    <template is="dom-if" if="[[!computeHasAllows(privilege)]]">
+                                        <p>Allow List: <i>none</i></p>
+                                    </template>
+                                    <template is="dom-if" if="[[computeHasAllows(privilege)]]">
+                                        <p>Allow List:</p>
+                                        <ul>
+                                            <template is="dom-repeat" items="[[privilege.allowList]]">
+                                                <li>[[item]]</li>
+                                            </template>
+                                        </ul>
+                                    </template>
+
+                                    <template is="dom-if" if="[[!computeHasDenies(privilege)]]">
+                                        <p>Deny List: <i>none</i></p>
+                                    </template>
+                                    <template is="dom-if" if="[[computeHasDenies(privilege)]]">
+                                        <p>Deny List:</p>
+                                        <ul>
+                                            <template is="dom-repeat" items="[[privilege.denyList]]">
+                                                <li>[[item]]</li>
+                                            </template>
+                                        </ul>
+                                    </template>
                                 </template>
-                                <template is="dom-if" if="[[computeHasDenies(privilege)]]">
-                                    <p>Deny List:</p>
-                                    <ul>
-                                        <template is="dom-repeat" items="[[privilege.denyList]]">
-                                            <li>[[item]]</li>
-                                        </template>
-                                    </ul>
-                                </template>
-                            </template>
-                        </div>
+                            </div>
+                        </template>
                     </template>
                 </div>
             </paper-dialog-scrollable>

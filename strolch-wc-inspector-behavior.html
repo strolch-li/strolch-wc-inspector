@@ -1,5 +1,7 @@
+<link rel="import" href="../strolch-wc-util-behavior/strolch-wc-component-behavior.html">
+
 <script>
-    StrolchInspectorBehavior = {
+    StrolchInspectorBehaviorImpl = {
 
         properties: {
             basePath: {
@@ -19,75 +21,18 @@
                 return "-";
             return Strolch.toLocalDateTime(val);
         },
-        arrayToString: function (arr) {
-            if (arr == null)
-                return "";
-            var s = '';
-            for (var i = 0; i < arr.length; i++) {
-                s += arr[i];
-                if (i + 1 < arr.length)
-                    s += ', ';
-            }
 
-            return s;
-        },
-        isEqual: function (o1, o2) {
-            return o1 == o2;
-        },
         isEmptyArray: function (arr) {
             return arr == null || arr.length === 0;
         },
         isNotEmptyArray: function (list) {
             return !this.isEmptyArray(list);
         },
-        isEmptyString: function (v) {
-            return v != null && v.length === 0
-        },
-        isNotEmptyString: function (v) {
-            return v != null && v.length > 0
-        },
 
-        _handleAjaxError: function (data) {
-            var dlgText;
-            if (data.detail.request.response) {
-                dlgText = data.detail.request.response.msg;
-            } else {
-                dlgText = data.detail.error;
-            }
-            this.fire('strolch-show-dialog', {
-                title: this.dlgTitle,
-                text: dlgText
-            });
-        },
-
-        onRequestError: function (e) {
-            this.onAjaxError(e);
-        },
-        onAjaxError: function (data) {
-            var dlgText;
-            if (data.detail.request.response) {
-                if (data.detail.request.response.msg) {
-                    dlgText = data.detail.request.response.msg;
-                } else if (data.detail.request.response.charAt(0) === '{') {
-                    var json = JSON.parse(data.detail.request.response);
-                    if (json.msg) {
-                        dlgText = json.msg;
-                    } else {
-                        dlgText = data.detail.request.response;
-                    }
-                } else {
-                    dlgText = data.detail.request.response;
-                }
-            } else if (data.detail.error.message) {
-                dlgText = data.detail.error.message;
-            } else {
-                dlgText = data.detail.error;
-            }
-
-            this.fire('strolch-show-dialog', {
-                title: this.dlgTitle,
-                text: dlgText
-            });
+        onAjaxError: function (e) {
+            this.onRequestError(e);
         }
     };
+
+    StrolchInspectorBehavior = [StrolchInspectorBehaviorImpl, StrolchComponentBehavior];
 </script>

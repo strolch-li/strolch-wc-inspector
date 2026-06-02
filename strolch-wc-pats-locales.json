@@ -1,0 +1,42 @@
+{
+  "en": {
+    "pats": "Personal Access Tokens",
+    "tokenName": "Token Name",
+    "validFrom": "Valid From",
+    "validTo": "Valid To",
+    "lastUsed": "Last Used",
+    "create": "Create",
+    "revoke": "Revoke",
+    "addPat": "Add Personal Access Token",
+    "cancel": "Cancel",
+    "save": "Save",
+    "tokenCreated": "Token Created",
+    "tokenCreatedMsg": "Please copy your new token. You will not be able to see it again!",
+    "copyToClipboard": "Copy to Clipboard",
+    "close": "Close",
+    "roles": "Roles",
+    "privileges": "Privileges",
+    "confirmRevoke": "Are you sure you want to revoke this token?",
+    "revokeSuccess": "Token revoked successfully."
+  },
+  "de": {
+    "pats": "Persönliche Zugangs-Token",
+    "tokenName": "Token Name",
+    "validFrom": "Gültig von",
+    "validTo": "Gültig bis",
+    "lastUsed": "Zuletzt verwendet",
+    "create": "Erstellen",
+    "revoke": "Widerrufen",
+    "addPat": "Persönlichen Zugangs-Token hinzufügen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "tokenCreated": "Token erstellt",
+    "tokenCreatedMsg": "Bitte kopieren Sie Ihren neuen Token. Sie werden ihn nicht wieder sehen können!",
+    "copyToClipboard": "In Zwischenablage kopieren",
+    "close": "Schliessen",
+    "roles": "Rollen",
+    "privileges": "Privilegien",
+    "confirmRevoke": "Sind Sie sicher, dass Sie diesen Token widerrufen möchten?",
+    "revokeSuccess": "Token erfolgreich widerrufen."
+  }
+}

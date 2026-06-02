@@ -11,6 +11,7 @@
 <link rel="import" href="./strolch-wc-groups.html">
 <link rel="import" href="./strolch-wc-roles.html">
 <link rel="import" href="./strolch-wc-sessions.html">
+<link rel="import" href="./strolch-wc-pats.html">
 
 <dom-module id="strolch-wc-user-management">
     <template>
@@ -48,7 +49,8 @@
         <!-- Content -->
         <div class="content">
             <div class="actions">
-                <paper-tabs id="paperTabs" selected="{{selectedTab}}" attr-for-selected="name" fit-container>
+                <paper-tabs id="paperTabs" selected="{{selectedTab}}" attr-for-selected="name" fit-container
+                            on-iron-activate="_onTabActivate">
                     <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
                         <paper-tab name="users">[[localize('users')]]</paper-tab>
                     </template>
@@ -61,6 +63,7 @@
                     <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
                         <paper-tab name="sessions">[[localize('sessions')]]</paper-tab>
                     </template>
+                    <paper-tab name="pats">[[localize('pats')]]</paper-tab>
                 </paper-tabs>
                 <paper-icon-button icon="icons:update" title="Reload privileges"
                                    on-tap="reloadPrivileges"></paper-icon-button>
@@ -74,6 +77,7 @@
                                           base-path="[[basePath]]"
                                           search-term="{{searchTerm}}"
                                           user-location="[[userLocation]]"
+                                          locales-path="../[[localesPath]]"
                                           propagate-show-dialog></strolch-wc-users>
                     </template>
                 </template>
@@ -83,6 +87,7 @@
                                            base-path="[[basePath]]"
                                            search-term="{{searchTerm}}"
                                            user-location="[[userLocation]]"
+                                           locales-path="../[[localesPath]]"
                                            propagate-show-dialog></strolch-wc-groups>
                     </template>
                 </template>
@@ -92,6 +97,7 @@
                                           base-path="[[basePath]]"
                                           search-term="{{searchTerm}}"
                                           user-location="[[userLocation]]"
+                                          locales-path="../[[localesPath]]"
                                           propagate-show-dialog></strolch-wc-roles>
                     </template>
                 </template>
@@ -102,8 +108,13 @@
                                              base-path="[[basePath]]"
                                              search-term="{{searchTerm}}"
                                              user-location="[[userLocation]]"
+                                             locales-path="../[[localesPath]]"
                                              propagate-show-dialog></strolch-wc-sessions>
                     </template>
+                </template>
+                <template is="dom-if" if="[[equal(selectedTab, 'pats')]]" restamp>
+                    <strolch-wc-pats id="pats" base-rest-path="[[baseRestPath]]"
+                                     locales-path="[[localesPath]]"></strolch-wc-pats>
                 </template>
             </iron-pages>
         </div>
@@ -121,6 +132,7 @@
 
             /* Component */
             is: "strolch-wc-user-management",
+
             behaviors: [
                 StrolchComponentBehavior
             ],
@@ -176,9 +188,10 @@
                     this.selectedTab = tab;
             },
             selectedTabChanged: function (newValue, oldValue) {
-                if (newValue != null && oldValue != null) {
+                if (newValue != null) {
                     this.setQueryParamValue('tab', newValue);
-                    this.fire("strolch-clear-search-term");
+                    if (oldValue != null)
+                        this.fire("strolch-clear-search-term");
                 }
             },
 
@@ -187,13 +200,23 @@
             /* Public */
 
 
+            _onTabActivate: function (e) {
+                if (this.selectedTab === e.detail.selected) {
+                    this.refresh();
+                }
+            },
+
             /* Private */
             refresh: function () {
                 if (this.selectedTab != null) {
                     this.debounce('refreshTab', function (e) {
                         var view = this.$$('#' + this.selectedTab);
-                        if (view != null)
-                            view.reload();
+                        if (view != null) {
+                            if (view.reload)
+                                view.reload();
+                            else
+                                console.log("tab " + this.selectedTab + " is missing reload function.");
+                        }
                     }, 0);
                 }
             },
@@ -226,8 +249,11 @@
 
             attached: function (e) {
                 var tab = this.getQueryParamValue("tab");
-                if (Strolch.isNotEmptyString(tab))
+                if (Strolch.isNotEmptyString(tab)) {
                     this.selectedTab = tab;
+                } else if (this.selectedTab == null) {
+                    this.selectedTab = 'users';
+                }
             },
 
             /* Lifecycle */
