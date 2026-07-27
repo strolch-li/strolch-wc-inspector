@@ -64,6 +64,10 @@
                     <iron-icon icon="settings"></iron-icon>
                     Control
                 </paper-item>
+                <paper-item id="configuration" class="menu-item" on-tap="onMenuTap">
+                    <iron-icon icon="settings-applications"></iron-icon>
+                    Configuration
+                </paper-item>
                 <paper-item id="inspector" class="menu-item" on-tap="onMenuTap">
                     <iron-icon icon="explore"></iron-icon>
                     Inspector
@@ -117,6 +121,7 @@
                     case "users":
                     case "roles":
                     case "control":
+                    case "configuration":
                     case "notifications":
                     case "inspector":
                     case "audits":

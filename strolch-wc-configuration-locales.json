@@ -1,0 +1,22 @@
+{
+  "en": {
+    "strolchConfiguration": "Strolch Configuration",
+    "policyModel": "Policy Model",
+    "updateConfiguration": "Update Configuration",
+    "updatePolicyModel": "Update Policy Model",
+    "refresh": "Refresh",
+    "configurationUpdated": "Configuration updated successfully",
+    "success": "Success",
+    "implementation": "Implementation"
+  },
+  "de": {
+    "strolchConfiguration": "Strolch Konfiguration",
+    "policyModel": "Policy-Modell",
+    "updateConfiguration": "Konfiguration aktualisieren",
+    "updatePolicyModel": "Policy-Modell aktualisieren",
+    "refresh": "Aktualisieren",
+    "configurationUpdated": "Konfiguration erfolgreich aktualisiert",
+    "success": "Erfolg",
+    "implementation": "Implementierung"
+  }
+}

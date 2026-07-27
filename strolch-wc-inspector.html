@@ -19,6 +19,7 @@
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-objects.html">
+<link rel="import" href="strolch-wc-configuration.html">
 
 <dom-module id="strolch-wc-inspector">
 
@@ -180,6 +181,10 @@
                                                       realm="[[selectedRealm]]"
                                                       object-type="Activity"
                                                       object-summaries="[[strolchActivities]]"></strolch-wc-inspector-objects>
+                    </section>
+                    <section name="configuration">
+                        <strolch-wc-configuration id="configuration"
+                                                  base-path="[[basePath]]"></strolch-wc-configuration>
                     </section>
                 </iron-pages>
             </div>
