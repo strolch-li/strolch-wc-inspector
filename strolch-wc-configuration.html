@@ -9,21 +9,22 @@
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../paper-item/paper-item.html">
-<link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../paper-tabs/paper-tab.html">
 
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 <link rel="import" href="../strolch-wc-localize-behavior/strolch-wc-localize-behavior.html">
 <link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-parameter-config.html">
+<link rel="import" href="strolch-wc-policy-overview.html">
 
 <dom-module id="strolch-wc-configuration">
 
 	<template>
 
-		<style is="custom-style" include="strolch-wc-styles">
+		<style is="custom-style" include="strolch-wc-app-style">
 
 			:host {
 				display: block;
@@ -32,169 +33,47 @@
 				height: 100%;
 			}
 
-			paper-material {
-				background: white;
-				margin-top: 1em;
-				margin-bottom: 1em;
-				padding: 1em;
-			}
-
-			.g-row {
-				padding: 8px;
-			}
-
-			.section-title {
-				font-size: 1.2em;
-				font-weight: bold;
-				margin-bottom: 1em;
-				border-bottom: 1px solid var(--paper-grey-300);
-				padding-bottom: 0.5em;
-			}
-
-			.parameter-row {
-				display: flex;
-				align-items: baseline;
-				margin-bottom: 0.5em;
-			}
-
-			.parameter-name {
-				flex: 0 0 300px;
-				font-weight: bold;
-				padding-right: 1em;
-			}
-
-			.parameter-id {
-				font-size: 0.9em;
-				font-weight: normal;
-				color: var(--paper-grey-600);
-			}
-
-			.parameter-value {
-				flex: 1;
-			}
-
-			.policy-row {
-				display: flex;
-				flex-direction: column;
-				margin-bottom: 2em;
-				padding: 1em;
-				border: 1px solid var(--paper-grey-200);
-				border-radius: 4px;
-				background-color: var(--paper-grey-50);
-			}
-
-			.policy-info {
-				margin-bottom: 1em;
-			}
-
-			.policy-type {
-				font-weight: bold;
-				font-size: 1.1em;
-			}
-
-			.policy-api {
-				font-size: 0.9em;
-				color: var(--paper-grey-600);
-			}
-
-			.policy-selection {
-				width: 100%;
-			}
-
-			.policy-mapping-row {
-				display: flex;
-				align-items: baseline;
-				margin-bottom: 1em;
-			}
-
-			.policy-mapping-id {
-				flex: 0 0 300px;
-				padding-right: 1em;
-			}
-
-			.policy-mapping-value {
-				flex: 1;
-			}
-
-			paper-dropdown-menu {
-				width: 100%;
+			paper-tabs {
+				margin: 0;
+				padding: 0;
+				--paper-tabs-selection-bar-color: var(--app-regular-highlight-bg-color, var(--paper-amber-600));
 			}
 
 		</style>
 
 		<div class="g-row">
-			<div class="g-12 g-right">
+			<div class="g-10">
+				<paper-tabs selected="{{selectedTab}}" attr-for-selected="name">
+					<paper-tab name="configuration">[[localize('strolchConfiguration')]]</paper-tab>
+					<paper-tab name="policyModel">[[localize('policyModel')]]</paper-tab>
+				</paper-tabs>
+			</div>
+			<div class="g-2 g-right">
 				<paper-icon-button icon="refresh" title="[[localize('refresh')]]" on-tap="reload"></paper-icon-button>
 			</div>
 		</div>
 
 		<div class="g-m-3">
+			<iron-pages selected="[[selectedTab]]" attr-for-selected="name">
 
-			<!-- Configuration Resource -->
-			<paper-material elevation="1">
-				<div class="section-title">[[localize('strolchConfiguration')]]</div>
-
-				<template is="dom-repeat" items="[[_toArray(configuration.parameterBags)]]" as="bag">
-					<div class="g-mb-2">
-						<h4 class="g-mt-0">[[bag.name]]</h4>
-						<template is="dom-repeat" items="[[_toArray(bag.parameters)]]" as="param">
-							<div class="parameter-row">
-								<div class="parameter-name">
-									<div>[[param.name]]</div>
-									<div class="parameter-id">[[param.id]]</div>
-								</div>
-								<div class="parameter-value">
-									<template is="dom-if" if="[[_isBoolean(param.type)]]">
-										<paper-checkbox checked="{{param.value}}" on-change="_onParamChanged"></paper-checkbox>
-									</template>
-									<template is="dom-if" if="[[!_isBoolean(param.type)]]">
-										<paper-input no-label-float value="{{param.value}}" type="[[_getInputType(param.type)]]" on-change="_onParamChanged"></paper-input>
-									</template>
-								</div>
-							</div>
-						</template>
-					</div>
-				</template>
-
-				<div class="g-right g-mt-2">
-					<paper-button raised on-tap="_updateConfiguration" class="g-secondary">[[localize('updateConfiguration')]]</paper-button>
+				<!-- Configuration Resource -->
+				<div name="configuration">
+					<strolch-wc-parameter-config id="parameterConfig"
+												 locales-path="[[localesPath]]"
+												 configuration="{{configuration}}"
+												 on-strolch-update-configuration="_updateConfigurationFromEvent"></strolch-wc-parameter-config>
 				</div>
-			</paper-material>
 
-			<!-- Policy Model -->
-			<paper-material elevation="1">
-				<div class="section-title">[[localize('policyModel')]]</div>
-
-				<template is="dom-repeat" items="[[_toArray(policyModel.policyTypes)]]" as="policyType">
-					<div class="policy-row">
-						<div class="policy-info">
-							<div class="policy-type">[[policyType.type]]</div>
-							<div class="policy-api">[[policyType.api]]</div>
-						</div>
-						<div class="policy-selection">
-							<template is="dom-repeat" items="[[_toArray(policyType.policyByKeyMap)]]" as="mapping">
-								<div class="policy-mapping-row">
-									<div class="policy-mapping-id"><b>[[mapping.id]]</b></div>
-									<div class="policy-mapping-value">
-										<paper-dropdown-menu no-label-float label="[[localize('implementation')]]">
-											<paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{mapping.value}}" on-iron-select="_onPolicyChanged">
-												<template is="dom-repeat" items="[[policyType.possibleImplementations]]" as="impl">
-													<paper-item value="[[impl]]">[[impl]]</paper-item>
-												</template>
-											</paper-listbox>
-										</paper-dropdown-menu>
-									</div>
-								</div>
-							</template>
-						</div>
-					</div>
-				</template>
-
-				<div class="g-right g-mt-2">
-					<paper-button raised on-tap="_updatePolicyModel" class="g-secondary">[[localize('updatePolicyModel')]]</paper-button>
+				<!-- Policy Model -->
+				<div name="policyModel">
+					<strolch-wc-policy-overview id="policyOverview"
+												base-path="[[basePath]]"
+												policy-model="{{policyModel}}"
+												locales-path="[[localesPath]]"
+												on-strolch-update-policy-model="_updatePolicyModel"></strolch-wc-policy-overview>
 				</div>
-			</paper-material>
 
+			</iron-pages>
 		</div>
 
 		<iron-ajax id="ajaxGetConfig"
@@ -245,6 +124,10 @@
 					type: String,
 					value: './strolch-wc-configuration-locales.json'
 				},
+				selectedTab: {
+					type: String,
+					value: 'configuration'
+				},
 				configuration: {
 					type: Object,
 					value: function () {
@@ -289,8 +172,21 @@
 				this.$.ajaxPutConfig.generateRequest();
 			},
 
-			_updatePolicyModel: function () {
-				this.$.ajaxPutPolicies.body = JSON.stringify(this.policyModel);
+			_updateConfigurationFromEvent: function (e) {
+				var config = e.detail;
+				this.configuration = config;
+				this._updateConfiguration();
+			},
+
+			_updateConfigurationFromEvent: function (e) {
+				var config = e.detail;
+				this.configuration = config;
+				this._updateConfiguration();
+			},
+
+			_updatePolicyModel: function (e) {
+				var model = e.detail;
+				this.$.ajaxPutPolicies.body = JSON.stringify(model);
 				this.$.ajaxPutPolicies.generateRequest();
 			},
 
@@ -305,7 +201,6 @@
 					}
 					return val;
 				});
-				// Ensure name is present for display if not provided by API
 				array.forEach(function (item) {
 					if (!item.name) item.name = item.id;
 				});
@@ -324,12 +219,7 @@
 			},
 
 			_onParamChanged: function (e) {
-				// Polymer 1.x data binding might need some help if not using {{}} correctly, 
-				// but here we use {{param.value}} so it should be fine.
-			},
-
-			_onPolicyChanged: function (e) {
-				// Same as above
+				// Param changed binding
 			}
 		});
 	</script>

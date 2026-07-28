@@ -7,7 +7,11 @@
     "refresh": "Refresh",
     "configurationUpdated": "Configuration updated successfully",
     "success": "Success",
-    "implementation": "Implementation"
+    "implementation": "Implementation",
+    "addPolicyKey": "Add Policy Key",
+    "policyKey": "Policy Key",
+    "delete": "Delete",
+    "cancel": "Cancel"
   },
   "de": {
     "strolchConfiguration": "Strolch Konfiguration",
@@ -17,6 +21,10 @@
     "refresh": "Aktualisieren",
     "configurationUpdated": "Konfiguration erfolgreich aktualisiert",
     "success": "Erfolg",
-    "implementation": "Implementierung"
+    "implementation": "Implementierung",
+    "addPolicyKey": "Policy Key hinzufuegen",
+    "policyKey": "Policy Key",
+    "delete": "Entfernen",
+    "cancel": "Abbrechen"
   }
 }

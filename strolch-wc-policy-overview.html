@@ -1,0 +1,106 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+<link rel="import" href="../strolch-wc-localize-behavior/strolch-wc-localize-behavior.html">
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-policy-types.html">
+
+<dom-module id="strolch-wc-policy-overview">
+
+	<template>
+
+		<style is="custom-style" include="strolch-wc-app-style">
+
+			:host {
+				display: block;
+			}
+
+			paper-material {
+				background: white;
+				margin-top: 1em;
+				margin-bottom: 1em;
+				padding: 1em;
+			}
+
+			.section-title {
+				font-size: 1.2em;
+				font-weight: bold;
+				margin-bottom: 1em;
+				border-bottom: 1px solid var(--paper-grey-300);
+				padding-bottom: 0.5em;
+			}
+
+		</style>
+
+		<paper-material elevation="1">
+			<div class="section-title">[[localize('policyModel')]]</div>
+
+			<template is="dom-repeat" items="[[_toArray(policyModel.policyTypes)]]" as="policyType">
+				<strolch-wc-policy-types policy-type="{{policyType}}"
+										 policy-model="{{policyModel}}"
+										 locales-path="[[localesPath]]"
+										 on-strolch-policy-model-changed="_onPolicyModelChanged"></strolch-wc-policy-types>
+			</template>
+
+			<div class="g-right g-mt-2">
+				<paper-button raised on-tap="_updatePolicyModel" class="g-secondary">
+					[[localize('updatePolicyModel')]]
+				</paper-button>
+			</div>
+		</paper-material>
+
+	</template>
+
+	<script>
+		Polymer({
+			is: 'strolch-wc-policy-overview',
+
+			behaviors: [
+				StrolchInspectorBehavior,
+				StrolchLocalizeBehavior
+			],
+
+			properties: {
+				localesPath: {
+					type: String,
+					value: './strolch-wc-configuration-locales.json'
+				},
+				policyModel: {
+					type: Object,
+					value: function () {
+						return {};
+					},
+					notify: true
+				}
+			},
+
+			_toArray: function (obj) {
+				if (!obj) return [];
+				var array = Object.keys(obj).map(function (key) {
+					var val = obj[key];
+					if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+						val.id = key;
+					} else {
+						val = {id: key, value: val};
+					}
+					return val;
+				});
+				array.forEach(function (item) {
+					if (!item.name) item.name = item.id;
+				});
+				return array;
+			},
+
+			_onPolicyModelChanged: function (e) {
+				this.set('policyModel', Object.assign({}, this.policyModel));
+			},
+
+			_updatePolicyModel: function () {
+				this.fire('strolch-update-policy-model', this.policyModel);
+			}
+		});
+	</script>
+
+</dom-module>
