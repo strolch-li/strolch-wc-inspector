@@ -63,7 +63,10 @@
                     <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
                         <paper-tab name="sessions">[[localize('sessions')]]</paper-tab>
                     </template>
-                    <paper-tab name="pats">[[localize('pats')]]</paper-tab>
+                    <template is="dom-if"
+                              if="[[hasServicePrivilege('li.strolch.service.privilege.tokens.GetPersonalAccessTokensService')]]">
+                        <paper-tab name="pats">[[localize('pats')]]</paper-tab>
+                    </template>
                 </paper-tabs>
                 <paper-icon-button icon="icons:update" title="Reload privileges"
                                    on-tap="reloadPrivileges"></paper-icon-button>
@@ -113,8 +116,11 @@
                     </template>
                 </template>
                 <template is="dom-if" if="[[equal(selectedTab, 'pats')]]" restamp>
-                    <strolch-wc-pats id="pats" base-rest-path="[[baseRestPath]]"
-                                     locales-path="[[localesPath]]"></strolch-wc-pats>
+                    <template is="dom-if"
+                              if="[[hasServicePrivilege('li.strolch.service.privilege.tokens.GetPersonalAccessTokensService')]]">
+                        <strolch-wc-pats id="pats" base-rest-path="[[baseRestPath]]"
+                                         locales-path="[[localesPath]]"></strolch-wc-pats>
+                    </template>
                 </template>
             </iron-pages>
         </div>
