@@ -7,6 +7,7 @@
 <link rel="import" href="../paper-styles/color.html">
 
 <link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
@@ -135,11 +136,18 @@
                 flex-basis: 100px;
             }
 
+            paper-spinner {
+                margin-bottom: -8px;
+            }
+
         </style>
 
         <div class="actions actions-right">
             <paper-button on-tap="_addUser" raised>Add</paper-button>
             <paper-icon-button icon="refresh" title="Refresh" on-tap="reload"></paper-icon-button>
+            <template is="dom-if" if="[[ajaxRunning]]">
+                <paper-spinner active></paper-spinner>
+            </template>
         </div>
 
         <paper-material elevation="1">
@@ -228,6 +236,9 @@
             <paper-input label="Password" value="{{password0}}" type="password"></paper-input>
             <paper-input label="Repeat" value="{{password1}}" type="password"></paper-input>
             <div class="buttons">
+                <template is="dom-if" if="[[ajaxRunning]]">
+                    <paper-spinner active></paper-spinner>
+                </template>
                 <paper-button on-tap="_requireChange">Require Change</paper-button>
                 <paper-button on-tap="_clearPassword">Clear</paper-button>
                 <paper-button dialog-confirm autofocus>Close</paper-button>
@@ -366,6 +377,7 @@
         <iron-ajax id="ajax"
                    content-type="application/json"
                    handle-as="json"
+                   loading="{{ajaxRunning}}"
                    on-response="_handleAjaxResponse"
                    on-error="onAjaxError"></iron-ajax>
 
@@ -416,6 +428,10 @@
                     value: function () {
                         return false
                     }
+                },
+                ajaxRunning: {
+                    type: Boolean,
+                    value: false
                 }
             },
 
