@@ -1,0 +1,87 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+<link rel="import" href="strolch-wc-pats.html">
+
+<dom-module id="strolch-wc-pats-dialog">
+	<template>
+		<style include="strolch-wc-styles">
+			:host {
+				display: block;
+			}
+
+			.dialog-content {
+				min-width: 650px;
+				--paper-dialog-scrollable: {
+					max-height: 550px;
+				};
+			}
+
+			strolch-wc-pats {
+				padding: 0;
+			}
+		</style>
+
+		<paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
+			<h2>[[localize('pats')]] - [[username]]</h2>
+
+			<paper-dialog-scrollable class="dialog-content">
+				<strolch-wc-pats id="patsComponent"
+								 base-rest-path="[[baseRestPath]]"
+								 locales-path="[[localesPath]]"
+								 username="[[username]]"
+								 user-id="[[userId]]"></strolch-wc-pats>
+			</paper-dialog-scrollable>
+
+			<div class="buttons">
+				<paper-button autofocus on-tap="close">[[localize('close')]]</paper-button>
+			</div>
+		</paper-dialog>
+	</template>
+
+	<script>
+		Polymer({
+			is: 'strolch-wc-pats-dialog',
+
+			behaviors: [
+				StrolchInspectorBehavior
+			],
+
+			properties: {
+				baseRestPath: {
+					type: String,
+					value: './rest'
+				},
+				localesPath: {
+					type: String,
+					value: './strolch-wc-pats-locales.json'
+				},
+				username: {
+					type: String,
+					value: null
+				},
+				userId: {
+					type: String,
+					value: null
+				}
+			},
+
+			open: function (username, userId) {
+				this.username = username;
+				this.userId = userId;
+				this.$.patsComponent.username = username;
+				this.$.patsComponent.userId = userId;
+				this.$.patsComponent.reload();
+				this.$.dlg.open();
+			},
+
+			close: function () {
+				this.$.dlg.close();
+			}
+		});
+	</script>
+</dom-module>

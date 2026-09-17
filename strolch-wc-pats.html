@@ -88,6 +88,10 @@
 			</paper-button>
 		</div>
 
+		<template is="dom-if" if="[[isEmptyArray(tokens)]]">
+			<p class="g-center"><i>[[localize('noPats')]]</i></p>
+		</template>
+
 		<template is="dom-repeat" items="[[tokens]]" as="token">
 			<paper-material class="token-card" elevation="1" on-tap="_showDetails">
 				<div class="token-info">

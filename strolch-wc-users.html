@@ -26,7 +26,7 @@
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-paging-behavior.html">
 <link rel="import" href="strolch-wc-privilege-dialog.html">
-<link rel="import" href="strolch-wc-pat-create-dialog.html">
+<link rel="import" href="strolch-wc-pats-dialog.html">
 
 <dom-module id="strolch-wc-users">
 
@@ -198,7 +198,7 @@
                                     <paper-item on-tap="_openPwDlg">Set password</paper-item>
                                     <paper-item on-tap="_removeUser">Remove</paper-item>
                                     <paper-item on-tap="_showPrivileges">Privileges</paper-item>
-                                    <paper-item on-tap="_createPat">Add PAT</paper-item>
+                                    <paper-item on-tap="_showPats">PATs</paper-item>
                                 </paper-menu>
                             </paper-menu-button>
                         </div>
@@ -234,7 +234,7 @@
             </div>
         </paper-dialog>
 
-        <strolch-wc-pat-create-dialog id="patCreateDlg" base-rest-path="[[_getBaseRestPath(basePath)]]"></strolch-wc-pat-create-dialog>
+        <strolch-wc-pats-dialog id="patsDlg" base-rest-path="[[_getBaseRestPath(basePath)]]"></strolch-wc-pats-dialog>
 
         <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
@@ -768,9 +768,9 @@
                 return basePath.endsWith('/') ? basePath + 'rest' : basePath + '/rest';
             },
 
-            _createPat: function (e) {
+            _showPats: function (e) {
                 var user = e.model.item;
-                this.$.patCreateDlg.open(user.username, user.userId);
+                this.$.patsDlg.open(user.username, user.userId);
             },
 
             _editUser: function (e) {

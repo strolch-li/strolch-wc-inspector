@@ -22,7 +22,8 @@ The inspector includes a UI for managing Personal Access Tokens (PATs) for authe
 
 ### Usage
 - Open User Management in the Inspector.
-- On the **Users** page, open the user actions dropdown menu and select **Add PAT** to create a token directly for that user.
+- On the **Users** page, open the user actions dropdown menu:
+  - Select **PATs** to view and manage existing tokens for that user.
 - Alternatively, navigate to the **PATs** tab and click **Create** to open the token creation dialog.
 - Optionally enter or adjust the **Username** if creating a token on behalf of another user.
 - Enter a **Token Name**, choose validity duration and unit (days, months, or years), and optionally select a subset of roles and privileges.

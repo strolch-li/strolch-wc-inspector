@@ -31,7 +31,8 @@
     "denyList": "Deny List",
     "none": "none",
     "confirmRevoke": "Are you sure you want to revoke this token?",
-    "revokeSuccess": "Token revoked successfully."
+    "revokeSuccess": "Token revoked successfully.",
+    "noPats": "No Personal Access Tokens available."
   },
   "de": {
     "pats": "Persönliche Zugangs-Token",
@@ -65,6 +66,7 @@
     "denyList": "Verbotsliste",
     "none": "keine",
     "confirmRevoke": "Sind Sie sicher, dass Sie diesen Token widerrufen möchten?",
-    "revokeSuccess": "Token erfolgreich widerrufen."
+    "revokeSuccess": "Token erfolgreich widerrufen.",
+    "noPats": "Keine persönlichen Zugangs-Token vorhanden."
   }
 }
