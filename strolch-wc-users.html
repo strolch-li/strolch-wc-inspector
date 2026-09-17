@@ -239,10 +239,10 @@
                 <template is="dom-if" if="[[ajaxRunning]]">
                     <paper-spinner active></paper-spinner>
                 </template>
-                <paper-button on-tap="_requireChange">Require Change</paper-button>
-                <paper-button on-tap="_clearPassword">Clear</paper-button>
-                <paper-button dialog-confirm autofocus>Close</paper-button>
-                <paper-button on-tap="_setPassword" autofocus>Save</paper-button>
+                <paper-button on-tap="_requireChange" disabled="[[ajaxRunning]]">Require Change</paper-button>
+                <paper-button on-tap="_clearPassword" disabled="[[ajaxRunning]]">Clear</paper-button>
+                <paper-button dialog-confirm autofocus disabled="[[ajaxRunning]]">Close</paper-button>
+                <paper-button on-tap="_setPassword" disabled="[[ajaxRunning]]" autofocus>Save</paper-button>
             </div>
         </paper-dialog>
 
