@@ -7,6 +7,7 @@
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
@@ -63,7 +64,7 @@
             }
 
             .listbox-container {
-                max-height: 200px;
+                max-height: 350px;
                 overflow-y: auto;
                 border: 1px solid #ccc;
                 margin-top: 8px;
@@ -85,6 +86,57 @@
                 display: flex;
                 flex-direction: column;
                 flex: 1;
+            }
+
+            .selected-summary {
+                margin-top: 16px;
+                padding-top: 12px;
+                border-top: 1px solid #e0e0e0;
+            }
+
+            .selected-title {
+                font-weight: bold;
+                margin-top: 8px;
+                margin-bottom: 4px;
+            }
+
+            .badge-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+
+            .badge {
+                background: #e0e0e0;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.9em;
+            }
+
+            .privilege-card {
+                background: #f9f9f9;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 8px 12px;
+                margin-bottom: 8px;
+            }
+
+            .privilege-card-title {
+                font-weight: bold;
+                font-size: 1em;
+                margin-bottom: 4px;
+            }
+
+            .privilege-prop {
+                font-size: 0.9em;
+                margin: 2px 0;
+            }
+
+            .privilege-list {
+                margin: 4px 0 4px 16px;
+                padding: 0;
+                font-size: 0.9em;
             }
         </style>
 
@@ -148,10 +200,21 @@
             <div class="content">
                 <paper-input label="[[localize('tokenName')]]" value="{{newToken.name}}" required
                              auto-validate></paper-input>
-                <paper-input label="[[localize('validFrom')]]" type="datetime-local" value="{{newToken.validFrom}}"
-                             required auto-validate></paper-input>
-                <paper-input label="[[localize('validTo')]]" type="datetime-local" value="{{newToken.validTo}}" required
-                             auto-validate></paper-input>
+                <div class="flex-row">
+                    <div class="flex-column">
+                        <paper-input label="[[localize('duration')]]" type="number" min="1"
+                                     value="{{validityValue}}" required auto-validate></paper-input>
+                    </div>
+                    <div class="flex-column">
+                        <paper-dropdown-menu label="[[localize('unit')]]">
+                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{validityUnit}}">
+                                <paper-item value="days">[[localize('days')]]</paper-item>
+                                <paper-item value="months">[[localize('months')]]</paper-item>
+                                <paper-item value="years">[[localize('years')]]</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                </div>
 
                 <div class="flex-row">
                     <div class="flex-column">
@@ -175,6 +238,60 @@
                             </paper-listbox>
                         </div>
                     </div>
+                </div>
+
+                <div class="selected-summary">
+                    <div class="selected-title">[[localize('selectedRoles')]]</div>
+                    <template is="dom-if" if="[[isEmptyArray(selectedRoles)]]">
+                        <p><i>[[localize('none')]]</i></p>
+                    </template>
+                    <template is="dom-if" if="[[isNotEmptyArray(selectedRoles)]]">
+                        <div class="badge-container">
+                            <template is="dom-repeat" items="[[selectedRoles]]">
+                                <span class="badge">[[item]]</span>
+                            </template>
+                        </div>
+                    </template>
+
+                    <div class="selected-title">[[localize('selectedPrivileges')]]</div>
+                    <template is="dom-if" if="[[isEmptyArray(selectedPrivilegeObjects)]]">
+                        <p><i>[[localize('none')]]</i></p>
+                    </template>
+                    <template is="dom-if" if="[[isNotEmptyArray(selectedPrivilegeObjects)]]">
+                        <template is="dom-repeat" items="[[selectedPrivilegeObjects]]" as="privilege">
+                            <div class="privilege-card">
+                                <div class="privilege-card-title">[[privilege.name]]</div>
+                                <div class="privilege-prop"><b>[[localize('policy')]]:</b> [[privilege.policy]]</div>
+                                <div class="privilege-prop"><b>[[localize('allAllowed')]]:</b> [[privilege.allAllowed]]</div>
+
+                                <template is="dom-if" if="[[!privilege.allAllowed]]">
+                                    <template is="dom-if" if="[[!computeHasAllows(privilege)]]">
+                                        <div class="privilege-prop"><b>[[localize('allowList')]]:</b> <i>[[localize('none')]]</i></div>
+                                    </template>
+                                    <template is="dom-if" if="[[computeHasAllows(privilege)]]">
+                                        <div class="privilege-prop"><b>[[localize('allowList')]]:</b></div>
+                                        <ul class="privilege-list">
+                                            <template is="dom-repeat" items="[[privilege.allowList]]">
+                                                <li>[[item]]</li>
+                                            </template>
+                                        </ul>
+                                    </template>
+
+                                    <template is="dom-if" if="[[!computeHasDenies(privilege)]]">
+                                        <div class="privilege-prop"><b>[[localize('denyList')]]:</b> <i>[[localize('none')]]</i></div>
+                                    </template>
+                                    <template is="dom-if" if="[[computeHasDenies(privilege)]]">
+                                        <div class="privilege-prop"><b>[[localize('denyList')]]:</b></div>
+                                        <ul class="privilege-list">
+                                            <template is="dom-repeat" items="[[privilege.denyList]]">
+                                                <li>[[item]]</li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                    </template>
                 </div>
             </div>
             <div class="buttons">
@@ -217,8 +334,16 @@
                 newToken: {
                     type: Object,
                     value: function () {
-                        return {name: '', validFrom: '', validTo: ''};
+                        return {name: ''};
                     }
+                },
+                validityValue: {
+                    type: Number,
+                    value: 1
+                },
+                validityUnit: {
+                    type: String,
+                    value: 'years'
                 },
                 createdTokenValue: String,
                 availableRoles: {
@@ -236,6 +361,10 @@
                 selectedPrivileges: {
                     type: Array,
                     value: []
+                },
+                selectedPrivilegeObjects: {
+                    type: Array,
+                    computed: '_computeSelectedPrivilegeObjects(selectedPrivileges, selectedPrivileges.splices, availablePrivileges)'
                 },
                 showCopyButton: {
                     type: Boolean,
@@ -258,28 +387,35 @@
             },
 
             _showCreateDialog: function () {
-                var now = new Date();
-                var nextYear = new Date();
-                nextYear.setFullYear(now.getFullYear() + 1);
-
                 this.set('newToken', {
-                    name: '',
-                    validFrom: this._toLocalISOString(now),
-                    validTo: this._toLocalISOString(nextYear)
+                    name: ''
                 });
+                this.validityValue = 1;
+                this.validityUnit = 'years';
                 this.selectedRoles = [];
                 this.selectedPrivileges = [];
                 this.$.createDialog.open();
             },
 
             _createToken: function () {
-                if (!this.newToken.name || !this.newToken.validFrom || !this.newToken.validTo) {
+                if (!this.newToken.name || !this.validityValue || this.validityValue <= 0 || !this.validityUnit) {
                     return;
                 }
+                var validFrom = new Date();
+                var validTo = new Date(validFrom.getTime());
+                var val = parseInt(this.validityValue, 10);
+                if (this.validityUnit === 'days') {
+                    validTo.setDate(validTo.getDate() + val);
+                } else if (this.validityUnit === 'months') {
+                    validTo.setMonth(validTo.getMonth() + val);
+                } else if (this.validityUnit === 'years') {
+                    validTo.setFullYear(validTo.getFullYear() + val);
+                }
+
                 this.$.ajaxCreate.body = JSON.stringify({
                     name: this.newToken.name,
-                    validFrom: new Date(this.newToken.validFrom).toISOString(),
-                    validTo: new Date(this.newToken.validTo).toISOString(),
+                    validFrom: validFrom.toISOString(),
+                    validTo: validTo.toISOString(),
                     roles: this.selectedRoles,
                     privileges: this.selectedPrivileges
                 });
@@ -302,7 +438,7 @@
 
             _showDetails: function (e) {
                 var token = e.model.token;
-                this.$.privilegeDialog.open(token);
+                this.$.privilegeDialog.open(token, this.availablePrivileges);
             },
 
             _onPrivilegesResponse: function (e) {
@@ -335,11 +471,6 @@
                 return new Date(dateStr).toLocaleString();
             },
 
-            _toLocalISOString: function (date) {
-                var tzoffset = date.getTimezoneOffset() * 60000;
-                return (new Date(date - tzoffset)).toISOString().slice(0, 16);
-            },
-
             _copyToClipboard: function () {
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(this.createdTokenValue).then(function () {
@@ -348,6 +479,27 @@
                         console.error('Could not copy text: ', err);
                     }.bind(this));
                 }
+            },
+
+            _computeSelectedPrivilegeObjects: function (selectedPrivileges, splices, availablePrivileges) {
+                if (!this.selectedPrivileges || !availablePrivileges) {
+                    return [];
+                }
+                var selectedMap = {};
+                for (var i = 0; i < this.selectedPrivileges.length; i++) {
+                    selectedMap[this.selectedPrivileges[i]] = true;
+                }
+                return availablePrivileges.filter(function (p) {
+                    return selectedMap[p.name];
+                });
+            },
+
+            computeHasAllows: function (privilege) {
+                return this.isNotEmptyArray(privilege.allowList);
+            },
+
+            computeHasDenies: function (privilege) {
+                return this.isNotEmptyArray(privilege.denyList);
             }
         });
     </script>

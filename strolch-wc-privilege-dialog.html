@@ -8,6 +8,7 @@
 
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../paper-button/paper-button.html">
@@ -35,6 +36,35 @@
                 padding: 0;
             }
 
+            .dialog-content {
+                --paper-dialog-scrollable: {
+                    max-height: 500px;
+                };
+            }
+
+            .roles-section {
+                margin-top: 8px;
+                margin-bottom: 8px;
+            }
+
+            .roles-section p {
+                margin: 0 0 4px 0;
+            }
+
+            .badge-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+
+            .badge {
+                background: #e0e0e0;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.9em;
+            }
+
             .privilege {
                 margin-top: 8px;
                 display: flex;
@@ -45,19 +75,58 @@
                 margin: 0;
             }
 
+            .privileges-title {
+                margin-top: 8px;
+                margin-bottom: 4px;
+                font-weight: bold;
+            }
+
         </style>
 
+        <iron-ajax id="ajaxPrivileges"
+                   method="GET"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="_onPrivilegesResponse"
+                   on-error="onAjaxError"></iron-ajax>
+
         <paper-dialog id="dlg" with-backdrop no-cancel-on-outside-click>
-            <h2>Privileges for [[element.username]]</h2>
+            <h2>Privileges for [[name]]</h2>
             <template is="dom-if" if="[[isUser]]">
                 <p>The following are all the resolved privileges which the user has according to the assigned groups and
-                    roles.</p></template>
-            <template is="dom-if" if="[[!isUser]]">
+                    roles.</p>
+            </template>
+            <template is="dom-if" if="[[isGroup]]">
                 <p>The following are all the resolved privileges which the group has according to the assigned
                     roles.</p>
             </template>
+            <template is="dom-if" if="[[isPat]]">
+                <p>The following are all the resolved privileges which the token has according to the assigned roles and
+                    privileges.</p>
+            </template>
 
             <paper-dialog-scrollable class="dialog-content">
+                <template is="dom-if" if="[[isPat]]">
+                    <div class="roles-section">
+                        <p><b>Roles:</b></p>
+                        <template is="dom-if" if="[[isEmptyArray(element.roles)]]">
+                            <p><i>none</i></p>
+                        </template>
+                        <template is="dom-if" if="[[isNotEmptyArray(element.roles)]]">
+                            <div class="badge-container">
+                                <template is="dom-repeat" items="[[element.roles]]">
+                                    <span class="badge">[[item]]</span>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <p class="privileges-title">Privileges:</p>
+                    <template is="dom-if" if="[[isEmptyArray(privileges)]]">
+                        <p><i>none</i></p>
+                    </template>
+                </template>
+
                 <div class="table">
                     <template is="dom-repeat" items="[[privileges]]" as="privilege">
                         <template is="dom-if" if="[[!privilege.name]]">
@@ -133,19 +202,43 @@
                     type: Boolean,
                     computed: "computeIsUser(element)"
                 },
+                isGroup: {
+                    type: Boolean,
+                    computed: "computeIsGroup(element)"
+                },
+                isPat: {
+                    type: Boolean,
+                    computed: "computeIsPat(element)"
+                },
+                availablePrivileges: {
+                    type: Array,
+                    value: function () {
+                        return [];
+                    }
+                },
                 privileges: {
                     type: Array,
-                    value: []
-                },
+                    value: function () {
+                        return [];
+                    }
+                }
             },
             computeName: function (element) {
                 if (element == null) return "";
+                if (element.tokenId)
+                    return element.name;
                 if (element.username)
                     return element.username;
                 return element.name;
             },
             computeIsUser: function (element) {
-                return element != null && element.username != null
+                return element != null && element.username != null && element.tokenId == null;
+            },
+            computeIsGroup: function (element) {
+                return element != null && element.username == null && element.tokenId == null;
+            },
+            computeIsPat: function (element) {
+                return element != null && element.tokenId != null;
             },
             computeHasAllows: function (privilege) {
                 return this.isNotEmptyArray(privilege.allowList);
@@ -154,15 +247,84 @@
                 return this.isNotEmptyArray(privilege.denyList);
             },
 
-            open: function (element) {
+            _resolvePrivileges: function (element) {
+                if (!element || !element.privileges) {
+                    this.privileges = [];
+                    return;
+                }
+                var rawPrivileges = element.privileges;
+                if (!Array.isArray(rawPrivileges) || rawPrivileges.length === 0) {
+                    this.privileges = [];
+                    return;
+                }
+                if (typeof rawPrivileges[0] === 'object' && rawPrivileges[0] !== null && rawPrivileges[0].policy !== undefined) {
+                    this.privileges = rawPrivileges;
+                    return;
+                }
+
+                var availableMap = {};
+                if (this.availablePrivileges && Array.isArray(this.availablePrivileges)) {
+                    for (var i = 0; i < this.availablePrivileges.length; i++) {
+                        var p = this.availablePrivileges[i];
+                        if (p && p.name) {
+                            availableMap[p.name] = p;
+                        }
+                    }
+                }
+                var resolved = [];
+                for (var j = 0; j < rawPrivileges.length; j++) {
+                    var item = rawPrivileges[j];
+                    if (typeof item === 'string') {
+                        if (availableMap[item]) {
+                            resolved.push(availableMap[item]);
+                        } else {
+                            resolved.push({
+                                name: item,
+                                policy: "DefaultPrivilege",
+                                allAllowed: false,
+                                allowList: [],
+                                denyList: []
+                            });
+                        }
+                    } else if (typeof item === 'object' && item !== null) {
+                        resolved.push(item);
+                    }
+                }
+                this.privileges = resolved;
+            },
+
+            _onPrivilegesResponse: function (e) {
+                this.availablePrivileges = e.detail.response.privileges;
+                this._resolvePrivileges(this.element);
+            },
+
+            open: function (element, availablePrivileges) {
                 this.element = element;
-                this.privileges = element.privileges;
+                if (availablePrivileges) {
+                    this.availablePrivileges = availablePrivileges;
+                }
+                this._resolvePrivileges(element);
+
+                if (element && element.privileges && element.privileges.length > 0 &&
+                    typeof element.privileges[0] === 'string' &&
+                    (!this.availablePrivileges || this.availablePrivileges.length === 0) &&
+                    typeof Strolch !== 'undefined' && Strolch.getUserConfig && Strolch.getUserConfig()) {
+                    var userConfig = Strolch.getUserConfig();
+                    if (userConfig && userConfig.userId) {
+                        this.$.ajaxPrivileges.url = this.basePath + 'rest/strolch/privilege/users/' + userConfig.userId + '/privileges';
+                        if (Strolch.getAuthToken) {
+                            this.$.ajaxPrivileges.headers = {'Authorization': Strolch.getAuthToken()};
+                        }
+                        this.$.ajaxPrivileges.generateRequest();
+                    }
+                }
+
                 this.$.dlg.open();
             },
             close: function () {
                 this.privileges = [];
                 this.$.dlg.close();
-            },
+            }
         });
 
     </script>
