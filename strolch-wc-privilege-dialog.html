@@ -309,9 +309,9 @@
                     typeof element.privileges[0] === 'string' &&
                     (!this.availablePrivileges || this.availablePrivileges.length === 0) &&
                     typeof Strolch !== 'undefined' && Strolch.getUserConfig && Strolch.getUserConfig()) {
-                    var userConfig = Strolch.getUserConfig();
-                    if (userConfig && userConfig.userId) {
-                        this.$.ajaxPrivileges.url = this.basePath + 'rest/strolch/privilege/users/' + userConfig.userId + '/privileges';
+                    var targetUser = (element && element.userId) || (Strolch.getUserConfig() && Strolch.getUserConfig().userId);
+                    if (targetUser) {
+                        this.$.ajaxPrivileges.url = this.basePath + 'rest/strolch/privilege/users/' + targetUser + '/privileges';
                         if (Strolch.getAuthToken) {
                             this.$.ajaxPrivileges.headers = {'Authorization': Strolch.getAuthToken()};
                         }

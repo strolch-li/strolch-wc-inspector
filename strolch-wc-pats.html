@@ -1,506 +1,246 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-material/paper-material.html">
-<link rel="import" href="../paper-listbox/paper-listbox.html">
-<link rel="import" href="../paper-item/paper-item.html">
-<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
 
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-privilege-dialog.html">
+<link rel="import" href="strolch-wc-pat-create-dialog.html">
 
 <dom-module id="strolch-wc-pats">
-    <template>
-        <style include="strolch-wc-styles">
-            :host {
-                display: block;
-                padding: 16px;
-            }
+	<template>
+		<style include="strolch-wc-styles">
+			:host {
+				display: block;
+				padding: 16px;
+			}
 
-            .token-card {
-                padding: 16px;
-                margin-bottom: 16px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                cursor: pointer;
-            }
+			.token-card {
+				padding: 16px;
+				margin-bottom: 16px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				cursor: pointer;
+			}
 
-            .token-card:hover {
-                background-color: #f9f9f9;
-            }
+			.token-card:hover {
+				background-color: #f9f9f9;
+			}
 
-            .token-info {
-                flex-grow: 1;
-            }
+			.token-info {
+				flex-grow: 1;
+			}
 
-            .token-name {
-                font-size: 1.2em;
-                font-weight: bold;
-            }
+			.token-name {
+				font-size: 1.2em;
+				font-weight: bold;
+			}
 
-            .token-details {
-                font-size: 0.9em;
-                color: var(--secondary-text-color);
-            }
+			.token-details {
+				font-size: 0.9em;
+				color: var(--secondary-text-color);
+			}
 
-            .actions {
-                display: flex;
-                justify-content: flex-end;
-                margin-bottom: 16px;
-            }
+			.token-user {
+				font-size: 0.85em;
+				font-weight: normal;
+				color: var(--secondary-text-color);
+				margin-left: 8px;
+			}
 
-            #newTokenValue {
-                word-break: break-all;
-                background: #f0f0f0;
-                padding: 8px;
-                margin: 8px 0;
-                font-family: monospace;
-            }
+			.actions {
+				display: flex;
+				justify-content: flex-end;
+				margin-bottom: 16px;
+			}
+		</style>
 
-            .listbox-container {
-                max-height: 350px;
-                overflow-y: auto;
-                border: 1px solid #ccc;
-                margin-top: 8px;
-                flex: 1;
-            }
+		<iron-ajax id="ajaxList"
+				   url="[[baseRestPath]]/strolch/privilege/tokens"
+				   method="GET"
+				   content-type="application/json"
+				   handle-as="json"
+				   on-response="_onListResponse"
+				   on-error="_onError"></iron-ajax>
 
-            .listbox-label {
-                margin-top: 16px;
-                color: var(--secondary-text-color);
-                font-size: 0.8em;
-            }
+		<iron-ajax id="ajaxPrivileges"
+				   method="GET"
+				   content-type="application/json"
+				   handle-as="json"
+				   on-response="_onPrivilegesResponse"
+				   on-error="_onError"></iron-ajax>
 
-            .flex-row {
-                display: flex;
-                gap: 16px;
-            }
+		<iron-ajax id="ajaxRevoke"
+				   method="DELETE"
+				   content-type="application/json"
+				   handle-as="json"
+				   on-response="_onRevokeResponse"
+				   on-error="_onError"></iron-ajax>
 
-            .flex-column {
-                display: flex;
-                flex-direction: column;
-                flex: 1;
-            }
+		<div class="actions">
+			<paper-button raised on-tap="_showCreateDialog">
+				<iron-icon icon="add"></iron-icon>
+				[[localize('create')]]
+			</paper-button>
+		</div>
 
-            .selected-summary {
-                margin-top: 16px;
-                padding-top: 12px;
-                border-top: 1px solid #e0e0e0;
-            }
+		<template is="dom-repeat" items="[[tokens]]" as="token">
+			<paper-material class="token-card" elevation="1" on-tap="_showDetails">
+				<div class="token-info">
+					<div class="token-name">
+						[[token.name]]
+						<template is="dom-if" if="[[token.username]]">
+							<span class="token-user">([[token.username]])</span>
+						</template>
+					</div>
+					<div class="token-details">
+						<span>[[localize('validFrom')]]: [[_formatDate(token.validFrom)]]</span> |
+						<span>[[localize('validTo')]]: [[_formatDate(token.validTo)]]</span> |
+						<span>[[localize('lastUsed')]]: [[_formatDate(token.lastUsed)]]</span>
+					</div>
+				</div>
+				<div class="token-actions">
+					<paper-icon-button icon="delete" title="[[localize('revoke')]]"
+									   on-tap="_confirmRevoke"></paper-icon-button>
+				</div>
+			</paper-material>
+		</template>
 
-            .selected-title {
-                font-weight: bold;
-                margin-top: 8px;
-                margin-bottom: 4px;
-            }
+		<strolch-wc-pat-create-dialog id="createDialog"
+									  base-rest-path="[[baseRestPath]]"
+									  locales-path="[[localesPath]]"
+									  on-strolch-pat-created="reload"></strolch-wc-pat-create-dialog>
 
-            .badge-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-bottom: 8px;
-            }
+		<strolch-wc-privilege-dialog id="privilegeDialog"></strolch-wc-privilege-dialog>
 
-            .badge {
-                background: #e0e0e0;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 0.9em;
-            }
+	</template>
 
-            .privilege-card {
-                background: #f9f9f9;
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                padding: 8px 12px;
-                margin-bottom: 8px;
-            }
+	<script>
+		Polymer({
+			is: 'strolch-wc-pats',
 
-            .privilege-card-title {
-                font-weight: bold;
-                font-size: 1em;
-                margin-bottom: 4px;
-            }
+			behaviors: [
+				StrolchInspectorBehavior
+			],
 
-            .privilege-prop {
-                font-size: 0.9em;
-                margin: 2px 0;
-            }
+			properties: {
+				baseRestPath: {
+					type: String,
+					value: './rest'
+				},
+				localesPath: {
+					type: String,
+					value: './strolch-wc-pats-locales.json'
+				},
+				username: {
+					type: String,
+					value: null,
+					observer: '_usernameChanged'
+				},
+				userId: {
+					type: String,
+					value: null
+				},
+				tokens: {
+					type: Array,
+					value: []
+				},
+				availablePrivileges: {
+					type: Array,
+					value: []
+				}
+			},
 
-            .privilege-list {
-                margin: 4px 0 4px 16px;
-                padding: 0;
-                font-size: 0.9em;
-            }
-        </style>
+			_usernameChanged: function () {
+				if (this.isAttached) {
+					this.reload();
+				}
+			},
 
-        <iron-ajax id="ajaxList"
-                   url="[[baseRestPath]]/strolch/privilege/tokens"
-                   method="GET"
-                   content-type="application/json"
-                   handle-as="json"
-                   on-response="_onListResponse"
-                   on-error="_onError"></iron-ajax>
+			attached: function () {
+				this.reload();
+			},
 
-        <iron-ajax id="ajaxCreate"
-                   url="[[baseRestPath]]/strolch/privilege/tokens"
-                   method="POST"
-                   content-type="application/json"
-                   handle-as="json"
-                   on-response="_onCreateResponse"
-                   on-error="_onError"></iron-ajax>
+			reload: function () {
+				this.$.ajaxList.headers = {'Authorization': Strolch.getAuthToken()};
+				if (this.username) {
+					this.$.ajaxList.params = {username: this.username};
+				} else {
+					this.$.ajaxList.params = {};
+				}
+				this.$.ajaxList.generateRequest();
 
-        <iron-ajax id="ajaxPrivileges"
-                   method="GET"
-                   content-type="application/json"
-                   handle-as="json"
-                   on-response="_onPrivilegesResponse"
-                   on-error="_onError"></iron-ajax>
+				this._fetchPrivileges(this.userId);
+			},
 
-        <iron-ajax id="ajaxRevoke"
-                   method="DELETE"
-                   content-type="application/json"
-                   handle-as="json"
-                   on-response="_onRevokeResponse"
-                   on-error="_onError"></iron-ajax>
+			_fetchPrivileges: function (userId) {
+				var targetUser = (userId && userId.trim().length > 0) ? userId.trim() : (this.userId || (Strolch.getUserConfig() && Strolch.getUserConfig().userId));
+				if (targetUser && this.baseRestPath) {
+					this.$.ajaxPrivileges.url = this.baseRestPath + '/strolch/privilege/users/' + targetUser + '/privileges';
+					this.$.ajaxPrivileges.headers = {'Authorization': Strolch.getAuthToken()};
+					this.$.ajaxPrivileges.generateRequest();
+				}
+			},
 
-        <div class="actions">
-            <paper-button raised on-tap="_showCreateDialog">
-                <iron-icon icon="add"></iron-icon>
-                [[localize('create')]]
-            </paper-button>
-        </div>
+			_showCreateDialog: function () {
+				var targetUsername = this.username;
+				var targetUserId = this.userId;
+				if (!targetUsername && !targetUserId && typeof Strolch !== 'undefined' && Strolch.getUserConfig && Strolch.getUserConfig()) {
+					var userConfig = Strolch.getUserConfig();
+					targetUsername = userConfig.username || null;
+					targetUserId = userConfig.userId || null;
+				}
+				this.openCreateDialogForUser(targetUsername, targetUserId);
+			},
 
-        <template is="dom-repeat" items="[[tokens]]" as="token">
-            <paper-material class="token-card" elevation="1" on-tap="_showDetails">
-                <div class="token-info">
-                    <div class="token-name">[[token.name]]</div>
-                    <div class="token-details">
-                        <span>[[localize('validFrom')]]: [[_formatDate(token.validFrom)]]</span> |
-                        <span>[[localize('validTo')]]: [[_formatDate(token.validTo)]]</span> |
-                        <span>[[localize('lastUsed')]]: [[_formatDate(token.lastUsed)]]</span>
-                    </div>
-                </div>
-                <div class="token-actions">
-                    <paper-icon-button icon="delete" title="[[localize('revoke')]]"
-                                       on-tap="_confirmRevoke"></paper-icon-button>
-                </div>
-            </paper-material>
-        </template>
+			openCreateDialogForUser: function (targetUsername, targetUserId) {
+				this.$.createDialog.open(targetUsername, targetUserId);
+			},
 
-        <!-- Create Dialog -->
-        <paper-dialog id="createDialog" modal>
-            <h2>[[localize('addPat')]]</h2>
-            <div class="content">
-                <paper-input label="[[localize('tokenName')]]" value="{{newToken.name}}" required
-                             auto-validate></paper-input>
-                <div class="flex-row">
-                    <div class="flex-column">
-                        <paper-input label="[[localize('duration')]]" type="number" min="1"
-                                     value="{{validityValue}}" required auto-validate></paper-input>
-                    </div>
-                    <div class="flex-column">
-                        <paper-dropdown-menu label="[[localize('unit')]]">
-                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{validityUnit}}">
-                                <paper-item value="days">[[localize('days')]]</paper-item>
-                                <paper-item value="months">[[localize('months')]]</paper-item>
-                                <paper-item value="years">[[localize('years')]]</paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                </div>
+			_confirmRevoke: function (e) {
+				var token = e.model.token;
+				e.stopPropagation();
+				if (confirm(this.localize('confirmRevoke'))) {
+					this.$.ajaxRevoke.url = this.baseRestPath + '/strolch/privilege/tokens/' + token.tokenId;
+					this.$.ajaxRevoke.headers = {'Authorization': Strolch.getAuthToken()};
+					this.$.ajaxRevoke.generateRequest();
+				}
+			},
 
-                <div class="flex-row">
-                    <div class="flex-column">
-                        <div class="listbox-label">[[localize('roles')]]</div>
-                        <div class="listbox-container">
-                            <paper-listbox multi selected-values="{{selectedRoles}}" attr-for-selected="name">
-                                <template is="dom-repeat" items="[[availableRoles]]">
-                                    <paper-item name="[[item]]">[[item]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </div>
-                    </div>
+			_onListResponse: function (e) {
+				this.tokens = e.detail.response;
+			},
 
-                    <div class="flex-column">
-                        <div class="listbox-label">[[localize('privileges')]]</div>
-                        <div class="listbox-container">
-                            <paper-listbox multi selected-values="{{selectedPrivileges}}" attr-for-selected="name">
-                                <template is="dom-repeat" items="[[availablePrivileges]]">
-                                    <paper-item name="[[item.name]]">[[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </div>
-                    </div>
-                </div>
+			_showDetails: function (e) {
+				var token = e.model.token;
+				this.$.privilegeDialog.open(token, this.availablePrivileges);
+			},
 
-                <div class="selected-summary">
-                    <div class="selected-title">[[localize('selectedRoles')]]</div>
-                    <template is="dom-if" if="[[isEmptyArray(selectedRoles)]]">
-                        <p><i>[[localize('none')]]</i></p>
-                    </template>
-                    <template is="dom-if" if="[[isNotEmptyArray(selectedRoles)]]">
-                        <div class="badge-container">
-                            <template is="dom-repeat" items="[[selectedRoles]]">
-                                <span class="badge">[[item]]</span>
-                            </template>
-                        </div>
-                    </template>
+			_onPrivilegesResponse: function (e) {
+				this.availablePrivileges = e.detail.response.privileges;
+			},
 
-                    <div class="selected-title">[[localize('selectedPrivileges')]]</div>
-                    <template is="dom-if" if="[[isEmptyArray(selectedPrivilegeObjects)]]">
-                        <p><i>[[localize('none')]]</i></p>
-                    </template>
-                    <template is="dom-if" if="[[isNotEmptyArray(selectedPrivilegeObjects)]]">
-                        <template is="dom-repeat" items="[[selectedPrivilegeObjects]]" as="privilege">
-                            <div class="privilege-card">
-                                <div class="privilege-card-title">[[privilege.name]]</div>
-                                <div class="privilege-prop"><b>[[localize('policy')]]:</b> [[privilege.policy]]</div>
-                                <div class="privilege-prop"><b>[[localize('allAllowed')]]:</b> [[privilege.allAllowed]]</div>
+			_onRevokeResponse: function (e) {
+				if (e.detail.response && e.detail.response.state === 'SUCCESS') {
+					alert(this.localize('revokeSuccess'));
+				} else if (e.detail.response && e.detail.response.message) {
+					alert(e.detail.response.message);
+				}
+				this.reload();
+			},
 
-                                <template is="dom-if" if="[[!privilege.allAllowed]]">
-                                    <template is="dom-if" if="[[!computeHasAllows(privilege)]]">
-                                        <div class="privilege-prop"><b>[[localize('allowList')]]:</b> <i>[[localize('none')]]</i></div>
-                                    </template>
-                                    <template is="dom-if" if="[[computeHasAllows(privilege)]]">
-                                        <div class="privilege-prop"><b>[[localize('allowList')]]:</b></div>
-                                        <ul class="privilege-list">
-                                            <template is="dom-repeat" items="[[privilege.allowList]]">
-                                                <li>[[item]]</li>
-                                            </template>
-                                        </ul>
-                                    </template>
+			_onError: function (e) {
+				this.onRequestError(e);
+			},
 
-                                    <template is="dom-if" if="[[!computeHasDenies(privilege)]]">
-                                        <div class="privilege-prop"><b>[[localize('denyList')]]:</b> <i>[[localize('none')]]</i></div>
-                                    </template>
-                                    <template is="dom-if" if="[[computeHasDenies(privilege)]]">
-                                        <div class="privilege-prop"><b>[[localize('denyList')]]:</b></div>
-                                        <ul class="privilege-list">
-                                            <template is="dom-repeat" items="[[privilege.denyList]]">
-                                                <li>[[item]]</li>
-                                            </template>
-                                        </ul>
-                                    </template>
-                                </template>
-                            </div>
-                        </template>
-                    </template>
-                </div>
-            </div>
-            <div class="buttons">
-                <paper-button dialog-dismiss>[[localize('cancel')]]</paper-button>
-                <paper-button on-tap="_createToken">[[localize('save')]]</paper-button>
-            </div>
-        </paper-dialog>
-
-        <!-- New Token Result Dialog -->
-        <paper-dialog id="resultDialog" modal>
-            <h2>[[localize('tokenCreated')]]</h2>
-            <div class="content">
-                <p>[[localize('tokenCreatedMsg')]]</p>
-                <div id="newTokenValue">[[createdTokenValue]]</div>
-            </div>
-            <div class="buttons">
-                <paper-button on-tap="_copyToClipboard" hidden$="[[!showCopyButton]]">[[localize('copyToClipboard')]]
-                </paper-button>
-                <paper-button dialog-confirm>[[localize('close')]]</paper-button>
-            </div>
-        </paper-dialog>
-
-        <strolch-wc-privilege-dialog id="privilegeDialog"></strolch-wc-privilege-dialog>
-
-    </template>
-
-    <script>
-        Polymer({
-            is: 'strolch-wc-pats',
-
-            behaviors: [
-                StrolchInspectorBehavior
-            ],
-
-            properties: {
-                tokens: {
-                    type: Array,
-                    value: []
-                },
-                newToken: {
-                    type: Object,
-                    value: function () {
-                        return {name: ''};
-                    }
-                },
-                validityValue: {
-                    type: Number,
-                    value: 1
-                },
-                validityUnit: {
-                    type: String,
-                    value: 'years'
-                },
-                createdTokenValue: String,
-                availableRoles: {
-                    type: Array,
-                    value: []
-                },
-                availablePrivileges: {
-                    type: Array,
-                    value: []
-                },
-                selectedRoles: {
-                    type: Array,
-                    value: []
-                },
-                selectedPrivileges: {
-                    type: Array,
-                    value: []
-                },
-                selectedPrivilegeObjects: {
-                    type: Array,
-                    computed: '_computeSelectedPrivilegeObjects(selectedPrivileges, selectedPrivileges.splices, availablePrivileges)'
-                },
-                showCopyButton: {
-                    type: Boolean,
-                    value: false
-                }
-            },
-
-            attached: function () {
-                this.showCopyButton = !!navigator.clipboard;
-                this.reload();
-            },
-
-            reload: function () {
-                this.$.ajaxList.headers = {'Authorization': Strolch.getAuthToken()};
-                this.$.ajaxList.generateRequest();
-
-                this.$.ajaxPrivileges.url = this.baseRestPath + '/strolch/privilege/users/' + Strolch.getUserConfig().userId + '/privileges';
-                this.$.ajaxPrivileges.headers = {'Authorization': Strolch.getAuthToken()};
-                this.$.ajaxPrivileges.generateRequest();
-            },
-
-            _showCreateDialog: function () {
-                this.set('newToken', {
-                    name: ''
-                });
-                this.validityValue = 1;
-                this.validityUnit = 'years';
-                this.selectedRoles = [];
-                this.selectedPrivileges = [];
-                this.$.createDialog.open();
-            },
-
-            _createToken: function () {
-                if (!this.newToken.name || !this.validityValue || this.validityValue <= 0 || !this.validityUnit) {
-                    return;
-                }
-                var validFrom = new Date();
-                var validTo = new Date(validFrom.getTime());
-                var val = parseInt(this.validityValue, 10);
-                if (this.validityUnit === 'days') {
-                    validTo.setDate(validTo.getDate() + val);
-                } else if (this.validityUnit === 'months') {
-                    validTo.setMonth(validTo.getMonth() + val);
-                } else if (this.validityUnit === 'years') {
-                    validTo.setFullYear(validTo.getFullYear() + val);
-                }
-
-                this.$.ajaxCreate.body = JSON.stringify({
-                    name: this.newToken.name,
-                    validFrom: validFrom.toISOString(),
-                    validTo: validTo.toISOString(),
-                    roles: this.selectedRoles,
-                    privileges: this.selectedPrivileges
-                });
-                this.$.ajaxCreate.generateRequest();
-            },
-
-            _confirmRevoke: function (e) {
-                var token = e.model.token;
-                e.stopPropagation();
-                if (confirm(this.localize('confirmRevoke'))) {
-                    this.$.ajaxRevoke.url = this.baseRestPath + '/strolch/privilege/tokens/' + token.tokenId;
-                    this.$.ajaxRevoke.headers = {'Authorization': Strolch.getAuthToken()};
-                    this.$.ajaxRevoke.generateRequest();
-                }
-            },
-
-            _onListResponse: function (e) {
-                this.tokens = e.detail.response;
-            },
-
-            _showDetails: function (e) {
-                var token = e.model.token;
-                this.$.privilegeDialog.open(token, this.availablePrivileges);
-            },
-
-            _onPrivilegesResponse: function (e) {
-                this.availableRoles = e.detail.response.roles;
-                this.availablePrivileges = e.detail.response.privileges;
-            },
-
-            _onCreateResponse: function (e) {
-                this.$.createDialog.close();
-                this.createdTokenValue = e.detail.response.token;
-                this.$.resultDialog.open();
-                this.reload();
-            },
-
-            _onRevokeResponse: function (e) {
-                if (e.detail.response && e.detail.response.state === 'SUCCESS') {
-                    alert(this.localize('revokeSuccess'));
-                } else if (e.detail.response && e.detail.response.message) {
-                    alert(e.detail.response.message);
-                }
-                this.reload();
-            },
-
-            _onError: function (e) {
-                this.onRequestError(e);
-            },
-
-            _formatDate: function (dateStr) {
-                if (!dateStr || dateStr === "-") return "-";
-                return new Date(dateStr).toLocaleString();
-            },
-
-            _copyToClipboard: function () {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(this.createdTokenValue).then(function () {
-                        console.log('Token copied to clipboard');
-                    }.bind(this), function (err) {
-                        console.error('Could not copy text: ', err);
-                    }.bind(this));
-                }
-            },
-
-            _computeSelectedPrivilegeObjects: function (selectedPrivileges, splices, availablePrivileges) {
-                if (!this.selectedPrivileges || !availablePrivileges) {
-                    return [];
-                }
-                var selectedMap = {};
-                for (var i = 0; i < this.selectedPrivileges.length; i++) {
-                    selectedMap[this.selectedPrivileges[i]] = true;
-                }
-                return availablePrivileges.filter(function (p) {
-                    return selectedMap[p.name];
-                });
-            },
-
-            computeHasAllows: function (privilege) {
-                return this.isNotEmptyArray(privilege.allowList);
-            },
-
-            computeHasDenies: function (privilege) {
-                return this.isNotEmptyArray(privilege.denyList);
-            }
-        });
-    </script>
+			_formatDate: function (dateStr) {
+				if (!dateStr || dateStr === "-") return "-";
+				return new Date(dateStr).toLocaleString();
+			}
+		});
+	</script>
 </dom-module>

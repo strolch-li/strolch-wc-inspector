@@ -12,6 +12,8 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-menu/paper-menu.html">
 
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-item/paper-item.html">
@@ -24,6 +26,7 @@
 <link rel="import" href="strolch-wc-inspector-behavior.html">
 <link rel="import" href="strolch-wc-inspector-paging-behavior.html">
 <link rel="import" href="strolch-wc-privilege-dialog.html">
+<link rel="import" href="strolch-wc-pat-create-dialog.html">
 
 <dom-module id="strolch-wc-users">
 
@@ -188,14 +191,16 @@
                             [[toLocalDateTime(item.history.lastPasswordChange)]]
                         </div>
                         <div class="table-cell actions">
-                            <paper-icon-button icon="create" title="Edit" on-tap="_editUser"></paper-icon-button>
-                            <paper-icon-button icon="lock-outline"
-                                               title="Set password"
-                                               on-tap="_openPwDlg"></paper-icon-button>
-                            <paper-icon-button icon="delete" title="Remove" on-tap="_removeUser"></paper-icon-button>
-                            <paper-icon-button icon="icons:assignment" title="Privileges"
-                                               on-tap="_showPrivileges"></paper-icon-button>
-
+                            <paper-menu-button horizontal-align="right" close-on-activate>
+                                <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button>
+                                <paper-menu class="dropdown-content">
+                                    <paper-item on-tap="_editUser">Edit</paper-item>
+                                    <paper-item on-tap="_openPwDlg">Set password</paper-item>
+                                    <paper-item on-tap="_removeUser">Remove</paper-item>
+                                    <paper-item on-tap="_showPrivileges">Privileges</paper-item>
+                                    <paper-item on-tap="_createPat">Add PAT</paper-item>
+                                </paper-menu>
+                            </paper-menu-button>
                         </div>
                     </div>
                 </template>
@@ -228,6 +233,8 @@
                 <paper-button dialog-confirm autofocus>Close</paper-button>
             </div>
         </paper-dialog>
+
+        <strolch-wc-pat-create-dialog id="patCreateDlg" base-rest-path="[[_getBaseRestPath(basePath)]]"></strolch-wc-pat-create-dialog>
 
         <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
@@ -752,6 +759,18 @@
             },
             _closePrivilegesDlg: function () {
                 this.$.privilegesDlg.close();
+            },
+
+            _getBaseRestPath: function (basePath) {
+                if (!basePath || basePath === './') {
+                    return './rest';
+                }
+                return basePath.endsWith('/') ? basePath + 'rest' : basePath + '/rest';
+            },
+
+            _createPat: function (e) {
+                var user = e.model.item;
+                this.$.patCreateDlg.open(user.username, user.userId);
             },
 
             _editUser: function (e) {

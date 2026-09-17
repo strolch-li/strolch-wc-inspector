@@ -1,0 +1,447 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../strolch-wc-styles/strolch-wc-styles.html">
+
+<link rel="import" href="strolch-wc-inspector-behavior.html">
+
+<dom-module id="strolch-wc-pat-create-dialog">
+	<template>
+		<style include="strolch-wc-styles">
+			:host {
+				display: block;
+			}
+
+			#newTokenValue {
+				word-break: break-all;
+				background: #f0f0f0;
+				padding: 8px;
+				margin: 8px 0;
+				font-family: monospace;
+			}
+
+			.listbox-container {
+				max-height: 350px;
+				overflow-y: auto;
+				border: 1px solid #ccc;
+				margin-top: 8px;
+				flex: 1;
+			}
+
+			.listbox-label {
+				margin-top: 16px;
+				color: var(--secondary-text-color);
+				font-size: 0.8em;
+			}
+
+			.flex-row {
+				display: flex;
+				gap: 16px;
+			}
+
+			.flex-column {
+				display: flex;
+				flex-direction: column;
+				flex: 1;
+			}
+
+			.selected-summary {
+				margin-top: 16px;
+				padding-top: 12px;
+				border-top: 1px solid #e0e0e0;
+			}
+
+			.selected-title {
+				font-weight: bold;
+				margin-top: 8px;
+				margin-bottom: 4px;
+			}
+
+			.badge-container {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				margin-bottom: 8px;
+			}
+
+			.badge {
+				background: #e0e0e0;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: 0.9em;
+			}
+
+			.privilege-card {
+				background: #fafafa;
+				border: 1px solid #e0e0e0;
+				border-radius: 4px;
+				padding: 8px 12px;
+				margin-bottom: 8px;
+			}
+
+			.privilege-card-title {
+				font-weight: bold;
+				margin-bottom: 4px;
+			}
+
+			.privilege-prop {
+				font-size: 0.9em;
+				margin: 2px 0;
+			}
+
+			.privilege-list {
+				margin: 4px 0 4px 16px;
+				padding: 0;
+				font-size: 0.9em;
+			}
+		</style>
+
+		<iron-ajax id="ajaxCreate"
+				   url="[[baseRestPath]]/strolch/privilege/tokens"
+				   method="POST"
+				   content-type="application/json"
+				   handle-as="json"
+				   on-response="_onCreateResponse"
+				   on-error="_onError"></iron-ajax>
+
+		<iron-ajax id="ajaxPrivileges"
+				   method="GET"
+				   content-type="application/json"
+				   handle-as="json"
+				   on-response="_onPrivilegesResponse"
+				   on-error="_onError"></iron-ajax>
+
+		<!-- Create Dialog -->
+		<paper-dialog id="createDialog" modal>
+			<h2>[[localize('addPat')]]</h2>
+			<div class="content">
+				<paper-input label="[[localize('username')]]" value="{{newToken.username}}"></paper-input>
+				<paper-input label="[[localize('userId')]]" value="{{newToken.userId}}"
+							 on-change="_onUserIdInputChanged"></paper-input>
+				<paper-input label="[[localize('tokenName')]]" value="{{newToken.name}}" required
+							 auto-validate></paper-input>
+				<div class="flex-row">
+					<div class="flex-column">
+						<paper-input label="[[localize('duration')]]" type="number" min="1"
+									 value="{{validityValue}}" required auto-validate></paper-input>
+					</div>
+					<div class="flex-column">
+						<paper-dropdown-menu label="[[localize('unit')]]">
+							<paper-listbox class="dropdown-content" attr-for-selected="value"
+										   selected="{{validityUnit}}">
+								<paper-item value="days">[[localize('days')]]</paper-item>
+								<paper-item value="months">[[localize('months')]]</paper-item>
+								<paper-item value="years">[[localize('years')]]</paper-item>
+							</paper-listbox>
+						</paper-dropdown-menu>
+					</div>
+				</div>
+
+				<div class="flex-row">
+					<div class="flex-column">
+						<div class="listbox-label">[[localize('roles')]]</div>
+						<div class="listbox-container">
+							<paper-listbox multi selected-values="{{selectedRoles}}" attr-for-selected="name">
+								<template is="dom-repeat" items="[[availableRoles]]">
+									<paper-item name="[[item]]">[[item]]</paper-item>
+								</template>
+							</paper-listbox>
+						</div>
+					</div>
+
+					<div class="flex-column">
+						<div class="listbox-label">[[localize('privileges')]]</div>
+						<div class="listbox-container">
+							<paper-listbox multi selected-values="{{selectedPrivileges}}" attr-for-selected="name">
+								<template is="dom-repeat" items="[[availablePrivileges]]">
+									<paper-item name="[[item.name]]">[[item.name]]</paper-item>
+								</template>
+							</paper-listbox>
+						</div>
+					</div>
+				</div>
+
+				<div class="selected-summary">
+					<div class="selected-title">[[localize('selectedRoles')]]</div>
+					<template is="dom-if" if="[[isEmptyArray(selectedRoles)]]">
+						<p><i>[[localize('none')]]</i></p>
+					</template>
+					<template is="dom-if" if="[[isNotEmptyArray(selectedRoles)]]">
+						<div class="badge-container">
+							<template is="dom-repeat" items="[[selectedRoles]]">
+								<span class="badge">[[item]]</span>
+							</template>
+						</div>
+					</template>
+
+					<div class="selected-title">[[localize('selectedPrivileges')]]</div>
+					<template is="dom-if" if="[[isEmptyArray(selectedPrivilegeObjects)]]">
+						<p><i>[[localize('none')]]</i></p>
+					</template>
+					<template is="dom-if" if="[[isNotEmptyArray(selectedPrivilegeObjects)]]">
+						<template is="dom-repeat" items="[[selectedPrivilegeObjects]]" as="privilege">
+							<div class="privilege-card">
+								<div class="privilege-card-title">[[privilege.name]]</div>
+								<div class="privilege-prop"><b>[[localize('policy')]]:</b> [[privilege.policy]]</div>
+								<div class="privilege-prop"><b>[[localize('allAllowed')]]:</b> [[privilege.allAllowed]]
+								</div>
+
+								<template is="dom-if" if="[[!privilege.allAllowed]]">
+									<template is="dom-if" if="[[!computeHasAllows(privilege)]]">
+										<div class="privilege-prop"><b>[[localize('allowList')]]:</b> <i>[[localize('none')]]</i>
+										</div>
+									</template>
+									<template is="dom-if" if="[[computeHasAllows(privilege)]]">
+										<div class="privilege-prop"><b>[[localize('allowList')]]:</b></div>
+										<ul class="privilege-list">
+											<template is="dom-repeat" items="[[privilege.allowList]]">
+												<li>[[item]]</li>
+											</template>
+										</ul>
+									</template>
+
+									<template is="dom-if" if="[[!computeHasDenies(privilege)]]">
+										<div class="privilege-prop"><b>[[localize('denyList')]]:</b> <i>[[localize('none')]]</i>
+										</div>
+									</template>
+									<template is="dom-if" if="[[computeHasDenies(privilege)]]">
+										<div class="privilege-prop"><b>[[localize('denyList')]]:</b></div>
+										<ul class="privilege-list">
+											<template is="dom-repeat" items="[[privilege.denyList]]">
+												<li>[[item]]</li>
+											</template>
+										</ul>
+									</template>
+								</template>
+							</div>
+						</template>
+					</template>
+				</div>
+			</div>
+			<div class="buttons">
+				<paper-button dialog-dismiss>[[localize('cancel')]]</paper-button>
+				<paper-button on-tap="_createToken">[[localize('save')]]</paper-button>
+			</div>
+		</paper-dialog>
+
+		<!-- New Token Result Dialog -->
+		<paper-dialog id="resultDialog" modal>
+			<h2>[[localize('tokenCreated')]]</h2>
+			<div class="content">
+				<p>[[localize('tokenCreatedMsg')]]</p>
+				<div id="newTokenValue">[[createdTokenValue]]</div>
+			</div>
+			<div class="buttons">
+				<paper-button on-tap="_copyToClipboard" hidden$="[[!showCopyButton]]">[[localize('copyToClipboard')]]
+				</paper-button>
+				<paper-button dialog-confirm>[[localize('close')]]</paper-button>
+			</div>
+		</paper-dialog>
+	</template>
+
+	<script>
+		Polymer({
+			is: 'strolch-wc-pat-create-dialog',
+
+			behaviors: [
+				StrolchInspectorBehavior
+			],
+
+			properties: {
+				baseRestPath: {
+					type: String,
+					value: './rest'
+				},
+				localesPath: {
+					type: String,
+					value: './strolch-wc-pats-locales.json'
+				},
+				newToken: {
+					type: Object,
+					value: function () {
+						return {name: '', username: '', userId: ''};
+					}
+				},
+				userId: {
+					type: String,
+					value: null
+				},
+				validityValue: {
+					type: Number,
+					value: 1
+				},
+				validityUnit: {
+					type: String,
+					value: "years"
+				},
+				createdTokenValue: {
+					type: String,
+					value: null
+				},
+				availableRoles: {
+					type: Array,
+					value: []
+				},
+				availablePrivileges: {
+					type: Array,
+					value: []
+				},
+				selectedRoles: {
+					type: Array,
+					value: []
+				},
+				selectedPrivileges: {
+					type: Array,
+					value: []
+				},
+				selectedPrivilegeObjects: {
+					type: Array,
+					computed: '_computeSelectedPrivilegeObjects(selectedPrivileges, selectedPrivileges.splices, availablePrivileges)'
+				},
+				showCopyButton: {
+					type: Boolean,
+					value: false
+				}
+			},
+
+			attached: function () {
+				this.showCopyButton = !!navigator.clipboard;
+			},
+
+			open: function (targetUsername, targetUserId) {
+				var username = '';
+				var userId = '';
+				if (typeof targetUsername === 'object' && targetUsername !== null) {
+					username = targetUsername.username || '';
+					userId = targetUsername.userId || '';
+				} else {
+					username = targetUsername || '';
+					userId = targetUserId || '';
+				}
+				if (!username && !userId && typeof Strolch !== 'undefined' && Strolch.getUserConfig && Strolch.getUserConfig()) {
+					var userConfig = Strolch.getUserConfig();
+					username = userConfig.username || '';
+					userId = userConfig.userId || '';
+				}
+				this.userId = userId;
+				this.set('newToken', {
+					name: '',
+					username: username,
+					userId: userId
+				});
+				this.validityValue = 1;
+				this.set('validityUnit', 'years');
+				this.selectedRoles = [];
+				this.selectedPrivileges = [];
+				this._fetchPrivileges(this.userId || this.newToken.userId);
+				this.$.createDialog.open();
+			},
+
+			close: function () {
+				this.$.createDialog.close();
+			},
+
+			_fetchPrivileges: function (userId) {
+				var targetUser = (userId && userId.trim().length > 0) ? userId.trim() : (this.userId || (Strolch.getUserConfig() && Strolch.getUserConfig().userId));
+				if (targetUser && this.baseRestPath) {
+					this.$.ajaxPrivileges.url = this.baseRestPath + '/strolch/privilege/users/' + targetUser + '/privileges';
+					this.$.ajaxPrivileges.headers = {'Authorization': Strolch.getAuthToken()};
+					this.$.ajaxPrivileges.generateRequest();
+				}
+			},
+
+			_onUserIdInputChanged: function () {
+				this.selectedRoles = [];
+				this.selectedPrivileges = [];
+				this.userId = this.newToken.userId;
+				this._fetchPrivileges(this.newToken.userId);
+			},
+
+			_createToken: function () {
+				if (!this.newToken.name || !this.validityValue || this.validityValue <= 0 || !this.validityUnit) {
+					return;
+				}
+				var validFrom = new Date();
+				var validTo = new Date(validFrom.getTime());
+				var val = parseInt(this.validityValue, 10);
+				if (this.validityUnit === "days") {
+					validTo.setDate(validTo.getDate() + val);
+				} else if (this.validityUnit === "months") {
+					validTo.setMonth(validTo.getMonth() + val);
+				} else if (this.validityUnit === "years") {
+					validTo.setFullYear(validTo.getFullYear() + val);
+				}
+
+				var payload = {
+					name: this.newToken.name,
+					validFrom: validFrom.toISOString(),
+					validTo: validTo.toISOString(),
+					roles: this.selectedRoles,
+					privileges: this.selectedPrivileges
+				};
+				if (this.newToken.username && this.newToken.username.trim().length > 0) {
+					payload.username = this.newToken.username.trim();
+				}
+
+				this.$.ajaxCreate.body = JSON.stringify(payload);
+				this.$.ajaxCreate.headers = {"Authorization": Strolch.getAuthToken()};
+				this.$.ajaxCreate.generateRequest();
+			},
+
+			_onPrivilegesResponse: function (e) {
+				this.availableRoles = e.detail.response.roles;
+				this.availablePrivileges = e.detail.response.privileges;
+			},
+
+			_onCreateResponse: function (e) {
+				this.$.createDialog.close();
+				this.createdTokenValue = e.detail.response.token;
+				this.$.resultDialog.open();
+				this.fire("strolch-pat-created", e.detail.response);
+			},
+
+			_onError: function (e) {
+				this.onRequestError(e);
+			},
+
+			_copyToClipboard: function () {
+				if (navigator.clipboard) {
+					navigator.clipboard.writeText(this.createdTokenValue).then(function () {
+						console.log('Token copied to clipboard');
+					}.bind(this), function (err) {
+						console.error('Could not copy text: ', err);
+					}.bind(this));
+				}
+			},
+
+			_computeSelectedPrivilegeObjects: function (selectedPrivileges, splices, availablePrivileges) {
+				if (!this.selectedPrivileges || !availablePrivileges) {
+					return [];
+				}
+				var selectedMap = {};
+				for (var i = 0; i < this.selectedPrivileges.length; i++) {
+					selectedMap[this.selectedPrivileges[i]] = true;
+				}
+				return availablePrivileges.filter(function (p) {
+					return selectedMap[p.name];
+				});
+			},
+
+			computeHasAllows: function (privilege) {
+				return this.isNotEmptyArray(privilege.allowList);
+			},
+
+			computeHasDenies: function (privilege) {
+				return this.isNotEmptyArray(privilege.denyList);
+			}
+		});
+	</script>
+</dom-module>

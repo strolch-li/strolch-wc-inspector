@@ -2,6 +2,8 @@
   "en": {
     "pats": "Personal Access Tokens",
     "tokenName": "Token Name",
+    "username": "Username",
+    "userId": "User ID",
     "validFrom": "Valid From",
     "validTo": "Valid To",
     "lastUsed": "Last Used",
@@ -34,6 +36,8 @@
   "de": {
     "pats": "Persönliche Zugangs-Token",
     "tokenName": "Token Name",
+    "username": "Benutzername",
+    "userId": "Benutzer-ID",
     "validFrom": "Gültig von",
     "validTo": "Gültig bis",
     "lastUsed": "Zuletzt verwendet",
