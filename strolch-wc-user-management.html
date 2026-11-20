@@ -78,9 +78,10 @@
                     <template is="dom-if" if="[[hasPrivilege('PrivilegeGetUser')]]">
                         <strolch-wc-users id="users"
                                           base-path="[[basePath]]"
+                                          base-rest-path="[[baseRestPath]]"
+                                          locales-path="[[localesPath]]"
                                           search-term="{{searchTerm}}"
                                           user-location="[[userLocation]]"
-                                          locales-path="[[localesPath]]"
                                           propagate-show-dialog></strolch-wc-users>
                     </template>
                 </template>
@@ -88,9 +89,10 @@
                     <template is="dom-if" if="[[hasPrivilege('PrivilegeGetGroup')]]">
                         <strolch-wc-groups id="groups"
                                            base-path="[[basePath]]"
+                                           base-rest-path="[[baseRestPath]]"
+                                           locales-path="[[localesPath]]"
                                            search-term="{{searchTerm}}"
                                            user-location="[[userLocation]]"
-                                           locales-path="[[localesPath]]"
                                            propagate-show-dialog></strolch-wc-groups>
                     </template>
                 </template>
@@ -98,9 +100,10 @@
                     <template is="dom-if" if="[[hasPrivilege('PrivilegeGetRole')]]">
                         <strolch-wc-roles id="roles"
                                           base-path="[[basePath]]"
+                                          base-rest-path="[[baseRestPath]]"
+                                          locales-path="[[localesPath]]"
                                           search-term="{{searchTerm}}"
                                           user-location="[[userLocation]]"
-                                          locales-path="[[localesPath]]"
                                           propagate-show-dialog></strolch-wc-roles>
                     </template>
                 </template>
@@ -109,16 +112,18 @@
                     <template is="dom-if" if="[[hasPrivilege('GetSession')]]">
                         <strolch-wc-sessions id="sessions"
                                              base-path="[[basePath]]"
+                                             base-rest-path="[[baseRestPath]]"
+                                             locales-path="[[localesPath]]"
                                              search-term="{{searchTerm}}"
                                              user-location="[[userLocation]]"
-                                             locales-path="[[localesPath]]"
                                              propagate-show-dialog></strolch-wc-sessions>
                     </template>
                 </template>
                 <template is="dom-if" if="[[equal(selectedTab, 'pats')]]" restamp>
                     <template is="dom-if"
                               if="[[hasServicePrivilege('li.strolch.service.privilege.tokens.GetPersonalAccessTokensService')]]">
-                        <strolch-wc-pats id="pats" base-rest-path="[[baseRestPath]]"
+                        <strolch-wc-pats id="pats" base-path="[[basePath]]"
+                                         base-rest-path="[[baseRestPath]]"
                                          locales-path="[[localesPath]]"></strolch-wc-pats>
                     </template>
                 </template>

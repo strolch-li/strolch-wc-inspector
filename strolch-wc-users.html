@@ -234,7 +234,8 @@
             </div>
         </paper-dialog>
 
-        <strolch-wc-pats-dialog id="patsDlg" base-rest-path="[[_getBaseRestPath(basePath)]]"></strolch-wc-pats-dialog>
+        <strolch-wc-pats-dialog id="patsDlg" base-rest-path="[[baseRestPath]]"
+                                locales-path="[[localesPath]]"></strolch-wc-pats-dialog>
 
         <strolch-wc-privilege-dialog id="privilegesDlg"></strolch-wc-privilege-dialog>
 
@@ -402,6 +403,18 @@
             ],
 
             properties: {
+                basePath: {
+                    type: String,
+                    value: './'
+                },
+                baseRestPath: {
+                    type: String,
+                    value: './'
+                },
+                localesPath: {
+                    type: String,
+                    value: './locales.json'
+                },
                 roles: {
                     type: Array
                 },
